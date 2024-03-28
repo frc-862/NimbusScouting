@@ -21,7 +21,7 @@ import {
 
 // Example JSON string for the form builder:
 const exampleJson = JSON.stringify({
-  "page_list": ["Auton", "Teleop", "Endgame"],
+  "page_list": ["Auton", "Teleop", "Endgame", "General"],
   "Auton": [
     {
       "type": "header",
@@ -48,8 +48,7 @@ const exampleJson = JSON.stringify({
           "key_value": "collection_location",
           "choices": [
             {"label": "Starting Line", "value": "start_line", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-            {"label": "Middle", "value": "middle", "selectColor": "rgba(0, 0, 255, 0.3)"},
-            {"label": "Preload", "value": "preload", "selectColor": "rgba(0, 0, 255, 0.3)"}
+            {"label": "Center Line", "value": "center_line", "selectColor": "rgba(0, 0, 255, 0.3)"},
           ],
           "multi_select": true
         }
@@ -126,7 +125,7 @@ const exampleJson = JSON.stringify({
           "key_value": "collection_type",
           "choices": [
             {"label": "Ground", "value": "ground", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-            {"label": "Substation", "value": "substation", "selectColor": "rgba(0, 0, 255, 0.3)"}
+            {"label": "Source", "value": "source", "selectColor": "rgba(0, 0, 255, 0.3)"}
           ],
           "multi_select": true
         }
@@ -157,14 +156,6 @@ const exampleJson = JSON.stringify({
           "key_value": "speaker_scored",
           "only_numbers": true,
           "max_num": 999
-        },
-        {
-          "type": "input",
-          "title": "Amplified",
-          "default_value": "0",
-          "key_value": "amplified_scored",
-          "only_numbers": true,
-          "max_num": 999
         }
       ]
     }
@@ -179,72 +170,84 @@ const exampleJson = JSON.stringify({
       }
     },
     {
-      "type": "container",
-      "style": {"width": '90%'},
-      "children": [
-        {
-          "type": "choice",
-          "title": "Climb",
-          "key_value": "climb",
-          "choices": [
-            {"label": "Climb", "value": "climb", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-            {"label": "Spotlit", "value": "spotlit", "selectColor": "rgba(0, 0, 255, 0.3)"},
-            {"label": "Trap", "value": "trap", "selectColor": "rgba(0, 0, 255, 0.3)"}
-          ],
-          "multi_select": true
-        },
-        {
-          "type": "choice",
-          "title": "Harmony",
-          "key_value": "harmony",
-          "choices": [
-            {"label": "Harmony +1", "value": "harmony1", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-            {"label": "Harmony +2", "value": "harmony2", "selectColor": "rgba(0, 0, 255, 0.3)"}
-          ]
-        },
+      "type": "choice",
+      "title": "Climb",
+      "key_value": "climb",
+      "choices": [
+        {"label": "Single Climb", "value": "single", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "Double Climb", "value": "double", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "Park", "value": "park", "selectColor": "rgba(0, 0, 255, 0.3)"},
       ]
     },
     {
       "type": "header",
-      "title": "Robot Parked",
+      "title": "Robot Trapped",
       "props": {
         "headerNum": 2
       }
     },
     {
       "type": "checkbox",
-      "key_value": "park",
-      "title": "Park",
+      "key_value": "trap",
+      "title": "Trapped",
       "props": {
         "select_color": "rgba(0, 0, 255, 0.6)"
       }
-    },
+    }
+  ],
+  "General": [
     {
       "type": "header",
-      "title": "Human Player",
+      "title": "Played Defense",
       "props": {
         "headerNum": 1
       }
     },
     {
-      "type": "container",
-      "children": [
-        {
-          "type": "input",
-          "key_value": "spotlit_attempts",
-          "default_value": "0",
-          "title": "Spotlit Attempts",
-          "only_numbers": true,
-          "max_num": 3
-        },
-        {
-          "type": "input",
-          "key_value": "successful_spotlits",
-          "default_value": "0",
-          "title": "Successful Attempts",
-          "only_numbers": true,
-          "max_num": 3
-        }
+      "type": "choice",
+      "key_value": "defense",
+      "title": "Played Defense",
+      "choices": [
+        {"label": "Never", "value": "never", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "A little", "value": "little", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "A while", "value": "while", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Always", "value": "always", "selectColor": "rgba(0, 0, 255, 0.3)"}
+      ]
+    },
+    {
+      "type": "header",
+      "title": "Notes Stuck",
+      "props": {
+        "headerNum": 1
+      }
+    },
+    {
+      "type": "choice",
+      "key_value": "note_stuck",
+      "title": "Notes Stuck",
+      "choices": [
+        {"label": "Never", "value": "never", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "Once", "value": "once", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "A few", "value": "a_few", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Many", "value": "many", "selectColor": "rgba(0, 0, 255, 0.3)"}
+      ]
+    },
+    {
+      "type": "header",
+      "title": "Was Disabled",
+      "props": {
+        "headerNum": 1
+      }
+    },
+    {
+      "type": "choice",
+      "key_value": "disabled",
+      "title": "Was Disabled",
+      "choices": [
+        {"label": "Never", "value": "never", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "Short", "value": "short", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Long", "value": "long", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Entire Match", "value": "entire", "selectColor": "rgba(0, 0, 255, 0.3)"}
       ]
     }
   ]
@@ -253,7 +256,7 @@ const exampleJson = JSON.stringify({
 const FormBuilderPageShell = (props) => {
   return (
     <View style={[styles.page, props.style]}>
-      <PageHeader gradientDir={props.gradientDir} title={props.title}/>
+      <PageHeader gradientDir={props.gradientDir} infoText={`Event: ${props.statePackage.APIData.event.slice(0, 4) + " " + props.statePackage.APIData.event_name}`} title={props.title}/>
 
       <PageContent gradientDir={props.gradientDir} statePackage={props.statePackage} scrollable={true}>
         {props.children}

@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useMemo } from 'react';
+import React, {useState, useRef, useEffect, useMemo, memo } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { 
@@ -11,7 +11,7 @@ import {
   Button,
   TextInput
 } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
+import { Dropdown } from 'react-native-element-dropdown';
 import * as Svg from 'react-native-svg';
 
 // Functions only used for these elements
@@ -50,7 +50,6 @@ function getBigData(statePackage, key_value, if_null) {
         // Use the key to try and get the value from the bigData, if the value is "" or undef, then just use if_null
         return bigData[page_key][key_value] || if_null;
     } catch (e) {
-        console.log(statePackage.bigDataTest.page_keys)
         console.log(key_value);
         return if_null;
     }
@@ -113,40 +112,60 @@ const GradientButton = ({key_value, save_data=true, textStyle = {}, statePackage
         </GradientShell>
 )};
 
-const GradientDropDown = ({key_value, save_data=true, style = {}, statePackage = {}, extraAttributes = {inContainer: false}, data = [], title = "Click to show dropdown", gradientDir = 1}) =>  {
+const GradientDropDown = memo(({key_value, save_data=true, style = {}, statePackage = {}, extraAttributes = {inContainer: false}, data = [], parallelState = {state, set}, title = "Click to show dropdown", gradientDir = 1}) =>  {
     if (key_value == undefined && save_data) {
         console.error("No key value provided for dropdown.");
     }
     
     const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
-    const [items, setItems] = useState(data);
-
-    const bottomRad = (extraAttributes.inContainer && extraAttributes.containerPos == -1 || extraAttributes.containerPos == 2) ? 0 : 15;
-    const topRad = (extraAttributes.inContainer && extraAttributes.containerPos == 1 || extraAttributes.containerPos == 2) ? 0 : 15;
+    const [value, setValue] = useState(parallelState.state || null);
 
     return (
-        <GradientShell style={style} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}}>
-            <DropDownPicker
-                open={open}
+        // <GradientShell style={style} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}}>
+            <Dropdown
+                data={data}
+                style={[style, {width: '80%', height: 75, color: 'green', borderRadius: 20, borderTopRightRadius: 20, padding: 'auto'},{backgroundColor: 'rgb(0,0,40)'}]}
+                containerStyle={{backgroundColor: 'rgb(0, 0, 40)', marginTop: -2, borderWidth: 0, borderRadius: 20, overflow: 'hidden'}}
+                selectedTextStyle={{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center', margin: 'auto', }}
+                itemContainerStyle={{backgroundColor: 'rgb(0, 0, 40)'}}
+                placeholderStyle={{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center'}}
+                inputSearchStyle={{color: 'white', fontWeight: 'bold', borderWidth: 0}}
+                search
+                autoScroll={false}
+                renderItem={(item, selected) => {
+                    return (
+                        <View style={{
+                            height: 50, 
+                            paddingLeft: 10, 
+                            justifyContent: 'center', 
+                            alignItems: 'left', 
+                            backgroundColor: (selected ? 'hsl(39, 70%, 20%)' : 'rgb(0,0,40)'), 
+                            color: 'white'}}
+                        >
+                            <Text style={{color: 'white', fontWeight: 'bold'}}>{item.label}</Text>
+                        </View>
+                    )
+                }}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!open ? title : '...'}
+                searchPlaceholder="Search..."
                 value={value}
-                items={items}
-                setOpen={setOpen}
-                setValue={setValue}
-                setItems={setItems}
-                placeholder={title}
-                style={[styles.dropdownInner,
-                    {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad}]}
-                textStyle={{color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20}}
-                placeholderStyle={{position: 'absolute', width: '100%', margin: '4%'}}
-                dropDownContainerStyle={[style,{backgroundColor: 'rgb(0, 0, 50)', borderWidth: 5, borderRadius: 15, borderTopWidth: 5, borderColor: 'blue'}]}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
+                onChange={async item => {
+                  setValue(item.value);
+                  parallelState.set(item.label, item.value);
+                  setOpen(false);
+                }}
             />
-        </GradientShell>
-)};
+        // </GradientShell>
+)});
 
 const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage = {}, extraAttributes = {inContainer: false}, disabled, title = "", selectColor = 'rgba(0,0,0,0)', gradientDir = 1}) => {
     if (key_value == undefined && save_data) {
-        console.error("No key value provided for dropdown.");
+        console.error("No key value provided for checkbox.");
     }
     
     disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
@@ -172,7 +191,7 @@ const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage =
                 onPressOut={() => { if (!disabled) {pressOutOpacity(opacityAnim)}}}
             >
                 <Animated.View
-                    style={[styles.checkboxInner, {opacity: opacityAnim, backgroundColor: value ? selectColor : 'rgb(0, 0, 50)'}, 
+                    style={[styles.checkboxInner, {opacity: opacityAnim, backgroundColor: value ? selectColor : 'rgb(0, 0, 40)'}, 
                     {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad}]} 
                 >
                 </Animated.View>
@@ -183,7 +202,7 @@ const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage =
 
 const GradientChoice = ({key_value, changed, save_data=true, multiselect = false, style = {}, statePackage = {}, setParallelState, data = [], extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1}) => {
     if (key_value == undefined && save_data) {
-        console.error("No key value provided for dropdown.");
+        console.error("No key value provided for choice.");
     }
 
     disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
@@ -221,7 +240,7 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
                 onPressOut={() => { if (!disabled) {pressOutOpacity(opacityAnim)}}}
             >
                 <Animated.View
-                    style={[styles.buttonInner, {opacity: opacityAnim, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgb(0, 0, 50)',}, 
+                    style={[styles.buttonInner, {opacity: opacityAnim, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgb(0, 0, 40)',}, 
                         {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad},
                     style]}
                 >
@@ -236,7 +255,7 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
         <GradientShell style={[style]} innerStyle={[{flexDirection: 'row'}]} gradientDir={gradientDir} radius={{bottomRad: bottomRad, topRad: topRad}}>
             {data.map((item, index) => {
             let selected = startIndexes.includes(index);
-            let style = {backgroundColor: selected ? item.selectColor : 'rgb(0, 0, 50)', width: 'auto', height: '100%', flex: 1};
+            let style = {backgroundColor: selected ? item.selectColor : 'rgb(0, 0, 40)', width: 'auto', height: '100%', flex: 1};
             if (index == 0) {
                 style.marginRight = 3; 
                 style.borderTopRightRadius = 0;
@@ -287,7 +306,7 @@ const GradientMultiChoice = ({key_value, changed, save_data=true, style = {}, st
 
 const GradientTextInput = ({key_value, save_data=true, asTicker = false, style = {}, default_value="", statePackage, setParallelState, extraAttributes = {inContainer: false}, disabled, title = "", titleStyle, regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
     if (key_value == undefined && save_data) {
-        console.error("No key value provided for dropdown.");
+        console.error("No key value provided for text input.");
     }
 
     disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
@@ -315,7 +334,7 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{backgroundColor: 'rgb(0, 0, 50)', width: '20%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick}, style]}>
+                <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', width: '20%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick}, style]}>
                     <Text style={{color: 'white', textAlign: 'center', fontSize: 35}}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
@@ -324,7 +343,7 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
 
     return (
         <GradientShell innerStyle={{}} style={[{height: 120}, style]} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}}>
-            <View style={{backgroundColor: 'rgb(0,0, 50)', height: '40%', overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: topRad, borderTopRightRadius: topRad}}>
+            <View style={{backgroundColor: 'rgb(0,0, 40)', height: '40%', overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: topRad, borderTopRightRadius: topRad}}>
                 <Text style={[{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center'}, titleStyle]}>{title}</Text>    
             </View> 
             <View style={{width: '99.8%', height: '60%', marginTop: '1%', flexDirection: 'row'}}>
@@ -418,7 +437,7 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 50)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
+                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 40)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
                     <Text style={{ color: 'white', textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
@@ -427,7 +446,7 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
 
     const Timer = ({style = {}, text = ""}) => {
         return (
-            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 50)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
+            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
                 <Text style={{color: 'white', textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
             </Animated.View>
         );
@@ -467,7 +486,7 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
 // TODO: make a list underneath the element for previous times.
 const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage, extraAttributes = {inContainer: false}, disabled, title = "", regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
     if (key_value == undefined && save_data) {
-        console.error("No key value provided for dropdown.");
+        console.error("No key value provided for cycle timer.");
     }
 
     disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
@@ -502,7 +521,7 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 50)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
+                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 40)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
                     <Text style={{ color: 'white', textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
@@ -511,7 +530,7 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
 
     const Timer = ({style = {}, text = ""}) => {
         return (
-            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 50)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
+            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
                 <Text style={{color: 'white', position: 'absolute', top: 0, width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 'bold'}}>{times.join(', ')}</Text>
                 <Text style={{color: 'white', textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
             </Animated.View>
@@ -559,12 +578,14 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
 
 const GradientQRCode = ({text}) => {
     return (
-        <View style={{marginBottom: 10}}>
+        <View style={{padding: 5, borderRadius: 10, backgroundColor: 'white', marginBottom: 10}}>
             <QRCode
                 value={text}
                 size={325}
-                color= 'black'//'rgb(0, 0, 50)'
+                color= 'black'//'rgb(0, 0, 40)'
                 backgroundColor= 'white'//'hsl(39, 70%, 35%)'
+                enableLinearGradient={true}
+                linearGradient={['hsl(240, 70%, 35%)', 'hsl(39, 70%, 35%)']}
             />
         </View>
     );
@@ -611,7 +632,7 @@ const styles = StyleSheet.create({
     buttonInner: {
         borderRadius: 15,
         flex: 1,
-        backgroundColor: 'rgb(0, 0, 50)',
+        backgroundColor: 'rgb(0, 0, 40)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -636,7 +657,7 @@ const styles = StyleSheet.create({
     dropdownInner: { 
         alignSelf: 'center',
         color: 'white',
-        backgroundColor: 'rgb(0, 0, 50)',
+        backgroundColor: 'rgb(0, 0, 40)',
         // WHY DO I HAVE TO DO THIS
         width: '100%',
         height: '100%',
@@ -664,7 +685,7 @@ const styles = StyleSheet.create({
     },
     textInput: {
         color: 'white', 
-        backgroundColor: 'rgb(0, 0, 50)',
+        backgroundColor: 'rgb(0, 0, 40)',
         fontWeight: 'bold',
         textAlign: 'center', 
         fontSize: 20,
@@ -679,7 +700,7 @@ const styles = StyleSheet.create({
     checkboxInner: {
         borderRadius: 15,
         flex: 1,
-        backgroundColor: 'rgb(0, 0, 50)',
+        backgroundColor: 'rgb(0, 0, 40)',
         justifyContent: 'center',
         alignItems: 'center',
     },

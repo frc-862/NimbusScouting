@@ -43,9 +43,10 @@ const RelatedContentContainer = ({statePackage, gradientDir, style, ...props}) =
 )};
 
 // Makes a header for the page.
-const PageHeader = ({title = "null", style = {}, statePackage, gradientDir = 1}) => (
+const PageHeader = ({title = "null", style = {}, infoText, statePackage, gradientDir = 1}) => (
   <View style={[styles.pageHeader, style]}>
     <Text style={styles.title}>{title}</Text>
+    { infoText ? <Text style={{color: 'white', marginTop: 4, textAlign: 'center'}}>{infoText}</Text> : null }
     <LinearGradient
     colors={['hsl(240, 70%, 40%)', 'hsl(39, 70%, 40%)']}
     start={{x: gradientDir ? 0 : 1, y: 0}}
@@ -57,7 +58,7 @@ const PageHeader = ({title = "null", style = {}, statePackage, gradientDir = 1})
 );
 
 // Makes a footer for the page.
-const PageFooter = ({style = {}, statePackage, gradientDir = 1, overrideNext = () => { statePackage.slideScreen(1); }, overrideBack = () => { statePackage.slideScreen(-1); }}) => {
+const PageFooter = ({style = {}, statePackage, gradientDir = 1, overrideNext = () => { statePackage.slideScreen(1, statePackage); }, overrideBack = () => { statePackage.slideScreen(-1, statePackage); }}) => {
   const SelectionButton = ({style = {}, title = "", onPress = ()=>{}}) => {
     const opacityAnim = useRef(new Animated.Value(1)).current;
 

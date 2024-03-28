@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, memo} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeflateString, InflateString } from './backend/DataCompression';
@@ -27,7 +27,8 @@ import {
   GradientNumberInput, 
   GradientTextInput,
   GradientQRCode,
-  GradientShell
+  GradientShell,
+  GradientDropDown
 } from './GradientComponents';
 import {
   HeaderTitle,
@@ -41,47 +42,80 @@ import { FormBuilder, GetFormJSONAsMatch, EncodeJSON, DecodeJSON } from './FormB
 import { 
   getBlueAllianceMatches, 
   getBlueAllianceTeams, 
+  getBlueAllianceEvents,
   putOneToDatabase
 } from './backend/APIRequests';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from './InfoAnimations';
+import { Header } from 'react-native/Libraries/NewAppScreen';
+import NetInfo from '@react-native-community/netinfo';
 
-// Link to open testflight app?: exp+nimbus://expo-development-client/?event=2023tnkn
+// Link to open testflight app?: exp+nimbus://expo-development-client/?event=2024tnkn
 // QR Code is in the assets folder.
 export default function App() {
   const dimensions = Dimensions.get('window');
   const [loadingStage, setLoadingStage] = useState(0);
   const [maxLoadingStage, setMaxLoadingStage] = useState(3);
-  const [loadingScreen, setLoadingScreen] = useState(false);
   const [screenIndex, setScreenIndex] = useState(0);
   const [screens, setScreens] = useState([]);
   const [editingIndex, setEditingIndex] = useState(-1);
+  const [viewingMatch, setViewingMatch] = useState(false);
   const [bigDataTest, setBigData] = useState({});
   const [form, setForm] = useState(FormBuilder());
   const [name, setName] = useState('');
   const [linkInfo, setLinkInfo] = useState({event: '', url: ''});
-  const [APIData, setAPIData] = useState({matches: [], teams: [], event: ''});
-  const [viewingMatch, setViewingMatch] = useState(false);
-  const [infoModelProps, setInfoModelProps] = useState({headerText: 'Header', infoText: 'Info', buttonText: 'Button', visible: false, type: 'info'});
+  const [APIData, setAPIData] = useState({matches: [], teams: [], event: '', event_name: '', events: []});
+  const [serverInfo, setServerInfo] = useState({ip: 'frc862.com', port: '4000', timeout: 3000});
   const [matchesScouted, setMatchesScouted] = useState([]);
   const [sentMatches, setSentMatches] = useState([]);
   const [failedSendMatches, setFailedSendMatches] = useState([]);
-  const [scoutedMatchInfo, setScoutedMatchInfo] = useState([]);
   const leftAmount = useRef(new Animated.Value(0)).current;
 
   const lightningImage = require('./assets/862gigawatt.png');
 
-  const getAPIData = async (eventCode) => {
+  const getAPIData = async (eventCode, loadEvents) => {
     try {
-        const matches = await getBlueAllianceMatches(eventCode);
-        const teams = await getBlueAllianceTeams(eventCode);
-        const newData = {
-          matches: matches,
-          teams: teams,
-          event: eventCode
-        };
-        setAPIData(newData);
-        AsyncStorage.setItem(eventCode, JSON.stringify(newData));
+      let networkInfo = await NetInfo.fetch()
+
+      let loadFromAPI = networkInfo.isConnected && !networkInfo.details.isConnectionExpensive;
+      //console.log(networkInfo, loadFromAPI)
+      let matches = [];
+      let teams = [];
+      if (!loadFromAPI) {
+        let eventAPIData = await AsyncStorage.getItem(eventCode);
+        try {
+          matches = JSON.parse(eventAPIData)["matches"]; 
+          teams = JSON.parse(eventAPIData)["teams"];
+        } catch (e) {
+          console.error("Uh oh! Something went wrong with getting the matches from your device! Unfortunately, you also don't have internet, so try going to a place that does.");
+        }
+      } else {
+        matches = await getBlueAllianceMatches(eventCode, serverInfo.timeout);
+        teams = await getBlueAllianceTeams(eventCode, serverInfo.timeout);
+      }
+      let events = loadEvents && loadFromAPI ? await getBlueAllianceEvents(eventCode.slice(0, 4), serverInfo.timeout) : "ERROR";
+      if (events == "ERROR") {
+        const keys = await AsyncStorage.getAllKeys();
+        if (keys.includes(eventCode.slice(0, 4))) {
+          events = JSON.parse(await AsyncStorage.getItem(eventCode.slice(0, 4)));
+        } else {
+          console.error("UH OH! You don't have the internet for finding the events, and you don't have the events stored on the device!")
+        }
+      } else {
+        await AsyncStorage.setItem(eventCode.slice(0, 4), JSON.stringify(events));
+      }
+      const event = events.constructor == Array ? events.find((event) => event["key"] == eventCode) : {}
+      
+      const newData = {
+        matches: matches,
+        teams: teams,
+        event: eventCode,
+        event_name: event ? event["name"] : "None Found",
+        events: events.constructor == Array ? events : []
+      };
+      setAPIData(newData);
+      
+      AsyncStorage.setItem(eventCode, JSON.stringify(newData));
     } catch (error) {
       console.error(error);
     }
@@ -114,12 +148,14 @@ export default function App() {
     // IN case of loading failed for some reason
     addLoadingTimeHehe(20000).then(() => { if (loadingStage != -1) { setLoadingStage(-1); } });
 
+    setServerInfo(JSON.parse(await AsyncStorage.getItem('serverInfo') || JSON.stringify(serverInfo)));
+    
     // const byteSize = str => new Blob([str]).size;
     // let sample = `
     // {
     //   "auton": {"amp_scored": "15", "collection_location": "12", "leave": "718", "notes_collected": "77", "speaker_scored": "true"}, 
     //   "endgame": {"climb": "cheesze", "harmony": "aaaa", "park": "bbbb", "spotlit_attempts": "cccc", "successful_spotlits": "dddd"}, 
-    //   "event": "2023alhu", "page_keys": ["prematch", "auton", "teleop", "endgame"], 
+    //   "event": "2024alhu", "page_keys": ["prematch", "auton", "teleop", "endgame"], 
     //   "prematch": {"alliance_color": "eeee", "match_num": "20", "match_type": "ffff", "team_num": "8811-red2"}, 
     //   "scout_name": "Shelby", 
     //   "teleop": {"amp_scored": "hhhh", "amplified_scored": "iiii", "collection_type": "jjjj", "notes_collected": "kkkk", "speaker_scored": "llll"}, 
@@ -139,6 +175,8 @@ export default function App() {
     while (match = regex.exec(url)) {
       params[match[1]] = match[2];
     }
+
+    alert(`Don't mind this, it is just for testing testflight links\n${url}\n${JSON.stringify(params)}`);
 
     setLoadingStage(1);
     //console.log(2);
@@ -183,24 +221,15 @@ export default function App() {
     //console.log(2);
 
     try {
-      // Getting the name of the scouter
-      let name = await AsyncStorage.getItem('name')
-      //console.log("Name:", name);
-      if (name) {
-        setName(name);
-      } else {
-        setInfoModelProps({headerText: 'Enter your name', infoText: 'You cannot do this again!', buttonText: 'Continue', visible: true, type: 'nameInput'});
-      }
-
       url = '';
 
-      setLinkInfo({event: params['event'] || '2023alhu', url: url ? url.includes("?") ? url.slice(0, url.indexOf('?')) : url : ''});
+      setLinkInfo({event: params['event'] || 'none', url: url ? url.includes("?") ? url.slice(0, url.indexOf('?')) : url : ''});
 
-      //console.log(`Event found: ${params['event'] || '2023alhu'}`)
+      //console.log(`Event found: ${params['event'] || '2024alhu'}`)
       if (params['event']) {
-        await getAPIData(decodeURIComponent(params['event']));
+        await getAPIData(decodeURIComponent(params['event']), true);
       } else {
-        await getAPIData('2023alhu');
+        await getAPIData('2024none', true);
       }
 
       setLoadingStage(3);
@@ -208,8 +237,20 @@ export default function App() {
       //console.log(3);
     } catch (e) { alert(e) }
 
-    setScreens([HomeScreen]);
-    setScreenIndex(0);
+    // Getting the name of the scouter
+    let name = await AsyncStorage.getItem('name')
+    console.log("NAME:", name);
+    //console.log("Name:", name);
+    if (name) {
+      setName(name);
+      console.log("Name:", name);
+      setScreenIndex(0);
+      setScreens([HomeScreen]);
+    } else {
+      console.log("NONAME");
+      setScreenIndex(0);
+      setScreens([NameScreen]);
+    }
 
     // Set the loading stage to -1 to indicate that the app is done loading
     setLoadingStage(-1);
@@ -251,13 +292,17 @@ export default function App() {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    console.log(name);
+  }, [name]);
+
   const initializeBigData = async (data) => {
     if (APIData.event != (data["event"] || linkInfo.event)) {
       console.log(`Switching to event ${(data["event"] || linkInfo.event)}`)
       setAPIData(JSON.parse(await AsyncStorage.getItem(data["event"] || linkInfo.event)));
     }
 
-    if (data.hasOwnProperty("event")) {
+    if (data.hasOwnProperty("event") && data.hasOwnProperty("scout_name")) {
       return;
     }
 
@@ -285,14 +330,15 @@ export default function App() {
     }
   }
 
-  const slideScreen = (dir) => { 
-    console.log(bigDataTest["prematch"]) 
+  const slideScreen = (dir, statePackage) => { 
+    //console.log(bigDataTest["prematch"]) 
     if (screenIndex == 0 && dir < 0) {
       // If not editing, just go back to the home screen
       if (editingIndex == -1) {
         setScreens([HomeScreen]);
-        if (!name) {
-          setInfoModelProps({headerText: 'Enter your name', infoText: 'You cannot do this again!', buttonText: 'Continue', visible: true, type: 'nameInput'});
+        console.log(statePackage.name);
+        if (!statePackage.name) {
+          setScreens([NameScreen]);
         }
       }
 
@@ -337,20 +383,25 @@ export default function App() {
 
     return (
       <View style={[styles.page, style]}>
-        <PageHeader gradientDir={gradientDir} title='Home' style={{position: 'absolute', top: 0}}/>
+        <PageHeader gradientDir={gradientDir} infoText={`Event: ${statePackage.APIData.event.slice(0, 4) + " " + statePackage.APIData.event_name}`} title='Home' style={{position: 'absolute', top: 0}}/>
 
         <PageContent style={{justifyContent: 'center'}} gradientDir={gradientDir} statePackage={statePackage}>
           <GradientButton title="Match Time!" style={{height: '10%', width: '90%', position: 'absolute', top: '15%'}} onPress={async () => { 
-              setLoadingScreen(true);
+              if (statePackage.APIData.event_name == 'None Found') {
+                alert("You have not selected an event!");
+                return;
+              }
               await statePackage.initializeBigData(statePackage.bigDataTest);
               statePackage.setScreens([PrematchScreen, ...statePackage.form, SaveDataScreen]);
-              setLoadingScreen(false);
             }}/>
           <GradientButton title="Master Page" onPress={() => { 
               statePackage.setScreens([MasterAuthScreen]);
             }}/>
           <GradientButton title="Stored Matches" onPress={() => {
               statePackage.setScreens([StoredMatchesScreen]);
+            }}/>
+          <GradientButton title="Server Details" onPress={() => {
+              statePackage.setScreens([ServerDetailsScreen]);
             }}/>
           <GradientButton title="Need Help?" onPress={() => {
               statePackage.setScreens([HelpScreen]);
@@ -362,6 +413,23 @@ export default function App() {
               statePackage.setScreens([QRTestScreen]);
             }}/> */}
           
+          <RelatedContentContainer style={{bottom: 0, position: 'absolute'}}>
+            <HeaderTitle title="When selecting an item from this dropdown, IT WILL DELETE YOUR CURRENT MATCH DATA" headerNum={3} style={{width: "90%"}}/>
+            <GradientDropDown
+              style={{marginTop: 10}}
+              parallelState={{
+                state: statePackage.APIData.event, 
+                set: async (label, value) => {
+                  await statePackage.getAPIData(value, false);
+                  statePackage.setLinkInfo({...statePackage.linkInfo, event: value});
+                  setBigData({event: value});
+                }
+              }} 
+              save_data={false} 
+              title="Find Event" 
+              data={statePackage.APIData.events.map((event) => ({label: event["name"], value: event["key"]}))}
+            />
+          </RelatedContentContainer>
 
         </PageContent>
 
@@ -418,6 +486,26 @@ export default function App() {
     )
   }
 
+  const NameScreen = ({style, statePackage, gradientDir = 1}) => {
+    const [name, setName] = useState('');
+
+    return (
+      <View style={[styles.page, style]}>
+
+        <PageContent gradientDir={gradientDir} statePackage={statePackage} scrollable={false} style={{justifyContent: 'center', alignItems: 'center'}}>
+          <GradientTextInput title="Enter your name" save_data={false} setParallelState={setName}/>
+          <GradientButton disabled={!name} title="Continue" onPress={async () => { 
+              statePackage.setName(name);
+              await AsyncStorage.setItem('name', name);
+              statePackage.setScreens([HomeScreen]);
+            }}/>
+        </PageContent>
+
+        <StatusBar style="light" />
+      </View>
+    )
+  }
+
   const QRTestScreen = ({style, statePackage, gradientDir = 1}) => {
     return (
       <View style={[styles.page, style]}>
@@ -431,6 +519,30 @@ export default function App() {
       </View>
     )
   }
+
+  const ServerDetailsScreen = ({style, statePackage, gradientDir = 1}) => {
+
+    const [newServerInfo, setNewServerInfo] = useState({ip: statePackage.serverInfo.ip, port: statePackage.serverInfo.port, timeout: statePackage.serverInfo.timeout});
+
+    return (
+      <View style={[styles.page, style]}>
+        <PageHeader gradientDir={gradientDir} title='Server Details'/>
+
+        <PageContent gradientDir={gradientDir} statePackage={statePackage}>
+          <HeaderTitle headerNum={3} style={{width: '90%'}} title={`If you do not know what any of this is / does, DO NOT mess with it or ask the person in charge of the scouting app's server`}/>
+          <GradientTextInput title="Server IP" save_data={false} default_value={newServerInfo.ip} setParallelState={(value) => {setNewServerInfo({...newServerInfo, ip: value})}}/>
+          <GradientTextInput title="Port" save_data={false} default_value={newServerInfo.port} setParallelState={(value) => {setNewServerInfo({...newServerInfo, port: value})}}/>
+          <GradientTextInput title="Timeout Time (ms)" save_data={false} default_value={String(newServerInfo.timeout)} setParallelState={(value) => {setNewServerInfo({...newServerInfo, timeout: Number(value)})}}/>
+        </PageContent>
+
+        <PageFooter gradientDir={gradientDir} statePackage={statePackage} overrideBack={() => {
+          slideScreen(-1, statePackage); 
+          statePackage.setServerInfo(newServerInfo); 
+          AsyncStorage.setItem('serverInfo', JSON.stringify(newServerInfo));
+        }}/>
+      </View>
+    )
+  };
 
   const HelpScreen = ({style, statePackage, gradientDir = 1}) => {
     return (
@@ -507,15 +619,20 @@ export default function App() {
           <GradientButton title="Reset Data" onPress={
             async () => {
               alert("Reset Match Data!");
-              await AsyncStorage.setItem('hugeData', '[]');
+              statePackage.setMatchesScouted([]);
+              statePackage.setSentMatches([]);
+              statePackage.setFailedSendMatches([]);
+              await AsyncStorage.multiSet([['hugeData', '[]'], ['sentMatches', '[]'], ['failedSendMatches', '[]']]);
             }}
           />
           <GradientButton title="Reset All" onPress={
             async () => {
               alert("Reset All Data!");
-              await AsyncStorage.setItem('name', '');
+              statePackage.setMatchesScouted([]);
+              statePackage.setSentMatches([]);
+              statePackage.setFailedSendMatches([]);
               statePackage.setName('');
-              await AsyncStorage.setItem('hugeData', '[]');
+              await AsyncStorage.multiSet([['hugeData', '[]'], ['sentMatches', '[]'], ['failedSendMatches', '[]'], ['name', '']]);
             }}
           />
 
@@ -593,12 +710,6 @@ export default function App() {
         <PageHeader gradientDir={gradientDir} title='Stored Matches'/>
 
         <PageContent gradientDir={gradientDir} statePackage={statePackage} scrollable={true}>
-          <GradientButton title='Reset Matches Scouted' onPress={async () => 
-            {
-              statePackage.setMatchesScouted([]);
-              statePackage.setSentMatches([]);
-              statePackage.setFailedSendMatches([]);
-            }}/>
           <GradientButton title='Put all scouted matches to database' onPress={async () => 
             { 
               // In the case that there are no matches to send, without this, it breaks due to the method used to transfer the data all async.
@@ -619,8 +730,17 @@ export default function App() {
                 // Don't let users send view-only matches
                 if (match.view_only) { continue; }
 
-                putOneToDatabase({event: match.event, scout: match.scout_name, number: match.prematch.match_num, team_info: match.prematch.team_num, type: match.prematch.match_type[0], data: match}).then(async (response) => {;
-                  if (response === undefined) {
+                putOneToDatabase(
+                  {
+                    event: match.event, 
+                    scout: match.scout_name, 
+                    number: match.prematch.match_num, 
+                    team_info: match.prematch.team_num, 
+                    type: match.prematch.match_type[0], 
+                    data: match
+                  }, statePackage.serverInfo.ip, statePackage.serverInfo.port, statePackage.serverInfo.timeout
+                ).then(async (response) => {
+                  if (response === "ERROR") {
                     failedSendMatchesReq.push(Number(index));
                   } else {
                     sentMatchesReq.push(Number(index));
@@ -665,9 +785,9 @@ export default function App() {
 
     return (
       <View style={[styles.page, style]}>
-        <PageHeader gradientDir={gradientDir} title='Save Data'/>
+        <PageHeader gradientDir={gradientDir} infoText={`Event: ${statePackage.APIData.event.slice(0, 4) + " " + statePackage.APIData.event_name}`} title='Save Data'/>
 
-        <PageContent style={{justifyContent: 'center'}} gradientDir={gradientDir} statePackage={statePackage}>
+        <PageContent style={{justifyContent: 'center'}} gradientDir={gradientDir} statePackage={statePackage} scrollable={false}>
           <HeaderTitle title='QR Data'/>
           <HeaderTitle title='Scan this QR to view the data on another device.' headerNum={3} style={{width: '60%', marginTop: -5, marginBottom: 10}}/>
           <GradientQRCode text={compressed_uri}/>
@@ -686,9 +806,25 @@ export default function App() {
                 return;
               }
 
+              // FIND FIELDS THAT ARE REQUIRED THAT NEED TO BE FILLED IN. Automate eventually.
+              const errors = [];
+
               // If no name or match number is specified, dont save the data.
               if (statePackage.bigDataTest["prematch"]["match_num"] == 0) {
-                alert("No match number specified!\nCannot save data!")
+                errors.push("No match number specified");
+              }
+              if (statePackage.bigDataTest["prematch"]["match_type"].length == 0) {
+                errors.push("No match type specified");
+              }
+              if (statePackage.bigDataTest["prematch"]["alliance_color"].length == 0) {
+                errors.push("No alliance color specified");
+              }
+              if (statePackage.bigDataTest["prematch"]["team_num"].length == 0) {
+                errors.push("No team number specified");
+              }
+
+              if (errors.length > 0) {
+                alert("Cannot save data!\n" + errors.join(",\n") + "!");
                 return;
               }
 
@@ -742,7 +878,7 @@ export default function App() {
         // Unset the team value, so that they have to set it again if needed.
         let currentTeamNum = statePackage.bigDataTest["prematch"]["team_num"] ? statePackage.bigDataTest["prematch"]["team_num"][0] : "";
         currentTeamNum = /^[rbt]/.test(currentTeamNum) ? "aa" : currentTeamNum;
-        console.log(currentTeamNum)
+        //console.log(currentTeamNum)
         if (!teamsDisplay.includes(currentTeamNum.slice(0, currentTeamNum.indexOf("-"))) && currentTeamNum != "") {
           let newData = statePackage.bigDataTest;
           newData["prematch"]["team_num"] = "";
@@ -751,11 +887,11 @@ export default function App() {
       }
     }
 
-    console.log(statePackage.bigDataTest["prematch"]);
+    // console.log("AAAA:",statePackage.bigDataTest["prematch"]);
 
     return (
       <View style={[styles.page, style]}>
-        <PageHeader title='Prematch' gradientDir={gradientDir}/>
+        <PageHeader title='Prematch' infoText={`Event: ${statePackage.APIData.event.slice(0, 4) + " " + statePackage.APIData.event_name}`} gradientDir={gradientDir}/>
 
         <PageContent gradientDir={gradientDir} statePackage={statePackage} scrollable={true}>
           <HeaderTitle title='Match Info' headerNum={2}/>
@@ -809,6 +945,7 @@ export default function App() {
     initializeBigData: initializeBigData,
     setBigData: setBigData,
     APIData: APIData,
+    getAPIData: getAPIData,
     editingIndex: editingIndex,
     setEditingIndex: setEditingIndex,
     name: name,
@@ -816,10 +953,10 @@ export default function App() {
     viewingMatch: viewingMatch,
     setViewingMatch: setViewingMatch,
     linkInfo: linkInfo,
+    setLinkInfo: setLinkInfo,
     form: form,
-    // Notification / Popup stuff
-    infoModelProps: infoModelProps,
-    setInfoModelProps: setInfoModelProps,
+    serverInfo: serverInfo,
+    setServerInfo: setServerInfo,
     // Loading Stage:
     setLoadingStage: setLoadingStage,
     // Huge data match stuff
@@ -833,25 +970,10 @@ export default function App() {
 
   const loadingAnim = useRef(new Animated.Value(0)).current;
 
-  // return (
-  //   <SafeAreaView style={{justifyContent: 'center', alignItems: 'center'}}>
-  //     <Button title='ICHICAHICAIOCHA'></Button>
-  //   </SafeAreaView>
-  // )
-
   return (
     <TouchableNativeFeedback onPress={() => Keyboard.dismiss()}>
       <SafeAreaView style={[styles.container, {flexDirection: 'row', overflow: 'visible',left: leftAmount}]}>
         { screens.length > 0 ? <DisplayScreen key={screenIndex} statePackage={statePackage} component={screens[screenIndex]} gradientDir={(screenIndex) % 2}/> : null }
-        <ModalPopup  
-          statePackage={statePackage} 
-          infoText={infoModelProps.infoText}
-          headerText={infoModelProps.headerText} 
-          buttonText={infoModelProps.buttonText} 
-          visible={infoModelProps.visible} 
-          setVisible={() => setInfoModelProps({...infoModelProps, visible: false})}
-          type={infoModelProps.type}
-        />
         <Modal
           style={{zIndex: -1000}}
           animationType="fade"
