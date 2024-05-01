@@ -26,6 +26,20 @@ async function deleteOneFromDatabase(deleteQuery, IP, port, timeoutTime) {
 
 }
 
+async function testGet(IP, port, timeoutTime, max_tries = 1) {
+  return await axios.default.get(`http://${IP}:${port}`, { timeout: timeoutTime, headers: {password: "Abracadabra"} })
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      if (max_tries > 0) {
+        return testGet(IP, port, timeoutTime, max_tries - 1);
+      } else {
+        return "Error";
+      }
+    });
+}
+
 // Database Server Stuff
 async function getDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, query = {}, IP, port, timeoutTime) {
   return await axios.default.get(`http://${IP}:${port}${url_after}`, { headers: headers, params: query, timeout: timeoutTime })
@@ -33,7 +47,7 @@ async function getDatabaseDataFromURL(url_after, headers = { password: "Abracada
       return response.data;
     })
     .catch(error => {
-      console.log(Object.keys(error), error.message, error.name, error.code, error.request);
+      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -44,7 +58,7 @@ async function putDatabaseDataFromURL(url_after, headers = { password: "Abracada
       return response.data;
     })
     .catch(error => {
-      console.log(Object.keys(error), error.message, error.name, error.code, error.request);
+      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -55,7 +69,7 @@ async function deleteDatabaseDataFromURL(url_after, headers = { password: "Abrac
       return response.data;
     })
     .catch(error => {
-      console.log(error);
+      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -98,5 +112,6 @@ export {
   getManyFromDatabase,
   getAllFromDatabase,
   putOneToDatabase,
-  deleteOneFromDatabase
+  deleteOneFromDatabase,
+  testGet
 }

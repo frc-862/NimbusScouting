@@ -1,12 +1,12 @@
 import { View, Image, Animated, Easing, Text, StyleSheet } from "react-native";
 import React, { useRef, useState, useMemo } from "react";
 
-const fieldImage = require('./assets/game_field.png');
-const red_robot = require('./assets/red_robot_862.png');
-const blue_robot = require('./assets/blue_robot_862.png');
-const stage = require('./assets/stage.png');
-const note = require('./assets/note.png');
-const stage_april_tag = require('./assets/stage_april_tag.png');
+const fieldImage = require('../assets/game_field.png');
+const red_robot = require('../assets/red_robot_862.png');
+const blue_robot = require('../assets/blue_robot_862.png');
+const stage = require('../assets/stage.png');
+const note = require('../assets/note.png');
+const stage_april_tag = require('../assets/stage_april_tag.png');
 
 const waitTime = (ms) => {
   return new Promise((resolve, reject) => {

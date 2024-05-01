@@ -1,15 +1,9 @@
 import { View, StyleSheet, StatusBar, Platform } from "react-native";
 import { 
-  GradientButton, 
   GradientChoice, 
-  GradientDropDown, 
   GradientCheckBox,
-  GradientMultiChoice, 
   GradientNumberInput, 
   GradientTextInput,
-  GradientTimer,
-  GradientCycleTimer,
-  GradientQRCode,
 } from './GradientComponents';
 import {
   HeaderTitle,
@@ -18,6 +12,9 @@ import {
   PageContent,
   RelatedContentContainer,
 } from './PageComponents';
+import Globals from "./Globals";
+import { useContext } from "react";
+import AppContext from "../components/AppContext";
 
 // Example JSON string for the form builder:
 const exampleJson = JSON.stringify({
@@ -25,9 +22,26 @@ const exampleJson = JSON.stringify({
   "Auton": [
     {
       "type": "header",
+      "title": "Starting Position",
+      "props": {
+        "headerNum": 2
+      }
+    },
+    {
+      "type": "choice",
+      "title": "Starting Position",
+      "key_value": "starting_position",
+      "choices": [
+        {"label": "Amp", "value": "amp", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Center", "value": "center", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "Source", "value": "source", "selectColor": "rgba(0, 0, 255, 0.3)"}
+      ],
+    },
+    {
+      "type": "header",
       "title": "Collection",
       "props": {
-        "headerNum": 1
+        "headerNum": 2
       }
     },
     { 
@@ -37,10 +51,12 @@ const exampleJson = JSON.stringify({
         {
           "type": "input",
           "title": "Notes Collected",
-          "default_value": "0",
           "key_value": "notes_collected",
-          "only_numbers": true,
-          "max_num": 9
+          "props": {
+            "only_numbers": true,
+            "max_num": 9,
+            "default_value": "0"
+          }
         },
         {
           "type": "choice",
@@ -58,7 +74,7 @@ const exampleJson = JSON.stringify({
       "type": "header",
       "title": "Scoring",
       "props": {
-        "headerNum": 1
+        "headerNum": 2
       }
     },
     {
@@ -66,20 +82,24 @@ const exampleJson = JSON.stringify({
       "children": [
         {
           "type": "input",
-          "title": "AMP",
-          "default_value": "0",
-          "key_value": "amp_scored",
-          "only_numbers": true,
-          "max_num": 9
+          "title": "SPEAKER",
+          "key_value": "speaker_scored",
+          "props": {
+            "only_numbers": true,
+            "max_num": 9,
+            "default_value": "0"
+          }
         },
         {
           "type": "input",
-          "default_value": "0",
-          "title": "SPEAKER",
-          "key_value": "speaker_scored",
-          "only_numbers": true,
-          "max_num": 9
-        }
+          "title": "AMP",
+          "key_value": "amp_scored",
+          "props": {
+            "only_numbers": true,
+            "max_num": 9,
+            "default_value": "0"
+          }
+        },
       ]
     },
     {
@@ -113,27 +133,39 @@ const exampleJson = JSON.stringify({
       "children": [
         {
           "type": "input",
-          "title": "Notes Collected",
-          "default_value": "0",
-          "key_value": "notes_collected",
-          "only_numbers": true,
-          "max_num": 999
+          "title": "Ground",
+          "key_value": "ground_collect",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
         },
         {
-          "type": "choice",
-          "title": "Collection Type",
-          "key_value": "collection_type",
-          "choices": [
-            {"label": "Ground", "value": "ground", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-            {"label": "Source", "value": "source", "selectColor": "rgba(0, 0, 255, 0.3)"}
-          ],
-          "multi_select": true
-        }
+          "type": "input",
+          "title": "Source Ground",
+          "key_value": "source_ground_collect",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
+        },
+        {
+          "type": "input",
+          "title": "Source Chute",
+          "key_value": "source_chute_collect",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
+        },
       ]
     },
     {
       "type": "header",
-      "title": "Scoring",
+      "title": "Shooting",
       "props": {
         "headerNum": 1
       }
@@ -143,20 +175,34 @@ const exampleJson = JSON.stringify({
       "children": [
         {
           "type": "input",
-          "title": "AMP",
-          "default_value": "0",
-          "key_value": "amp_scored",
-          "only_numbers": true,
-          "max_num": 999
+          "title": "SPEAKER",
+          "key_value": "speaker_scored",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
         },
         {
           "type": "input",
-          "title": "SPEAKER",
-          "default_value": "0",
-          "key_value": "speaker_scored",
-          "only_numbers": true,
-          "max_num": 999
-        }
+          "title": "AMP",
+          "key_value": "amp_scored",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
+        },
+        {
+          "type": "input",
+          "title": "Passing",
+          "key_value": "passing_shot",
+          "props": {
+            "only_numbers": true,
+            "max_num": 999,
+            "default_value": "0"
+          }
+        },
       ]
     }
   ],
@@ -226,10 +272,9 @@ const exampleJson = JSON.stringify({
       "key_value": "note_stuck",
       "title": "Notes Stuck",
       "choices": [
-        {"label": "Never", "value": "never", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
-        {"label": "Once", "value": "once", "selectColor": "rgba(0, 0, 255, 0.3)"},
-        {"label": "A few", "value": "a_few", "selectColor": "rgba(0, 0, 255, 0.3)"},
-        {"label": "Many", "value": "many", "selectColor": "rgba(0, 0, 255, 0.3)"}
+        {"label": "0", "value": "zero", "selectColor": "rgba(0, 0, 255, 0.3)"}, 
+        {"label": "1", "value": "one", "selectColor": "rgba(0, 0, 255, 0.3)"},
+        {"label": "2+", "value": "twoPlus", "selectColor": "rgba(0, 0, 255, 0.3)"}
       ]
     },
     {
@@ -254,15 +299,17 @@ const exampleJson = JSON.stringify({
 });
 
 const FormBuilderPageShell = (props) => {
+  const ctx = useContext(AppContext);
+
   return (
     <View style={[styles.page, props.style]}>
-      <PageHeader gradientDir={props.gradientDir} infoText={`Event: ${props.statePackage.APIData.event.slice(0, 4) + " " + props.statePackage.APIData.event_name}`} title={props.title}/>
+      <PageHeader gradientDir={props.gradientDir} infoText={`Event: ${ctx.APIData.event.slice(0, 4) + " " + ctx.APIData.event_name}`} title={props.title}/>
 
-      <PageContent gradientDir={props.gradientDir} statePackage={props.statePackage} scrollable={true}>
+      <PageContent gradientDir={props.gradientDir} scrollable={true}>
         {props.children}
       </PageContent>
 
-      <PageFooter gradientDir={props.gradientDir} statePackage={props.statePackage}/>        
+      <PageFooter gradientDir={props.gradientDir}/>        
       <StatusBar style="light" />
     </View>
   )
@@ -286,10 +333,10 @@ function FormBuilderElement(props, index) {
       return (<RelatedContentContainer key={index} style={props.style}>{props.children.map(((child, index) => FormBuilderElement(child, index)))}</RelatedContentContainer>);
     case "input":
       // Returns a text input with the properties that were inputted.
-      if (props.only_numbers) {
-        return (<GradientNumberInput key={index} a={"a"} default_value={props.default_value} key_value={props.key_value} title={props.title} style={props.style} maxNum={props.max_num}/>);
+      if (props.props.only_numbers) {
+        return (<GradientNumberInput key={index} a={"a"} default_value={props.props.default_value} key_value={props.key_value} title={props.title} style={{height: 100}} maxNum={props.props.max_num}/>);
       }
-      return (<GradientTextInput key={index} a={"a"} default_value={props.default_value} key_value={props.key_value} title={props.title} style={props.style}/>);
+      return (<GradientTextInput key={index} a={"a"} default_value={props.default_value} key_value={props.key_value} title={props.title} style={{height: 100}}/>);
     case "checkbox":
       // Returns a checkbox with the properties that were inputted.
       return (<GradientCheckBox key={index} key_value={props.key_value} title={props.title} style={props.style} selectColor={props.props.select_color}/>);
@@ -414,7 +461,7 @@ const DecodeJSON = (json, formString) => {
 }
 
 const FormBuilder = (jsonString) => {
-  const json = jsonString || JSON.parse(exampleJson);
+  const json = JSON.parse(jsonString || exampleJson);
   let finalPages = [];
   for (let pageNameIndex in json.page_list) {
     let page = json[json.page_list[pageNameIndex]];
@@ -426,8 +473,19 @@ const FormBuilder = (jsonString) => {
 
       pageComponents.push(FormBuilderElement(component, componentIndex));
     }
-    finalPages.push(({style, statePackage, gradientDir}) => (<FormBuilderPageShell title={json.page_list[pageNameIndex]} style={style} statePackage={statePackage} gradientDir={gradientDir}>{pageComponents}</FormBuilderPageShell>));
+    finalPages.push(({style, gradientDir}) => 
+    (
+      <FormBuilderPageShell 
+        title={json.page_list[pageNameIndex]} 
+        style={style}
+        gradientDir={gradientDir}
+      >
+          {pageComponents}
+      </FormBuilderPageShell>));
   }
+
+  console.log("Final Pages:", finalPages)
+
   return finalPages;
 }
 
@@ -435,7 +493,7 @@ const styles = StyleSheet.create({
   page: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgb(0, 0, 65)',
+    backgroundColor: Globals.PageColor,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
@@ -444,4 +502,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { FormBuilder, GetFormJSONAsMatch, EncodeJSON, DecodeJSON };
+export { FormBuilder, GetFormJSONAsMatch, EncodeJSON, DecodeJSON, exampleJson };

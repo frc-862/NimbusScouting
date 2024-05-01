@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useMemo, memo } from 'react';
+import React, {useState, useRef, useEffect, useMemo, memo, useContext } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { 
@@ -13,10 +13,12 @@ import {
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import * as Svg from 'react-native-svg';
+import Globals from './Globals';
+import AppContext from '../components/AppContext';
 
 // Functions only used for these elements
 const pressInOpacity = (stateToAnim) => {
-    stateToAnim.setValue(0.5);
+    stateToAnim.setValue(Globals.ButtonHoverOpacity);
 }
 const pressOutOpacity = (stateToAnim) => {
     Animated.timing(stateToAnim, {
@@ -26,26 +28,26 @@ const pressOutOpacity = (stateToAnim) => {
     }).start();
 }
 
-function setBigData(statePackage, key_value, data) {
+function setBigData(ctx, key_value, data) {
     try {
-        let newData = statePackage.bigDataTest;
+        let newData = ctx.bigDataTest;
 
         // Get the key used for the current pagew
-        page_key = newData.page_keys[statePackage.screenIndex];
+        page_key = newData.page_keys[ctx.screenIndex];
 
         // Set the data to the corresponding key_value on the current page.
         newData[page_key][key_value] = data;
-        statePackage.setBigData(newData);
+        ctx.setBigData(newData);
     } catch (e) {
         console.log(key_value);
         return "";
     }
 }
-function getBigData(statePackage, key_value, if_null) {
+function getBigData(ctx, key_value, if_null) {
     try {
-        let bigData = statePackage.bigDataTest;
+        let bigData = ctx.bigDataTest;
         // Get the key used for the current page
-        page_key = bigData.page_keys[statePackage.screenIndex];
+        page_key = bigData.page_keys[ctx.screenIndex];
         
         // Use the key to try and get the value from the bigData, if the value is "" or undef, then just use if_null
         return bigData[page_key][key_value] || if_null;
@@ -56,7 +58,7 @@ function getBigData(statePackage, key_value, if_null) {
 }
 
 // The basic shell used for many of the gradient components
-const GradientShell = (props) => {
+const GradientShell = ({borderWidth = Globals.ShowGradientBorder ? Globals.GradientBorderWidth : 0, showBackgroundGradient = Globals.ShowGradientBorder || Globals.ShowGradientHover, ...props}) => {
     const topRad = props.radius && props.radius.topRad > 0 ? 20 : 0;
     const bottomRad = props.radius && props.radius.bottomRad > 0 ? 20 : 0;
 
@@ -66,7 +68,7 @@ const GradientShell = (props) => {
                 <LinearGradient 
                     style={[styles.dropdownGradient, {width: '100%', height: '100%'},
                         {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad}]}
-                    colors={['hsl(240, 70%, 35%)', 'hsl(39, 70%, 35%)']}
+                    colors={[Globals.GradientColor1, Globals.GradientColor2]}
                     start={{x: props.gradientDir ? 0 : 1, y: 0}}
                     end={{x: props.gradientDir ? 1 : 0, y: 0}}
                 >
@@ -76,7 +78,7 @@ const GradientShell = (props) => {
                         //onPressOut={() => { if (props.onPress) { pressOutOpacity(props.opacityAnim) }}}
                         style={{ alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}
                     >
-                        <View style={[styles.innerShell, props.innerStyle, {width: '100%', height: '100%'}]}>
+                        <View style={[styles.innerShell, props.innerStyle, {width: '100%', height: '100%', padding: borderWidth, backgroundColor: showBackgroundGradient ? 'transparent' : Globals.PageColor}]}>
                             { props.children }
                         </View>
                     </TouchableWithoutFeedback>
@@ -86,7 +88,7 @@ const GradientShell = (props) => {
     );
 }
 
-const GradientButton = ({key_value, save_data=true, textStyle = {}, statePackage = {}, innerStyle = {}, style = {}, disabled, extraAttributes = {inContainer: false}, onPress = ()=>{}, title = "", gradientDir = 1}) => {
+const GradientButton = ({key_value, showBackgroundGradient, borderWidth, save_data=true, textStyle = {}, innerStyle = {}, style = {}, disabled, extraAttributes = {inContainer: false}, onPress = ()=>{}, title = "", gradientDir = 1}) => {
     
     const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -94,7 +96,7 @@ const GradientButton = ({key_value, save_data=true, textStyle = {}, statePackage
     const topRad = (extraAttributes.inContainer && extraAttributes.containerPos == 1 || extraAttributes.containerPos == 2) ? 0 : 15;
 
     return (
-        <GradientShell style={style} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}} onPress={onPress} opacityAnim={opacityAnim} disabled={disabled}>
+        <GradientShell borderWidth={borderWidth} showBackgroundGradient={showBackgroundGradient} style={style} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}} onPress={onPress} opacityAnim={opacityAnim} disabled={disabled}>
             <TouchableNativeFeedback 
                 onPress={() => { if(!disabled) { onPress() }}}
                 onPressIn={() => { if(!disabled) { pressInOpacity(opacityAnim) }}}
@@ -112,7 +114,7 @@ const GradientButton = ({key_value, save_data=true, textStyle = {}, statePackage
         </GradientShell>
 )};
 
-const GradientDropDown = memo(({key_value, save_data=true, style = {}, statePackage = {}, extraAttributes = {inContainer: false}, data = [], parallelState = {state, set}, title = "Click to show dropdown", gradientDir = 1}) =>  {
+const GradientDropDown = memo(({key_value, save_data=true, style = {}, extraAttributes = {inContainer: false}, data = [], parallelState = {state, set}, title = "Click to show dropdown", gradientDir = 1}) =>  {
     if (key_value == undefined && save_data) {
         console.error("No key value provided for dropdown.");
     }
@@ -124,12 +126,12 @@ const GradientDropDown = memo(({key_value, save_data=true, style = {}, statePack
         // <GradientShell style={style} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}}>
             <Dropdown
                 data={data}
-                style={[style, {width: '80%', height: 75, color: 'green', borderRadius: 20, borderTopRightRadius: 20, padding: 'auto'},{backgroundColor: 'rgb(0,0,40)'}]}
-                containerStyle={{backgroundColor: 'rgb(0, 0, 40)', marginTop: -2, borderWidth: 0, borderRadius: 20, overflow: 'hidden'}}
-                selectedTextStyle={{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center', margin: 'auto', }}
-                itemContainerStyle={{backgroundColor: 'rgb(0, 0, 40)'}}
-                placeholderStyle={{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center'}}
-                inputSearchStyle={{color: 'white', fontWeight: 'bold', borderWidth: 0}}
+                style={[style, {width: '80%', height: 75, color: 'green', borderRadius: 20, borderTopRightRadius: 20, padding: 'auto'},{backgroundColor: Globals.ButtonColor}]}
+                containerStyle={{backgroundColor: Globals.ButtonColor, marginTop: -2, borderWidth: 0, borderRadius: 20, overflow: 'hidden'}}
+                selectedTextStyle={{color: Globals.TextColor, fontWeight: 'bold', fontSize: 20, textAlign: 'center', margin: 'auto', }}
+                itemContainerStyle={{backgroundColor: Globals.ButtonColor}}
+                placeholderStyle={{color: Globals.TextColor, fontWeight: 'bold', fontSize: 20, textAlign: 'center'}}
+                inputSearchStyle={{color: Globals.TextColor, fontWeight: 'bold', borderWidth: 0}}
                 search
                 autoScroll={false}
                 renderItem={(item, selected) => {
@@ -139,10 +141,10 @@ const GradientDropDown = memo(({key_value, save_data=true, style = {}, statePack
                             paddingLeft: 10, 
                             justifyContent: 'center', 
                             alignItems: 'left', 
-                            backgroundColor: (selected ? 'hsl(39, 70%, 20%)' : 'rgb(0,0,40)'), 
-                            color: 'white'}}
+                            backgroundColor: (selected ? 'hsl(39, 70%, 20%)' : Globals.ButtonColor), 
+                            color: Globals.TextColor}}
                         >
-                            <Text style={{color: 'white', fontWeight: 'bold'}}>{item.label}</Text>
+                            <Text style={{color: Globals.TextColor, fontWeight: 'bold'}}>{item.label}</Text>
                         </View>
                     )
                 }}
@@ -163,15 +165,17 @@ const GradientDropDown = memo(({key_value, save_data=true, style = {}, statePack
         // </GradientShell>
 )});
 
-const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage = {}, extraAttributes = {inContainer: false}, disabled, title = "", selectColor = 'rgba(0,0,0,0)', gradientDir = 1}) => {
+const GradientCheckBox = ({key_value, save_data=true, style = {}, extraAttributes = {inContainer: false}, disabled, title = "", selectColor = 'rgba(0,0,0,0)', gradientDir = 1}) => {
+    const ctx = useContext(AppContext)
+    
     if (key_value == undefined && save_data) {
         console.error("No key value provided for checkbox.");
     }
-    
-    disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
+
+    disabled = disabled == undefined ? (ctx.viewingMatch) : disabled;
 
     const opacityAnim = useRef(new Animated.Value(1)).current;
-    const [value, setValue] = useState(getBigData(statePackage, key_value, false));
+    const [value, setValue] = useState(getBigData(ctx, key_value, false));
 
     const bottomRad = (extraAttributes.inContainer && extraAttributes.containerPos == -1 || extraAttributes.containerPos == 2) ? 0 : 15;
     const topRad = (extraAttributes.inContainer && extraAttributes.containerPos == 1 || extraAttributes.containerPos == 2) ? 0 : 15;
@@ -179,7 +183,7 @@ const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage =
     function onPress() {
         if (save_data) {
             setValue(!value);
-            setBigData(statePackage, key_value, !value);
+            setBigData(ctx, key_value, !value);
         }
     }
 
@@ -191,7 +195,7 @@ const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage =
                 onPressOut={() => { if (!disabled) {pressOutOpacity(opacityAnim)}}}
             >
                 <Animated.View
-                    style={[styles.checkboxInner, {opacity: opacityAnim, backgroundColor: value ? selectColor : 'rgb(0, 0, 40)'}, 
+                    style={[styles.checkboxInner, {opacity: opacityAnim, backgroundColor: value ? selectColor : Globals.ButtonColor}, 
                     {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad}]} 
                 >
                 </Animated.View>
@@ -200,22 +204,15 @@ const GradientCheckBox = ({key_value, save_data=true, style = {}, statePackage =
     )
 }
 
-const GradientChoice = ({key_value, changed, save_data=true, multiselect = false, style = {}, statePackage = {}, setParallelState, data = [], extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1}) => {
+const GradientChoice = ({key_value, changed, save_data=true, multiselect = false, style = {}, setParallelState, data = [], extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1}) => {
+    const ctx = useContext(AppContext)
     if (key_value == undefined && save_data) {
         console.error("No key value provided for choice.");
     }
 
-    disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
-    let startIndexes = getBigData(statePackage, key_value, []).map((item) => data.findIndex((dataItem) => dataItem.value == item));
+    disabled = disabled == undefined ? (ctx.viewingMatch) : disabled;
+    let startIndexes = getBigData(ctx, key_value, []).map((item) => data.findIndex((dataItem) => dataItem.value == item));
     const [selectedIndexes, setSelectedIndexes] = useState(startIndexes);
-
-    // if (key_value == "team_num") {
-    //     // console.log("Data:" + data.map((item) => item.value));
-    //     // console.log(statePackage.bigDataTest["prematch"]);
-    //     // console.log("Key Value Data:" + getBigData(statePackage, key_value, []));
-    //     // console.log("Start Indexes:" + startIndexes);
-    //     // console.log("Selected Indexes:" + startIndexes);
-    // }
 
     const useParallelState = setParallelState != undefined;
 
@@ -240,7 +237,7 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
                 onPressOut={() => { if (!disabled) {pressOutOpacity(opacityAnim)}}}
             >
                 <Animated.View
-                    style={[styles.buttonInner, {opacity: opacityAnim, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgb(0, 0, 40)',}, 
+                    style={[styles.buttonInner, {opacity: opacityAnim, alignItems: 'center', justifyContent: 'center', backgroundColor: Globals.ButtonColor,}, 
                         {borderBottomLeftRadius: bottomRad, borderTopLeftRadius: topRad, borderBottomRightRadius: bottomRad, borderTopRightRadius: topRad},
                     style]}
                 >
@@ -255,9 +252,9 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
         <GradientShell style={[style]} innerStyle={[{flexDirection: 'row'}]} gradientDir={gradientDir} radius={{bottomRad: bottomRad, topRad: topRad}}>
             {data.map((item, index) => {
             let selected = startIndexes.includes(index);
-            let style = {backgroundColor: selected ? item.selectColor : 'rgb(0, 0, 40)', width: 'auto', height: '100%', flex: 1};
+            let style = {backgroundColor: selected ? item.selectColor : Globals.ButtonColor, width: 'auto', height: '100%', flex: 1};
             if (index == 0) {
-                style.marginRight = 3; 
+                style.marginRight = -1; 
                 style.borderTopRightRadius = 0;
                 style.borderBottomRightRadius = 0;
             }
@@ -266,7 +263,7 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
                 style.borderBottomLeftRadius = 0;
             }
             else {
-                style.marginRight = 3;
+                style.marginRight = -1;
                 style.borderTopRightRadius = 0;
                 style.borderBottomRightRadius = 0;
                 style.borderBottomLeftRadius = 0;
@@ -289,7 +286,7 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
                     } else {
                         newIndexes = newIndexes.includes(index) ? [] : [index];
                     }
-                    setBigData(statePackage, key_value, newIndexes.map((item) => data[item].value));
+                    setBigData(ctx, key_value, newIndexes.map((item) => data[item].value));
                     setSelectedIndexes(newIndexes);
                 }} 
                 key={item.value} 
@@ -299,21 +296,22 @@ const GradientChoice = ({key_value, changed, save_data=true, multiselect = false
         </GradientShell>
 )};
 
-const GradientMultiChoice = ({key_value, changed, save_data=true, style = {}, statePackage = {}, data = [], extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1}) => {
+const GradientMultiChoice = ({key_value, changed, save_data=true, style = {}, data = [], extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1}) => {
     return ( 
-        <GradientChoice key_value={key_value} changed={changed} save_data={save_data} multiselect={true} style={style} statePackage={statePackage} data={data} extraAttributes={extraAttributes} disabled={disabled} title={title} gradientDir={gradientDir}/>
+        <GradientChoice key_value={key_value} changed={changed} save_data={save_data} multiselect={true} style={style} data={data} extraAttributes={extraAttributes} disabled={disabled} title={title} gradientDir={gradientDir}/>
 )};
 
-const GradientTextInput = ({key_value, save_data=true, asTicker = false, style = {}, default_value="", statePackage, setParallelState, extraAttributes = {inContainer: false}, disabled, title = "", titleStyle, regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+const GradientTextInput = ({key_value, save_data=true, asTicker = false, style = {}, default_value="", setParallelState, extraAttributes = {inContainer: false}, disabled, title = "", titleStyle, regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+    const ctx = useContext(AppContext)
     if (key_value == undefined && save_data) {
         console.error("No key value provided for text input.");
     }
 
-    disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
+    disabled = disabled == undefined ? (ctx.viewingMatch) : disabled;
     
     const useParallelState = setParallelState != undefined;
 
-    const [text, setText] = useState((save_data ? getBigData(statePackage, key_value, '') : undefined) || default_value);
+    const [text, setText] = useState((save_data ? getBigData(ctx, key_value, '') : undefined) || default_value);
     const opacityAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
@@ -334,29 +332,28 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', width: '20%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick}, style]}>
-                    <Text style={{color: 'white', textAlign: 'center', fontSize: 35}}>{title}</Text>
+                <Animated.View style={[{backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', color: Globals.TextColor, justifyContent: 'center', opacity: opacityTick}, style]}>
+                    <Text style={{color: Globals.TextColor, textAlign: 'center', fontSize: 35}}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
         );
     };
-
     return (
         <GradientShell innerStyle={{}} style={[{height: 120}, style]} gradientDir={gradientDir} radius={{topRad: topRad, bottomRad: bottomRad}}>
-            <View style={{backgroundColor: 'rgb(0,0, 40)', height: '40%', overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: topRad, borderTopRightRadius: topRad}}>
-                <Text style={[{color: 'white', fontWeight: 'bold', fontSize: 20, textAlign: 'center'}, titleStyle]}>{title}</Text>    
+            <View style={{backgroundColor: Globals.ButtonColor, height: '40%', overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: topRad, borderTopRightRadius: topRad}}>
+                <Text style={[{color: Globals.TextColor, fontWeight: 'bold', fontSize: 20, textAlign: 'center'}, titleStyle]}>{title}</Text>    
             </View> 
-            <View style={{width: '99.8%', height: '60%', marginTop: '1%', flexDirection: 'row'}}>
+            <View style={{width: '100%', height: '60%', flexDirection: 'row'}}>
                 { asTicker ? 
                     <TickerButton 
                         title='-' 
-                        style={{borderBottomLeftRadius: bottomRad}}
+                        style={{borderBottomLeftRadius: bottomRad, width: '20%'}}
                         onPress={() => {
                             let newText = Number(text);
                             if (newText == 0) { return; }
                             newText = (newText - 1).toString();
                             setText(newText);
-                            setBigData(statePackage, key_value, newText);
+                            setBigData(ctx, key_value, newText);
                         }}
                     /> 
                     : null
@@ -368,7 +365,7 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
                         // If maxNum is more than -1, make sure to clamp the text to that number.
                         let newText = (maxNum > -1 && parseInt(text) > maxNum) ? maxNum.toString() : text;
                         setText(newText); 
-                        setBigData(statePackage, key_value, newText);
+                        setBigData(ctx, key_value, newText);
                     }}
                     editable={!disabled}
                     keyboardType={keyboardType}
@@ -377,19 +374,19 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
                     value={text}
                     placeholder={title}
                     placeholderTextColor='rgb(100, 100, 100)'
-                    style={[styles.textInput, {width: asTicker ? '57.5%' : '100%', marginLeft: asTicker ? '1.3%' : 0, marginRight: asTicker ? '1.25%' : 0, height: '99%'},
+                    style={[styles.textInput, {width: asTicker ? '60%' : '100%', height: '100%', marginRight: '-0.1%'},
                     {borderBottomLeftRadius: asTicker ? 0 : bottomRad, borderTopLeftRadius: 0, borderBottomRightRadius: asTicker ? 0 : bottomRad, borderTopRightRadius: 0}]}
                 />
                 { asTicker ? 
                     <TickerButton 
                         title='+' 
-                        style={{borderBottomRightRadius: bottomRad}}
+                        style={{borderBottomRightRadius: bottomRad, width: '20.1%'}}
                         onPress={() => {
                             let newText = Number(text);
                             if (newText == maxNum) { return; }
                             newText = (newText + 1).toString();
                             setText(newText);
-                            setBigData(statePackage, key_value, newText);
+                            setBigData(ctx, key_value, newText);
                         }}
                     /> 
                     : null
@@ -398,19 +395,20 @@ const GradientTextInput = ({key_value, save_data=true, asTicker = false, style =
         </GradientShell>
 )};
 
-const GradientNumberInput = ({key_value, save_data=true, asTicker = true, style = {}, default_value="0", statePackage, setParallelState, extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1, maxLength = 20, includeButtons = false, maxNum = -1}) => {
+const GradientNumberInput = ({key_value, save_data=true, asTicker = true, style = {}, default_value="0", setParallelState, extraAttributes = {inContainer: false}, disabled, title = "", gradientDir = 1, maxLength = 20, includeButtons = false, maxNum = -1}) => {
     return (
-        <GradientTextInput setParallelState={setParallelState} key_value={key_value} asTicker={asTicker} default_value={default_value} save_data={save_data} regexForText={/[^0-9]/g} disabled={disabled} title={title} maxNum={maxNum} statePackage={statePackage} extraAttributes={extraAttributes} style={[style, {width: (includeButtons ? '60%' : '80%')}]} keyboardType='numeric' maxLength = {maxLength} gradientDir={gradientDir}/>
+        <GradientTextInput setParallelState={setParallelState} key_value={key_value} asTicker={asTicker} default_value={default_value} save_data={save_data} regexForText={/[^0-9]/g} disabled={disabled} title={title} maxNum={maxNum} extraAttributes={extraAttributes} style={[style]} keyboardType='numeric' maxLength = {maxLength} gradientDir={gradientDir}/>
 )};
 
-const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, extraAttributes = {inContainer: false}, disabled, title = "", regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+const GradientTimer = ({key_value, save_data=true, style = {}, extraAttributes = {inContainer: false}, disabled, title = "", regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+    const ctx = useContext(AppContext)
     if (key_value == undefined && save_data) {
         console.error("No key value provided for timer.");
     }
 
-    disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
+    disabled = disabled == undefined ? (ctx.viewingMatch) : disabled;
 
-    const [time, setTime] = useState(getBigData(statePackage, key_value, 0));
+    const [time, setTime] = useState(getBigData(ctx, key_value, 0));
     const [startDate, setStartDate] = useState(new Date().getTime());
     const [timerRunning, setTimerRunning] = useState(false);
     const [buttonText, setButtonText] = useState('Start');
@@ -437,8 +435,8 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 40)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
+                <Animated.View style={[{ backgroundColor: Globals.ButtonColor, width: '25%', height: '100%', color: Globals.TextColor, justifyContent: 'center', opacity: opacityTick }, style]}>
+                    <Text style={{ color: Globals.TextColor, textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
         );
@@ -446,8 +444,8 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
 
     const Timer = ({style = {}, text = ""}) => {
         return (
-            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
-                <Text style={{color: 'white', textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
+            <Animated.View style={[{backgroundColor: Globals.ButtonColor, marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: Globals.TextColor, justifyContent: 'center', opacity: opacityAnim}, style]}>
+                <Text style={{color: Globals.TextColor, textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
             </Animated.View>
         );
     }
@@ -461,7 +459,7 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
                     setTimerRunning(!timerRunning);
                     if (timerRunning) { // This means that when the state is updated, the timer will no longer be running
                         setButtonText('Start');
-                        setBigData(statePackage, key_value, Number(time));
+                        setBigData(ctx, key_value, Number(time));
                     } else { 
                         setButtonText('Stop'); 
                         setStartDate(new Date().getTime() - time);
@@ -477,21 +475,22 @@ const GradientTimer = ({key_value, save_data=true, style = {}, statePackage, ext
                     setButtonText('Start');
                     setTime(0);
                     setStartDate(new Date().getTime());
-                    setBigData(statePackage, key_value, 0);
+                    setBigData(ctx, key_value, 0);
                 }}
             /> 
         </GradientShell>
 )};
 
-// TODO: make a list underneath the element for previous times.
-const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage, extraAttributes = {inContainer: false}, disabled, title = "", regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+const GradientCycleTimer = ({key_value, save_data=true, style = {}, extraAttributes = {inContainer: false}, disabled, title = "", regexForText = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1, maxNum = -1}) => {
+    const ctx = useContext(AppContext)
+    
     if (key_value == undefined && save_data) {
         console.error("No key value provided for cycle timer.");
     }
 
-    disabled = disabled == undefined ? (statePackage.viewingMatch) : disabled;
+    disabled = disabled == undefined ? (ctx.viewingMatch) : disabled;
 
-    let storedTimes = getBigData(statePackage, key_value, []);
+    let storedTimes = getBigData(ctx, key_value, []);
     const [times, setTimes] = useState(storedTimes);
     const [time, setTime] = useState(storedTimes.length == 0 ? 0 : storedTimes[storedTimes.length - 1]);
     const [startDate, setStartDate] = useState(new Date().getTime());
@@ -521,8 +520,8 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
                 onPressOut={() => (!disabled ? pressOutOpacity(opacityTick) : null)}
                 onPress={!disabled ? onPress : null}
             >
-                <Animated.View style={[{ backgroundColor: 'rgb(0, 0, 40)', width: '25%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityTick }, style]}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
+                <Animated.View style={[{ backgroundColor: Globals.ButtonColor, width: '25%', height: '100%', color: Globals.TextColor, justifyContent: 'center', opacity: opacityTick }, style]}>
+                    <Text style={{ color: Globals.TextColor, textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{title}</Text>
                 </Animated.View>
             </TouchableNativeFeedback>
         );
@@ -530,9 +529,9 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
 
     const Timer = ({style = {}, text = ""}) => {
         return (
-            <Animated.View style={[{backgroundColor: 'rgb(0, 0, 40)', marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: 'white', justifyContent: 'center', opacity: opacityAnim}, style]}>
-                <Text style={{color: 'white', position: 'absolute', top: 0, width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 'bold'}}>{times.join(', ')}</Text>
-                <Text style={{color: 'white', textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
+            <Animated.View style={[{backgroundColor: Globals.ButtonColor, marginLeft: '1%', marginRight: '1%', width: '48%', height: '100%', color: Globals.TextColor, justifyContent: 'center', opacity: opacityAnim}, style]}>
+                <Text style={{color: Globals.TextColor, position: 'absolute', top: 0, width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 'bold'}}>{times.join(', ')}</Text>
+                <Text style={{color: Globals.TextColor, textAlign: 'center', fontSize: 25, fontWeight: 'bold', fontVariant: ['tabular-nums']}}>{text}</Text>
             </Animated.View>
         );
     }
@@ -547,7 +546,7 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
                     if (timerRunning) { // This means that when the state is updated, the timer will no longer be running
                         setButtonText('Start');
                         setCycleButtonText('Reset');
-                        setBigData(statePackage, key_value, times);
+                        setBigData(ctx, key_value, times);
                     } else { 
                         setButtonText('Stop'); 
                         setCycleButtonText('Cycle');
@@ -567,7 +566,7 @@ const GradientCycleTimer = ({key_value, save_data=true, style = {}, statePackage
                         setButtonText('Start');
                         setCycleButtonText('Reset');
                         setTimes([]);
-                        setBigData(statePackage, key_value, []);
+                        setBigData(ctx, key_value, []);
                     }
                     setStartDate(new Date().getTime());
                     setTime(0);
@@ -582,10 +581,10 @@ const GradientQRCode = ({text}) => {
             <QRCode
                 value={text}
                 size={325}
-                color= 'black'//'rgb(0, 0, 40)'
-                backgroundColor= 'white'//'hsl(39, 70%, 35%)'
+                color= 'black'
+                backgroundColor= 'white'
                 enableLinearGradient={true}
-                linearGradient={['hsl(240, 70%, 35%)', 'hsl(39, 70%, 35%)']}
+                linearGradient={[Globals.GradientColor1, Globals.GradientColor2]}
             />
         </View>
     );
@@ -594,7 +593,7 @@ const GradientQRCode = ({text}) => {
 
 const styles = StyleSheet.create({
     text: {
-        color: 'white',
+        color: Globals.TextColor,
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
@@ -602,7 +601,7 @@ const styles = StyleSheet.create({
     title: {
         textAlign: 'center', 
         width: '80%', 
-        color: 'white',
+        color: Globals.TextColor,
         fontSize: 40,
         fontWeight: 'bold',
     },
@@ -632,12 +631,12 @@ const styles = StyleSheet.create({
     buttonInner: {
         borderRadius: 15,
         flex: 1,
-        backgroundColor: 'rgb(0, 0, 40)',
+        backgroundColor: Globals.ButtonColor,
         justifyContent: 'center',
         alignItems: 'center',
     },
     buttonText: {
-        color: 'white',
+        color: Globals.TextColor,
         fontWeight: 'bold',
         fontSize: 20,
     },
@@ -656,15 +655,14 @@ const styles = StyleSheet.create({
     },
     dropdownInner: { 
         alignSelf: 'center',
-        color: 'white',
-        backgroundColor: 'rgb(0, 0, 40)',
-        // WHY DO I HAVE TO DO THIS
+        color: Globals.TextColor,
+        backgroundColor: Globals.ButtonColor,
         width: '100%',
         height: '100%',
         borderRadius: 15,
     },
     dropdownText: {
-        color: 'white',
+        color: Globals.TextColor,
         fontWeight: 'bold',
         fontSize: 20,
     },
@@ -684,8 +682,8 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     textInput: {
-        color: 'white', 
-        backgroundColor: 'rgb(0, 0, 40)',
+        color: Globals.TextColor, 
+        backgroundColor: Globals.ButtonColor,
         fontWeight: 'bold',
         textAlign: 'center', 
         fontSize: 20,
@@ -700,7 +698,7 @@ const styles = StyleSheet.create({
     checkboxInner: {
         borderRadius: 15,
         flex: 1,
-        backgroundColor: 'rgb(0, 0, 40)',
+        backgroundColor: Globals.ButtonColor,
         justifyContent: 'center',
         alignItems: 'center',
     },

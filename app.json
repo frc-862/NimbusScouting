@@ -15,16 +15,35 @@
       "**/*"
     ],
     "ios": {
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "localhost": {
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            },
+            "23.28.96.143": {
+              "NSIncludesSubdomains": true,
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            },
+            "frc862.com": {
+              "NSIncludesSubdomains": true,
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            }
+          }
+        }
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.lightningrobotics.nimbus",
-      "buildNumber": "11"
+      "buildNumber": "16"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.lightningrobotics.nimbus"
+      "package": "com.lightningrobotics.nimbus",
+      "versionCode": 16
     },
     "web": {
       "favicon": "./assets/favicon.png"

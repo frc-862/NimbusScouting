@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Modal, StyleSheet, Text, View, TouchableNativeFeedback, Keyboard } from 'react-native';
 import { GradientButton, GradientShell, GradientTextInput } from './GradientComponents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AppContext from '../components/AppContext';
 
-const ModalPopup = ({headerText, infoText, buttonText, visible, setVisible, type, gradientDir = 0, statePackage}) => {
+const ModalPopup = ({headerText, infoText, buttonText, visible, setVisible, type, gradientDir = 0}) => {
+  const ctx = useContext(AppContext);
+  
   infoText = infoText != undefined ? infoText : "Info Text Here";
   buttonText = buttonText != undefined ? buttonText : "Button Text Here";
   visible = visible ? visible : false;
@@ -60,7 +63,7 @@ const ModalPopup = ({headerText, infoText, buttonText, visible, setVisible, type
                     <Text style={{textAlign: 'center', color: 'white', fontSize: 40, marginTop: 20, fontWeight: 'bold'}}>{headerText}</Text>
                     { infoText ? <Text style={{textAlign: 'center', color: 'white', marginTop: 5, fontSize: 16, fontWeight: 'bold', marginBottom: 15}}>{infoText}</Text> : null } 
                     <GradientTextInput title="Enter your name" save_data={false} setParallelState={setFinalName} disabled={false}/>
-                    <GradientButton gradientDir={gradientDir} disabled={continueButtonDisabled} title={buttonText} textStyle={{fontSize: 20, top: 0}} onPress={() => { setVisible(false); statePackage.setName(finalName); AsyncStorage.setItem('name', finalName); }}/>
+                    <GradientButton gradientDir={gradientDir} disabled={continueButtonDisabled} title={buttonText} textStyle={{fontSize: 20, top: 0}} onPress={() => { setVisible(false); ctx.setName(finalName); AsyncStorage.setItem('name', finalName); }}/>
                   </View>
                 </GradientShell>
               </View>
