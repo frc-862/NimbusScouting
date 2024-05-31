@@ -10,19 +10,16 @@ import {
   Animated,
   TouchableNativeFeedback,
   SafeAreaView,
-  Easing
+  Easing,
+  Pressable
 } from 'react-native';
-import Globals from './Globals';
+import Globals from '../Globals';
 import AppContext from '../components/AppContext';
 
 // Make some text that can be used as a header for different page components.
-const HeaderTitle = ({title = "null", style = {}, headerNum = -1}) => {
-  // Gets the right header style based on the header number inputed.
-  const headerStyle = (headerNum == -1) ? styles.header1 : {1: styles.header1, 2: styles.header2, 3: styles.header3}[headerNum]
-  
-  return (
-  <Text style={[headerStyle, style]}>{title}</Text>
-)};
+const HeaderTitle = ({title = "null", style = {}, fontSize = 30}) => {
+  return (<Text style={[{fontSize: fontSize, color: Globals.TextColor, marginBottom: 10, textAlign: 'center', fontWeight: 'bold'}, style]}>{title}</Text>)
+};
 
 // Make content merge together dynamically.
 const RelatedContentContainer = ({gradientDir, style, ...props}) => {
@@ -60,70 +57,137 @@ const PageHeader = ({title = "null", style = {}, infoText, gradientDir = 1}) => 
   </View>
 );
 
-// Makes a footer for the page.
 const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) => {
   const ctx = useContext(AppContext);
   
+  const inRange = ctx.screenIndex >= 0 && ctx.screenIndex < ctx.screens.length;
+  const nextButton = inRange && (ctx.screenIndex != ctx.screens.length - 1 || ctx.screens[ctx.screenIndex].onNext);
+  const backButton = inRange && (ctx.screenIndex != 0 || ctx.screens[ctx.screenIndex].onBack);
+
   // If no override is specified for the next or back buttons, then the default behavior is to slide the screen.
-  if (!overrideNext) { overrideNext = () => { ctx.slideScreen(1); } }
-  if (!overrideBack) { overrideBack = () => { ctx.slideScreen(-1); } }
+  if (!overrideNext) { overrideNext = () => { ctx.screens[ctx.screenIndex].onNext ? ctx.screens[ctx.screenIndex].onNext() : ctx.slideScreen(1); } }
+  if (!overrideBack) { overrideBack = () => { ctx.screens[ctx.screenIndex].onBack ? ctx.screens[ctx.screenIndex].onBack() : ctx.slideScreen(-1); } }
   
   const SelectionButton = ({style = {}, title = "", onPress = ()=>{}}) => {
     const opacityAnim = useRef(new Animated.Value(1)).current;
 
-    const pressInOpacity = (stateToAnim) => {
-      stateToAnim.setValue(0.5);
-    }
-    const pressOutOpacity = (stateToAnim) => {
-        Animated.timing(stateToAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: false,
-        }).start();
+    function setOpacity(value, time) {
+      Animated.timing(opacityAnim, {
+        toValue: value,
+        duration: time,
+        useNativeDriver: true
+      }).start();
     }
 
     return (
-        <TouchableNativeFeedback 
-            onPress={onPress}
-            onPressIn={() => pressInOpacity(opacityAnim)}
-            onPressOut={() => pressOutOpacity(opacityAnim)}
+      <Animated.View style={[{flex: 1, backgroundColor: Globals.PageHeaderFooterColor, opacity: opacityAnim}, style]}>
+        <Pressable 
+          style={{width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', zIndex: 100}}
+          onPress={onPress}
+          onPressIn={() => setOpacity(0.5, 10)}
+          onPressOut={() => setOpacity(1, 100)}
         >
-            <Animated.View
-                style={[{opacity: opacityAnim, flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Globals.PageHeaderFooterColor}, style]}
-            >
-                <Text style={[{margin: 10, color: Globals.PageHeaderFooterTextColor, fontWeight: 'bold', fontSize: 30 }]}>{title}</Text>
-            </Animated.View>
-        </TouchableNativeFeedback>
+          <Text selectable={false} style={{color: Globals.PageHeaderFooterTextColor, fontWeight: 'bold', fontSize: 30, padding: 13}}>{title}</Text>
+        </Pressable>
+      </Animated.View>
     )
   };
-  
-  const nextButton = ctx.screenIndex != ctx.screens.length - 1;
+
+  if (!nextButton && !backButton) { return null; }
 
   return (
-  <View
-    style={[styles.pageFooter, style]}
-  >
-    <LinearGradient
-      colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
-      start={{x: gradientDir ? 0 : 1, y: 0}}
-      end={{x: gradientDir ? 1 : 0, y: 0}}
-      style={{position: 'absolute', width: '104%', height: '108%', bottom: '0%', borderTopLeftRadius: 25, borderTopRightRadius: 25, marginLeft: '-2%'}}
+    <View
+      style={[styles.pageFooter, style]}
     >
-    </LinearGradient>
-    <SelectionButton 
-      gradientDir={gradientDir}
-      title="Back" 
-      onPress={overrideBack}
-      style={{width: nextButton ? '50%' : '100%', height: '100%', marginRight: 0, borderTopLeftRadius: 15, borderTopRightRadius: nextButton ? 0 : 15}}
-    />
-    { nextButton ? (<SelectionButton 
-      gradientDir={gradientDir}
-      title="Next" 
-      onPress={overrideNext}
-      style={{width: '50%', height: '100%', borderTopRightRadius: 15}}
-    />) : null }
-  </View>
-)};
+      <View style = {{width: '100%', height: 80, flexDirection: 'row', bottom: '0%', borderRadius: 25, overflow: 'hidden'}}>
+      <LinearGradient
+        colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
+        start={{x: gradientDir ? 0 : 1, y: 0}}
+        end={{x: gradientDir ? 1 : 0, y: 0}}
+        style={{position: 'absolute', width: '100%', height: '100%', zIndex: -1}}
+      >
+      </LinearGradient>
+      {
+        backButton ? 
+        <SelectionButton style={{borderTopLeftRadius: 25, borderTopRightRadius: nextButton ? 0 : 25}} title='Back' 
+          onPress={overrideBack}/>
+        : null
+      }
+      {
+        nextButton ? 
+        <SelectionButton style={{borderTopRightRadius: 25}} title='Next' 
+          onPress={overrideNext}/>
+        : null 
+      }
+      </View>
+    </View>
+  )
+}
+
+// Makes a footer for the page.
+// const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) => {
+//   const ctx = useContext(AppContext);
+  
+//   // If no override is specified for the next or back buttons, then the default behavior is to slide the screen.
+//   if (!overrideNext) { overrideNext = () => { ctx.slideScreen(1); } }
+//   if (!overrideBack) { overrideBack = () => { ctx.slideScreen(-1); } }
+  
+//   const SelectionButton = ({style = {}, title = "", onPress = ()=>{}}) => {
+//     const opacityAnim = useRef(new Animated.Value(1)).current;
+
+//     const pressInOpacity = (stateToAnim) => {
+//       stateToAnim.setValue(0.5);
+//     }
+//     const pressOutOpacity = (stateToAnim) => {
+//         Animated.timing(stateToAnim, {
+//             toValue: 1,
+//             duration: 300,
+//             useNativeDriver: false,
+//         }).start();
+//     }
+
+//     return (
+//         <TouchableNativeFeedback 
+//             onPress={onPress}
+//             onPressIn={() => pressInOpacity(opacityAnim)}
+//             onPressOut={() => pressOutOpacity(opacityAnim)}
+//         >
+//             <Animated.View
+//                 style={[{opacity: opacityAnim, flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Globals.PageHeaderFooterColor}, style]}
+//             >
+//                 <Text style={[{margin: 10, color: Globals.PageHeaderFooterTextColor, fontWeight: 'bold', fontSize: 30 }]}>{title}</Text>
+//             </Animated.View>
+//         </TouchableNativeFeedback>
+//     )
+//   };
+  
+//   const nextButton = ctx.screenIndex != ctx.screens.length - 1;
+
+//   return (
+//   <View
+//     style={[styles.pageFooter, style]}
+//   >
+//     <LinearGradient
+//       colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
+//       start={{x: gradientDir ? 0 : 1, y: 0}}
+//       end={{x: gradientDir ? 1 : 0, y: 0}}
+//       style={{position: 'absolute', width: '104%', height: '108%', bottom: '0%', borderTopLeftRadius: 25, borderTopRightRadius: 25, marginLeft: '-2%'}}
+//     >
+//     </LinearGradient>
+//     <SelectionButton 
+//       gradientDir={gradientDir}
+//       title="Back" 
+//       onPress={overrideBack}
+//       style={{width: nextButton ? '50%' : '100%', height: '100%', marginRight: 0, borderTopLeftRadius: 15, borderTopRightRadius: nextButton ? 0 : 15}}
+//     />
+//     { nextButton ? (<SelectionButton 
+//       gradientDir={gradientDir}
+//       title="Next" 
+//       onPress={overrideNext}
+//       style={{width: '50%', height: '100%', borderTopRightRadius: 15}}
+//     />) : null }
+//   </View>
+// )};
 
 // Stores the content that should show on the page.
 const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {  
@@ -193,7 +257,7 @@ const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {
     return (
       <SafeAreaView style={{width: '100%', flex: 1, zIndex: 10}}>
         <ScrollView 
-          contentContainerStyle={{minWidth: '100%'}} 
+          contentContainerStyle={[{minWidth: '100%'}]} 
           style={{width: '100%'}} 
           onScroll={({nativeEvent}) => handleScroll(nativeEvent) } 
           onContentSizeChange={(w, h) => setScrollHeight(h)} 
@@ -221,7 +285,7 @@ const styles = StyleSheet.create({
     height: '13%', 
     position: 'relative', 
     top: Platform.OS == 'android' ? -20 : '0%', 
-    marginBottom: Platform.OS == 'android' ? -20 : '2%',
+    marginBottom: Platform.OS == 'android' ? -20 : 5,
     justifyContent: 'center', 
     alignItems: 'center'
   },

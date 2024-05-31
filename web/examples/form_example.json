@@ -1,0 +1,91 @@
+[
+  {
+    "name": "Hello",
+    "uuid": "c56da1ba-1f65-4de0-80ee-c7561bb89a95",
+    "elements": [
+      {
+        "type": "label",
+        "title": "I",
+        "fontSize": 50
+      },
+      {
+        "type": "label",
+        "title": "AM",
+        "fontSize": 40
+      },
+      {
+        "type": "label",
+        "title": "A",
+        "fontSize": 30
+      },
+      {
+        "type": "label",
+        "title": "Big",
+        "fontSize": 20
+      },
+      {
+        "type": "label",
+        "title": "Label",
+        "fontSize": 10
+      }
+    ]
+  },
+  {
+    "name": "2nd Page",
+    "uuid": "62877865-43ce-40be-a746-7d3d2b45aa13",
+    "elements": [
+      {
+        "type": "choice",
+        "title": "Choices, Choices..",
+        "multiChoice": true,
+        "choices": [
+          {
+            "label": "45",
+            "value": "one",
+            "select_color": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "label": "42",
+            "value": "two",
+            "select_color": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "label": "yippee",
+            "value": "three",
+            "select_color": "rgba(0, 0, 255, 255)"
+          }
+        ],
+        "key_value": "0",
+        "default_value": "1, 2"
+      },
+      {
+        "type": "input",
+        "title": "Im put",
+        "key_value": "1"
+      }
+    ]
+  },
+  {
+    "name": "Page 3",
+    "uuid": "f0e0741f-0a54-41d5-a861-e652ecd0a94e",
+    "elements": [
+      {
+        "type": "checkbox",
+        "title": "Checks",
+        "key_value": "0"
+      },
+      {
+        "type": "checkbox",
+        "title": "and",
+        "key_value": "1",
+        "default_value": true
+      },
+      {
+        "type": "checkbox",
+        "title": "Balances",
+        "key_value": "2",
+        "default_value": false
+      }
+    ]
+  }
+]

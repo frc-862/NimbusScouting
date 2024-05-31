@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { 
   StyleSheet, 
   Text, 
+  TextInput,
   View,
   Platform,
   ScrollView,
@@ -13,16 +14,42 @@ import {
   Easing,
   Pressable
 } from 'react-native';
-import Globals from '../mobile/Globals';
-import FormBuilderContext from '../components/FormBuilderContext';
+import Globals from '../../Globals';
+import FormBuilderContext from '../../components/FormBuilderContext';
 
 // All of these are basically just copies from PageComponents.js, but changed to support web and the purpose of making a form, not using it.
 const PageHeader = ({title = "null", style = {}, infoText, gradientDir = 1}) => {
   const ctx = useContext(FormBuilderContext);
   
+  const [text, setText] = useState(title);
+
+  function trySetCurrentPageName(newName) {
+    // Ensure leading and trailing whitespace is removed.
+    newName = newName.trim();
+
+    // Ensure that no two pages have the same name.
+    if (ctx.formPages.some((page, index) => index !== ctx.currentPageIndex && page.name === newName)) {
+      alert("Another page already has that name!");
+      setText(ctx.currentPage.name);
+      return;
+    }
+
+    // Ensure the page name is not empty.
+    if (newName === "") {
+      alert("Page name cannot be empty!");
+      setText(ctx.currentPage.name);
+      return;
+    }
+
+    // Update the page name.
+    ctx.setCurrentPageName(newName);
+    setText(newName);
+  }
+
   return (
     <View style={[styles.pageHeader, style]}>
-      <Text style={[styles.title, {fontSize: 40 * ctx.scale}]}>{title}</Text>
+      <TextInput maxLength={20} selectTextOnFocus={true} onBlur={() => { trySetCurrentPageName(text); }} defaultValue={title} value={text} onChangeText={setText} style={[styles.title, {outline: 'none', fontSize: 40 * ctx.scale}]}/>
+      {/* <Text style={[styles.title, {fontSize: 40 * ctx.scale}]}>{title}</Text> */}
       { infoText ? <Text style={{color: Globals.PageHeaderFooterTextColor, marginTop: 4, textAlign: 'center'}}>{infoText}</Text> : null }
       <LinearGradient
       colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
@@ -39,11 +66,13 @@ const PageHeader = ({title = "null", style = {}, infoText, gradientDir = 1}) => 
 const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) => {
   const ctx = useContext(FormBuilderContext);
   
-  const nextButton = true;//ctx.screenIndex != ctx.screens.length - 1;
+  const inRange = ctx.currentPageIndex >= 0 && ctx.currentPageIndex < ctx.formPages.length;
+  const nextButton = inRange && ctx.currentPageIndex != ctx.formPages.length - 1;
+  const backButton = inRange && ctx.currentPageIndex != 0;
 
   // If no override is specified for the next or back buttons, then the default behavior is to slide the screen.
-  if (!overrideNext) { overrideNext = () => { console.log("To next page...") } }
-  if (!overrideBack) { overrideBack = () => { console.log("To previous page...") } }
+  if (!overrideNext) { overrideNext = () => {  } }
+  if (!overrideBack) { overrideBack = () => {  } }
   
   const SelectionButton = ({style = {}, title = "", onPress = ()=>{}}) => {
     const opacityAnim = useRef(new Animated.Value(1)).current;
@@ -70,29 +99,36 @@ const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) =
     )
   };
 
+  if (!nextButton && !backButton) { return null; }
+
   return (
-  <View
-    style={[styles.pageFooter, style]}
-  >
-    <View style = {{width: '100%', height: 80 * ctx.scale, flexDirection: 'row', bottom: '0%', borderRadius: 25 * ctx.scale, overflow: 'hidden'}}>
-    <LinearGradient
-      colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
-      start={{x: gradientDir ? 0 : 1, y: 0}}
-      end={{x: gradientDir ? 1 : 0, y: 0}}
-      style={{position: 'absolute', width: '100%', height: '100%', zIndex: -1}}
+    <View
+      style={[styles.pageFooter, style]}
     >
-    </LinearGradient>
-    <SelectionButton style={{borderTopLeftRadius: 25 * ctx.scale, borderTopRightRadius: nextButton ? 0 : 25 * ctx.scale}} title='Back' 
-      onPress={() => { if (0 < ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex - 1) } }}/>
-    {
-      nextButton ? 
-      <SelectionButton style={{borderTopRightRadius: 25 * ctx.scale}} title='Next' 
-        onPress={() => { if (ctx.formPages.length - 1 > ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex + 1) } }}/>
-      : null 
-    }
+      <View style = {{width: '100%', height: 80 * ctx.scale, flexDirection: 'row', bottom: '0%', borderRadius: 25 * ctx.scale, overflow: 'hidden'}}>
+      <LinearGradient
+        colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
+        start={{x: gradientDir ? 0 : 1, y: 0}}
+        end={{x: gradientDir ? 1 : 0, y: 0}}
+        style={{position: 'absolute', width: '100%', height: '100%', zIndex: -1}}
+      >
+      </LinearGradient>
+      {
+        backButton ? 
+        <SelectionButton style={{borderTopLeftRadius: 25 * ctx.scale, borderTopRightRadius: nextButton ? 0 : 25 * ctx.scale}} title='Back' 
+          onPress={() => { if (0 < ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex - 1) } }}/>
+        : null
+      }
+      {
+        nextButton ? 
+        <SelectionButton style={{borderTopRightRadius: 25 * ctx.scale}} title='Next' 
+          onPress={() => { if (ctx.formPages.length - 1 > ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex + 1) } }}/>
+        : null 
+      }
+      </View>
     </View>
-  </View>
-)};
+  )
+};
 
 // Stores the content that should show on the page.
 const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {  

@@ -26,6 +26,20 @@ async function deleteOneFromDatabase(deleteQuery, IP, port, timeoutTime) {
 
 }
 
+async function APIGet(fullURI, timeoutTime) {
+  return fetch(fullURI, {
+      mode: 'cors',
+      method: 'GET',
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((resp) => resp.json())
+      .then((json) => json)
+      .catch((error) => alert(error));
+}
+
 async function testGet(IP, port, timeoutTime, max_tries = 1) {
   return await axios.default.get(`http://${IP}:${port}`, { timeout: timeoutTime, headers: {password: "Abracadabra"} })
     .then(response => {
@@ -54,6 +68,17 @@ async function getDatabaseDataFromURL(url_after, headers = { password: "Abracada
 
 async function putDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, data = {}, IP, port, timeoutTime) {
   return await axios.default.put(`http://${IP}:${port}${url_after}`, data, { headers: headers, timeout: timeoutTime })
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      return "ERROR"
+    });
+}
+
+async function postDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, data = {}, IP, port, timeoutTime) {
+  return await axios.default.post(`http://${IP}:${port}${url_after}`, data, { headers: headers, timeout: timeoutTime })
     .then(response => {
       return response.data;
     })
@@ -113,5 +138,10 @@ export {
   getAllFromDatabase,
   putOneToDatabase,
   deleteOneFromDatabase,
-  testGet
+  putDatabaseDataFromURL,
+  postDatabaseDataFromURL,
+  getDatabaseDataFromURL,
+  deleteDatabaseDataFromURL,
+  testGet,
+  APIGet,
 }

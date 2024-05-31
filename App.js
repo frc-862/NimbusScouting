@@ -37,7 +37,7 @@ import {
   PageContent,
   RelatedContentContainer,
 } from './mobile/PageComponents';
-import { FormBuilder, GetFormJSONAsMatch, EncodeJSON, DecodeJSON, exampleJson } from './mobile/FormBuilder';
+import { FormBuilder, GetFormJSONAsMatch, exampleJson } from './mobile/FormBuilder';
 import { 
   getBlueAllianceMatches, 
   getBlueAllianceTeams, 
@@ -47,19 +47,23 @@ import {
 } from './backend/APIRequests';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from './mobile/InfoAnimations';
-import Globals from './mobile/Globals';
+import Globals from './Globals';
 import AppContext from './components/AppContext';
 import WebApp from './web/WebApp';
+import MobileApp from './mobile/MobileApp';
 
 // Link to open testflight app?: exp+nimbus://expo-development-client/?event=2024tnkn
 // QR Code is in the assets folder.
 export default function App() {
-  if (Platform.OS === 'web') {
+  if (['windows', 'macos', 'web'].includes(Platform.OS)) {
     return (<WebApp />);
+  } else {
+    return (<MobileApp />);
   }
 
+  const exampleForm = require('./web/examples/form_example.json');
+  const lightningImage = require('./assets/862gigawatt.png');
 
-  const dimensions = Dimensions.get('window');
   const [loadingStage, setLoadingStage] = useState(0);
   const [maxLoadingStage, setMaxLoadingStage] = useState(3);
   const [noInternet, setNoInternet] = useState({state: false, loadingFunc: async () => {}});
@@ -68,7 +72,7 @@ export default function App() {
   const [editingIndex, setEditingIndex] = useState(-1);
   const [viewingMatch, setViewingMatch] = useState(false);
   const [bigDataTest, setBigData] = useState({});
-  const [form, setForm] = useState(FormBuilder(exampleJson));
+  const [formComponents, setFormComponents] = useState(FormBuilder(exampleJson));
   const [name, setName] = useState('');
   const [linkInfo, setLinkInfo] = useState({event: '', url: ''});
   const [APIData, setAPIData] = useState({matches: [], teams: [], event: '', event_name: '', events: []});
@@ -77,9 +81,8 @@ export default function App() {
   const [matchesScouted, setMatchesScouted] = useState([]);
   const [sentMatches, setSentMatches] = useState([]);
   const [failedSendMatches, setFailedSendMatches] = useState([]);
+  const [form, setForm] = useState(exampleForm);
   const leftAmount = useRef(new Animated.Value(0)).current;
-
-  const lightningImage = require('./assets/862gigawatt.png');
 
   const getAPIData = async (eventCode, loadEvents) => {
     try {
@@ -143,14 +146,12 @@ export default function App() {
   }
 
   const compressMatchData = (matchData) => {
-    //let encoded = EncodeJSON(matchData);
     let compressedEncoded = DeflateString(JSON.stringify(matchData));
     return compressedEncoded;
   }
 
   const decompressMatchData = (compressedData) => {
     let decompressed = InflateString(compressedData);
-    //let decoded = DecodeJSON(JSON.parse(decompressed));
     return JSON.parse(decompressed);
   }
 
@@ -276,7 +277,7 @@ export default function App() {
       // Set the states for the app to go into viewing mode
       setViewingMatch(true);
       setBigData(matchData);
-      setScreens([PrematchScreen, ...form, SaveDataScreen]);
+      setScreens([PrematchScreen, ...formComponents, SaveDataScreen]);
     }
 
     setLoadingStage(3);
@@ -335,6 +336,7 @@ export default function App() {
     }
 
     let newData = GetFormJSONAsMatch();
+    console.log("NEW DATA:", newData)
 
     newData["event"] = data["event"] || APIData.event || event;
     newData["view_only"] = data["view_only"] || false;
@@ -360,7 +362,6 @@ export default function App() {
   }
 
   const slideScreen = async (dir) => { 
-    console.log(screens)
     if (screenIndex == 0 && dir < 0) {
       // If not editing, just go back to the home screen
       if (editingIndex == -1) {
@@ -387,13 +388,12 @@ export default function App() {
       }
       // Make sure the screen index is reset
       setScreenIndex(0);
-
       return;
     }
 
     if (screenIndex + dir < screens.length) {
       let newIndx = screenIndex + dir;
-      let newLeft = newIndx * -dimensions.width;
+      console.log("New Index:", newIndx, "New Page:", example[newIndx].name);
       setScreenIndex(newIndx);
     }
   }
@@ -422,19 +422,14 @@ export default function App() {
         <PageHeader gradientDir={gradientDir} infoText={`Event: ${ctx.APIData.event.slice(0, 4) + " " + ctx.APIData.event_name}`} title='Home'/>
 
         <PageContent gradientDir={gradientDir}>
-          <GradientButton title="Match Time!" style={{height: '15%', width: '90%'}} onPress={async () => { 
+          <GradientButton title="Match Time!" outerStyle={{height: '15%', width: '90%'}} style={{padding: 5}} onPress={async () => { 
               if (ctx.APIData.event_name == 'None Found') {
                 alert("You have not selected an event!");
                 return;
               }
               await ctx.initializeBigData(ctx.bigDataTest);
-              // const form = FormBuilder(exampleJson);
-              // ctx.setForm(form)
-              // console.log(form)
-              ctx.setScreens([PrematchScreen, ...ctx.form, SaveDataScreen]);
+              ctx.setScreens([PrematchScreen, ...ctx.formComponents, SaveDataScreen]);
             }}
-            showBackgroundGradient={true}
-            borderWidth={5}
           />
           <GradientButton title="Master Page" onPress={() => { 
               ctx.setScreens([MasterAuthScreen]);
@@ -759,7 +754,7 @@ export default function App() {
               ctx.setBigData(match);
               ctx.initializeBigData(match);
               ctx.setScreenIndex(0);
-              ctx.setScreens([PrematchScreen, ...form, SaveDataScreen]);
+              ctx.setScreens([PrematchScreen, ...formComponents, SaveDataScreen]);
             }}
           /> 
           )
@@ -1014,8 +1009,8 @@ export default function App() {
     setViewingMatch: setViewingMatch,
     linkInfo: linkInfo,
     setLinkInfo: setLinkInfo,
-    form: form,
-    setForm,
+    formComponents: formComponents,
+    setFormComponents,
     serverInfo: serverInfo,
     setServerInfo: setServerInfo,
     QRLinkInfo: QRLinkInfo,

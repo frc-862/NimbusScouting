@@ -1,7 +1,6 @@
 import React, { useState }from 'react';
 import AppContext from "../components/AppContext";
-import { HomeScreen, FormBuildingScreen } from './WebScreens';
-
+import HomeScreen from './Screens/HomeScreen';
 
 const WebApp = () => {
   const [screens, setScreens] = useState([HomeScreen]);
