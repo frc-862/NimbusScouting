@@ -1,28 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Dimensions, AppRegistry, Modal } from "react-native";
-import {
-  LineChart,
-} from 'react-native-chart-kit'
+import { LineChart } from 'react-native-chart-kit';
 import { APIGet, getDatabaseDataFromURL } from "../../backend/APIRequests";
 import Globals from "../../Globals";
 
 const TeamsDataScreen = () => {
-  const [APIData, setAPIData] = useState([]);
-  const [filters, setFilters] = useState(["2638"]);
-  const [yFilter, setYFilter] = useState("number");
+  //const [APIData, setAPIData] = useState([]);
+  // const [filters, setFilters] = useState(["2638"]);
+  // const [yFilter, setYFilter] = useState("number");
 
 
-  useEffect(() => {
-    APIGet("http://localhost:4000/matches", 3000).then((data) => {console.log(data); setAPIData(data);});
-  }, []);
+  // useEffect(() => {
+  //   APIGet("http://localhost:4000/matches", 3000).then((data) => {console.log(data); setAPIData(data);});
+  // }, []);
 
-  const filteredMatches = APIData.filter((item) => filters.includes(item.team_info.split("-")[0])).sort((a, b) => a['number'] - b['number']);
-  console.log(filteredMatches);
+  // const filteredMatches = APIData.filter((item) => filters.includes(item.team_info.split("-")[0])).sort((a, b) => a['number'] - b['number']);
+  //console.log(filteredMatches);
   const data = {
-    labels: filteredMatches.map((item) => item['number']),
+    labels: ["a", "b", "c"],//filteredMatches.map((item) => item['number']),
     datasets: [
       {
-        data: filteredMatches.map((item) => item[yFilter])
+        data: [1, 2, 3]//filteredMatches.map((item) => item[yFilter])
       }
     ]
   }
@@ -36,7 +34,7 @@ const TeamsDataScreen = () => {
         height={220}
         yAxisInterval={1} // optional, defaults to 1
         yLabelsOffset={1}
-        y
+        bezier
         chartConfig={{
           backgroundColor: "#e26a00",
           backgroundGradientFrom: "#fb8c00",
@@ -62,11 +60,11 @@ const TeamsDataScreen = () => {
         }}
       />
     </View>,
-    <Modal visible={APIData.length === 0} transparent style={{zIndex: -1000}} animationType={APIData.length !== 0 ? "fade" : "none"}>
-      <View style={{backgroundColor: Globals.PageColor, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Text style={{color: 'white', fontSize: 50, fontWeight: "bold"}}>Loading API Data...</Text>
-      </View>
-    </Modal>
+    // <Modal visible={APIData.length === 0} transparent style={{zIndex: -1000}} animationType={APIData.length !== 0 ? "fade" : "none"}>
+    //   <View style={{backgroundColor: Globals.PageColor, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    //     <Text style={{color: 'white', fontSize: 50, fontWeight: "bold"}}>Loading API Data...</Text>
+    //   </View>
+    // </Modal>
   ]
 }
 

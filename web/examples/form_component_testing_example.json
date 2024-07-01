@@ -1,0 +1,125 @@
+[
+  {
+    "name": "Choices",
+    "uuid": "f6889abc-de85-41b2-af98-1354cf9e405d",
+    "elements": [
+      {
+        "type": "label",
+        "title": "Choice Test",
+        "fontSize": 40
+      },
+      {
+        "type": "choice",
+        "title": "Multi Choice",
+        "choices": [
+          {
+            "label": "Hi",
+            "value": "hi",
+            "select_color": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "label": "Choice 2",
+            "value": "choice_2",
+            "select_color": "rgba(255, 0, 255, 1)"
+          },
+          {
+            "label": "three",
+            "value": "three",
+            "select_color": "rgba(25, 0, 0, 0.7)"
+          }
+        ],
+        "key_value": "multi",
+        "multiChoice": true,
+        "default_value": "1, 2"
+      },
+      {
+        "type": "choice",
+        "title": "Single Choice",
+        "choices": [
+          {
+            "label": "1",
+            "value": "one",
+            "select_color": "rgba(255, 255, 0, 0.6)"
+          },
+          {
+            "label": "2",
+            "value": "two",
+            "select_color": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "label": "3",
+            "value": "three",
+            "select_color": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "key_value": "single",
+        "default_value": "0, 2"
+      }
+    ]
+  },
+  {
+    "name": "Labels",
+    "uuid": "024f2137-6533-4e7f-8319-49349b679eeb",
+    "elements": [
+      {
+        "type": "label",
+        "title": "Label 1",
+        "fontSize": 20
+      },
+      {
+        "type": "label",
+        "title": "Label 2",
+        "fontSize": 30
+      },
+      {
+        "type": "label",
+        "title": "Label 3",
+        "fontSize": 50
+      },
+      {
+        "type": "label",
+        "title": "Label 4",
+        "fontSize": 70
+      }
+    ]
+  },
+  {
+    "name": "Inputs",
+    "uuid": "b96301c3-836c-491d-9e24-3bd650a789e3",
+    "elements": [
+      {
+        "type": "input",
+        "title": "Numbers only",
+        "key_value": "numbers",
+        "onlyNumbers": true,
+        "default_value": "15"
+      },
+      {
+        "type": "input",
+        "title": "All text",
+        "key_value": "text",
+        "default_value": "Just some text"
+      }
+    ]
+  },
+  {
+    "name": "Checkboxes",
+    "uuid": "08b03569-7a5c-42a5-a05d-dd2c375a7ac4",
+    "elements": [
+      {
+        "type": "checkbox",
+        "title": "Start Checked Red",
+        "key_value": "start",
+        "default_value": true,
+        "checkedColor": "rgba(255, 0, 0, 1)"
+      },
+      {
+        "type": "checkbox",
+        "title": "Start Unchecked Blue",
+        "key_value": "1",
+        "checkedColor": "rgba(0, 0, 255, 1)",
+        "default_value": false
+      }
+    ]
+  }
+]

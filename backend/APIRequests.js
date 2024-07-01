@@ -49,7 +49,7 @@ async function testGet(IP, port, timeoutTime, max_tries = 1) {
       if (max_tries > 0) {
         return testGet(IP, port, timeoutTime, max_tries - 1);
       } else {
-        return "Error";
+        return JSON.stringify(error);
       }
     });
 }
@@ -61,7 +61,7 @@ async function getDatabaseDataFromURL(url_after, headers = { password: "Abracada
       return response.data;
     })
     .catch(error => {
-      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      //alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -72,7 +72,7 @@ async function putDatabaseDataFromURL(url_after, headers = { password: "Abracada
       return response.data;
     })
     .catch(error => {
-      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      console.log(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -83,7 +83,7 @@ async function postDatabaseDataFromURL(url_after, headers = { password: "Abracad
       return response.data;
     })
     .catch(error => {
-      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      //alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }
@@ -94,7 +94,7 @@ async function deleteDatabaseDataFromURL(url_after, headers = { password: "Abrac
       return response.data;
     })
     .catch(error => {
-      alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      //alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
       return "ERROR"
     });
 }

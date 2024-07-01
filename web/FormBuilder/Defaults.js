@@ -42,12 +42,14 @@ const ElementProperties = {
   'input': [
     {name: 'title', type: 'string'},
     {name: 'key_value', display_name: 'Key', type: 'string'},
-    {name: 'default_value', display_name: 'Default', type: 'string'}
+    {name: 'default_value', display_name: 'Default', type: 'string'},
+    {name: 'onlyNumbers', display_name: 'Only Numbers', type: 'boolean'}
   ],
   'choice': [
     {name: 'title', type: 'string'},
     {name: 'key_value', display_name: 'Key', type: 'string'},
     {name: 'default_value', display_name: 'Selected Indexes', type: 'string'},
+    {name: 'multiChoice', display_name: 'Multiple Choice', type: 'boolean'},
     {name: 'choices', type: 'list', listType: 'object', 
       properties: [
         {name: 'label', type: 'string'},

@@ -24,7 +24,7 @@ const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle,
         end={{x: gradientDirection ? 1 : 0, y: 0}}
       />
 
-      <Animated.View style={[{justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, style]}>
+      <Animated.View style={[{justifyContent: 'center', alignItems: 'center', overflow: 'hidden', width: '100%', height: '100%'}, style]}>
         <Animated.View style={[{position: 'absolute', backgroundColor: Globals.ButtonColor, opacity: opacity, width: '100%', height: '100%'}, innerStyle]}/>
         {children}
       </Animated.View>
@@ -38,7 +38,7 @@ const AppLabel = ({title, style, onLayout = () => {}}) => {
   );
 }
 
-const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, style, outerStyle, onPress = () => {}, onLayout = () => {}, onValueChanged = () => {}}) => {
+const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, gradientColors, style, outerStyle, innerStyle, onPress = () => {}, onLayout = () => {}, onValueChanged = () => {}}) => {
   const opacity = useRef(new Animated.Value(1)).current;
   const [isChecked, setIsChecked] = useState(checked);
 
@@ -64,20 +64,20 @@ const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, style
     <Pressable onLayout={onLayout} style={[{borderRadius: 20, overflow: 'hidden'}, outerStyle]} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={pressed}>
       <LinearGradient
         style={[{justifyContent: 'center', alignItems: 'center', position: 'absolute', width: '100%', height: '100%', padding: 5}]}
-        colors={hasGradient ? [Globals.GradientColor1, Globals.GradientColor2] : ['transparent', 'transparent']}
+        colors={hasGradient ? (gradientColors || [Globals.GradientColor1, Globals.GradientColor2]) : ['transparent', 'transparent']}
         start={{x: 1, y: 0}}
         end={{x: 0, y: 0}}
       />
-      <Animated.View style={{position: 'absolute', backgroundColor: isChecked ? checkedColor : Globals.ButtonColor, opacity: opacity, width: '100%', height: '100%'}}/>
 
-      <Animated.View style={[{justifyContent: 'center', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 10}, style]}>
+      <Animated.View style={[{justifyContent: 'center', alignItems: 'center', overflow: 'hidden', width: '100%', height: '100%'}, style]}>
+        <Animated.View style={[{position: 'absolute', backgroundColor: isChecked ? checkedColor : Globals.ButtonColor, opacity: opacity, width: '100%', height: '100%'}, innerStyle]}/>
         {children}
       </Animated.View>
     </Pressable>
   );
 }
 
-const AppInput = ({default_value = '', regex, keyboardType = 'web-search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
+const AppInput = ({default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
   const [text, setText] = useState(default_value);
 
   function textChanged(newText) {
@@ -93,7 +93,7 @@ const AppInput = ({default_value = '', regex, keyboardType = 'web-search', title
         <View key={1} style={{width: '90%', height: 2, backgroundColor: 'hsl(39, 70%, 40%)'}}/>
       ] : null }
       
-      <TextInput keyboardType={keyboardType} onBlur={onLeave} value={String(text)} onChangeText={textChanged} style={[{height: 40, width: '100%', padding: 5, paddingHorizontal: 7, outline: 'none', justifyContent: 'center', textAlign: 'center', color: 'white'}, style]}/>
+      <TextInput inputMode={inputMode} onBlur={onLeave} value={String(text)} onChangeText={textChanged} style={[{height: 40, width: '100%', padding: 5, paddingHorizontal: 7, outline: 'none', justifyContent: 'center', textAlign: 'center', color: 'white'}, style]}/>
     </View>
   );
 }
@@ -132,7 +132,7 @@ const AppChoice = ({default_indexes, default_choices, multiChoice, title, showTi
       ] : null }
       
       <LinearGradient 
-        style={{zIndex: -1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}}
+        style={{zIndex: -1, flexDirection: 'row', flexWrap: 'wrap', width: '100%', justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}}
         colors={[Globals.GradientColor1, Globals.GradientColor2]}
         start={{x: 1, y: 0}}
         end={{x: 0, y: 0}}

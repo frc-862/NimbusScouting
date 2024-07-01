@@ -69,7 +69,7 @@ const GradientChoice = ({key_value, onValueChanged = (newIndexes) => {}, multiCh
     return (<AppChoice default_choices={ctx.matchData[full_key]} title={title} style={style} outerStyle={[{marginBottom: 10, width: '80%'}, outerStyle]} choices={choices} multiChoice={multiChoice} onValueChanged={onChange}/>)
 };
 
-const GradientTextInput = ({key_value, style = {}, default_value="", onValueChanged = () => {}, disabled, title = "", outerStyle, regex = '', keyboardType = 'web-search', maxLength = 20, gradientDir = 1}) => {
+const GradientTextInput = ({key_value, style = {}, default_value="", onValueChanged = () => {}, disabled, title = "", outerStyle, onlyNumbers = false, regex = '', inputMode = 'search', maxLength = 20, gradientDir = 1}) => {
     const ctx = useContext(AppContext)
     const full_key = getFullKey(ctx, key_value);
 
@@ -82,19 +82,8 @@ const GradientTextInput = ({key_value, style = {}, default_value="", onValueChan
         setMatchDataKey(ctx, full_key, newValue);
     }
     
-    return (<AppInput default_value={ctx.matchData[full_key]} title={title} style={style} outerStyle={[{marginBottom: 10, width: '80%'}, outerStyle]} onValueChanged={onChange} regex={regex} keyboardType={keyboardType}/>)
+    return (<AppInput default_value={ctx.matchData[full_key]} title={title} style={style} outerStyle={[{marginBottom: 10, width: '80%'}, outerStyle]} onValueChanged={onChange} regex={onlyNumbers ? /[^0-9]/g : regex} inputMode={onlyNumbers ? 'numeric' : inputMode}/>)
 };
-
-const GradientNumberInput = ({key_value, style = {}, default_value="", onValueChanged = () => {}, disabled, title = "", outerStyle, regex = /[^0-9]/g, keyboardType = 'numeric', maxLength = 20, gradientDir = 1, maxNum, minNum}) => {
-    function checkNum(num) {
-        if (maxNum != undefined && num > maxNum) { return maxNum; }
-        if (minNum != undefined && num < minNum) { return minNum; }
-        return num;
-    }
-   
-    return (
-        <GradientTextInput onValueChanged={onValueChanged} key_value={key_value} default_value={default_value} regex={regex} disabled={disabled} title={title} outerStyle={outerStyle} style={style} keyboardType={keyboardType} maxLength = {maxLength} gradientDir={gradientDir}/>
-)};
 
 const GradientQRCode = ({text}) => {
     return (
@@ -230,6 +219,5 @@ export {
     GradientCheckBox, 
     GradientChoice,
     GradientTextInput, 
-    GradientNumberInput,
     GradientQRCode,
 };

@@ -6,7 +6,8 @@ import { PageContent, PageFooter, PageHeader } from '../FormBuilder/PageComponen
 import { Elements, ElementJSON, ElementProperties } from '../FormBuilder/Defaults';
 import Globals from '../../Globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppButton, AppCheckbox } from '../../GlobalComponents';
+import { AppButton, AppCheckbox, AppInput } from '../../GlobalComponents';
+import { isLeftHandSideExpression } from 'typescript';
 
 // Objects are Pass By Reference, so I needed this
 // https://stackoverflow.com/questions/7574054/javascript-how-to-pass-object-by-value - Paul Varghese
@@ -164,7 +165,7 @@ const FormBuildingScreen = () => {
   
   }
   
-  async function postFormData(data, formName, formEvent) {
+  async function postFormData(data, formName, formYear) {
     return fetch('http://localhost:4000/form', {
         mode: 'cors',
         method: 'POST',
@@ -173,7 +174,7 @@ const FormBuildingScreen = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          event: formEvent,
+          year: formYear,
           name: formName,
           form: data
         }),
@@ -182,7 +183,7 @@ const FormBuildingScreen = () => {
         .catch((error) => alert(error));
   }
 
-  async function postFormDataAPI(formName, formEvent) {
+  async function postFormDataAPI(formName, formYear) {
     const newFormPages = formPages.map((page, i) => {
       if (i === currentPageIndex) { return currentPage; }
       return page;
@@ -190,7 +191,7 @@ const FormBuildingScreen = () => {
 
     setFormPages(newFormPages);
 
-    let res = await postFormData(newFormPages, formName, formEvent);
+    let res = await postFormData(newFormPages, formName, formYear);
     if (res.ok) {
       setShowModal('');
     }
@@ -223,7 +224,7 @@ const FormBuildingScreen = () => {
     setFormPages(formPages.map((page, index) => index === currentPageIndex ? newPage : page));
   }
 
-  function addElementToPage(elementName) {
+  function addElementToPage(elementName, shouldHaveKeyValue = true) {
     // The clone function should be used here as otherwise, an object is passed by reference, and that will change ALL of the elems, not just one.
     const element = clone(baseElementJSON[elementName]);
 
@@ -231,7 +232,7 @@ const FormBuildingScreen = () => {
     if (!element) { return; }
 
     // Change the page at the correct index to include the new element.
-    const changedPage = {name: currentPage.name, uuid: currentPage.uuid, elements: [...currentPage.elements, {...element, key_value: String(currentPage.elements.length)}]};
+    const changedPage = {name: currentPage.name, uuid: currentPage.uuid, elements: [...currentPage.elements, {...element, key_value: shouldHaveKeyValue ? String(currentPage.elements.length) : undefined}]};
     setCurrentPage(changedPage);
   }
 
@@ -312,12 +313,12 @@ const FormBuildingScreen = () => {
                         }
                       })
                     }
-                    <WebButton title='Delete Item' style={{width: '100%', height: 30}} textStyle={{color: 'red', fontSize: 15, margin: 5}} onClick={() => {deleteItem(index)}}/>
+                    <WebButton title='Delete Item' outerStyle={{width: '100%', height: 30}} style={{width: '100%', height: '100%'}} textStyle={{color: 'red', fontSize: 15, margin: 5}} onClick={() => {deleteItem(index)}}/>
                   </View>
                 )
               })
             }
-            <WebButton title='Add Item' style={{width: '100%', height: 30}} textStyle={{color: 'green', fontSize: 15, margin: 5}} onClick={addItem}/>
+            <WebButton title='Add Item' outerStyle={{width: '100%', height: 30}} style={{width: '100%', height: '100%'}} textStyle={{color: 'green', fontSize: 15, margin: 5}} onClick={addItem}/>
           </View>
         </View>
       )
@@ -341,7 +342,7 @@ const FormBuildingScreen = () => {
       return (
         <View style={{width: '100%', flexDirection: 'row', alignItems: 'center', marginVertical: 1}}>
           <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', flex: 1, textAlign: 'center', verticalAlign: 'center'}}>{name}: </Text>
-          <WebInput key={value} onlyNumbers={onlyNumbers} onBlur={updateElement} default_value={text} setParallelValue={setText} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{flex: 2, height: 25}} style={{fontSize: 15, fontWeight: 'thin', backgroundColor: Globals.ButtonColor}}/>
+          <AppInput key={value} onlyNumbers={onlyNumbers} onLeave={updateElement} default_value={text} onValueChanged={setText} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{flex: 2, height: 25}} style={{fontSize: 15, fontWeight: 'thin', backgroundColor: Globals.ButtonColor}}/>
         </View>
       );
     }
@@ -405,11 +406,11 @@ const FormBuildingScreen = () => {
         <View style={{width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 1}}>
           <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', flex: 1, textAlign: 'center', verticalAlign: 'center'}}>{name}: </Text>
           <View style={{flex: 2, borderRadius: 20, overflow: 'hidden'}}>
-            <WebInput onlyNumbers={true} onBlur={updateColor} default_value={red} setParallelValue={setRed} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(155, 0, 0, 1)'}}/>
-            <WebInput onlyNumbers={true} onBlur={updateColor} default_value={green} setParallelValue={setGreen} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(0, 155, 0, 1)'}}/>
-            <WebInput onlyNumbers={true} onBlur={updateColor} default_value={blue} setParallelValue={setBlue} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(0, 0, 155, 1)'}}/>
-            <WebInput onlyNumbers={true} onBlur={updateColor} default_value={alpha} setParallelValue={setAlpha} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'black'}}/>
-            <WebInput onlyNumbers={true} onBlur={updateColorString} default_value={colorString} setParallelValue={setColorString} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: `rgba(${red}, ${green}, ${blue}, ${alpha})`}}/>
+            <AppInput onlyNumbers={true} onLeave={updateColor} default_value={red} onValueChanged={setRed} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(155, 0, 0, 1)'}}/>
+            <AppInput onlyNumbers={true} onLeave={updateColor} default_value={green} onValueChanged={setGreen} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(0, 155, 0, 1)'}}/>
+            <AppInput onlyNumbers={true} onLeave={updateColor} default_value={blue} onValueChanged={setBlue} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'rgba(0, 0, 155, 1)'}}/>
+            <AppInput onlyNumbers={true} onLeave={updateColor} default_value={alpha} onValueChanged={setAlpha} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: 'black'}}/>
+            <AppInput onlyNumbers={true} onLeave={updateColorString} default_value={colorString} onValueChanged={setColorString} title={name} selectTextOnFocus={true} showTitle={false} outerStyle={{borderRadius: 0, height: 25, width: '100%'}} style={{borderRadius: 0, fontSize: 15, fontWeight: 'thin', backgroundColor: `rgba(${red}, ${green}, ${blue}, ${alpha})`}}/>
           </View>
         </View>
       );
@@ -423,7 +424,7 @@ const FormBuildingScreen = () => {
         <View style={{width: '100%', flexDirection: 'row', alignItems: 'center', marginVertical: 1}}>
           <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', flex: 1, textAlign: 'center', verticalAlign: 'center', marginBottom: 5}}>{name}: </Text>
           <View style={{flex: 2, justifyContent: 'center', alignItems: 'center'}}>
-            <WebCheckbox key={value} checked={checked} style={{width: 80, height: 40}} onClick={() => {setChecked(!checked); setProperty(property, !checked);}}/>
+            <AppCheckbox key={value} checked={checked} outerStyle={{borderRadius: 30}} innerStyle={{borderRadius: 20}} checkedColor='rgba(0, 255, 0, 0.5)' style={{width: 20, height: 20, margin: 5}} onPress={() => {setChecked(!checked); setProperty(property, !checked);}}/>
           </View>
         </View>
       );
@@ -450,7 +451,7 @@ const FormBuildingScreen = () => {
 
     return (
       <View style={{width: '100%', alignItems: 'center', padding: 5, marginBottom: 10, borderRadius: 20, backgroundColor: 'hsl(240, 70%, 20%)'}}>
-        <WebButton title='Delete Element' style={{height: null, width: null, marginBottom: 5}} textStyle={{color: 'red', margin: 10}} onClick={deleteElement}/>
+        <WebButton title='Delete Element' textStyle={{color: 'red', margin: 10}} onClick={deleteElement}/>
         {
           properties.map((prop, index) => {
             if (!prop) { return null; }
@@ -498,21 +499,22 @@ const FormBuildingScreen = () => {
 
   const ModalComponent = memo(({modalType}) => {
     const [formName, setFormName] = useState('');
-    const [formEvent, setFormEvent] = useState('');
+    const [formYear, setFormYear] = useState('');
     const [formLoadSearch, setFormLoadSearch] = useState('');
-    const [formLoadEvent, setFormLoadEvent] = useState('');
+    const [formLoadYear, setFormLoadYear] = useState('');
     const [selectedFormID, setSelectedFormID] = useState(-1);
     const [shownPagesToLoad, setShownPagesToLoad] = useState([]);
 
     useEffect(() => {
       if (modalType === 'load') {
-        if (formLoadEvent === '') {
+        if (formLoadYear === '') {
           setShownPagesToLoad([]);
           return;
         }
-        setShownPagesToLoad(formAPIData ? formAPIData.filter((form) => form.name.toLowerCase().includes(formLoadSearch.toLowerCase()) && form.event.toLowerCase().includes(formLoadEvent.toLowerCase())) : []);
+        console.log("a")
+        setShownPagesToLoad(formAPIData ? formAPIData.filter((form) => form.name.toLowerCase().includes(formLoadSearch.toLowerCase()) && form.year.toLowerCase().includes(formLoadYear.toLowerCase())) : []);
       }
-    }, [formLoadSearch, formLoadEvent]);
+    }, [formLoadSearch, formLoadYear]);
 
     if (modalType === 'upload') {
       return (
@@ -521,17 +523,17 @@ const FormBuildingScreen = () => {
           <View style={{width: 400, padding: 5, backgroundColor: Globals.PageColor, borderRadius: 20, alignItems: 'center', justifyContent: 'center'}}>
             <WebHeader title='Upload Form' fontSize={30} style={{margin: 10, alignItems: 'center', justifyContent: 'center'}}/>
             <WebButton title='X' textStyle={{color: 'rgba(255, 0, 0, 0.6)', marginBottom: 2, fontSize: 20, fontWeight: 'thin'}} style={{width: 45, height: 45, position: 'absolute', right: 15, top: 15}} onClick={() => setShowModal('')}/>
-            <View style={{padding: 5, flex: 1, width: '100%'}}>
-              <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 5}}>
-                <WebHeader title='Name' fontSize={20} style={{flex: 1,alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}/>
-                <WebInput title={"Form Name"} showTitle={false} default_value={formName} setParallelValue={setFormName} style={{flex: 2, height: 50, backgroundColor: Globals.ButtonColor}}/>
+            <View style={{padding: 5, flex: 1, width: '100%', alignItems: 'center'}}>
+              <View style={{width: '90%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 5}}>
+                <Text style={{flex: 1, fontSize: 20, color: 'white', fontWeight: 'bold', verticalAlign: 'center', marginRight: 10, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>Name</Text>
+                <AppInput title={"Form Name"} showTitle={false} default_value={formName} onValueChanged={setFormName} outerStyle={{flex: 3, height: 50}}/>
               </View>
-              <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                <WebHeader title='Event' fontSize={20} style={{flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}/>
-                <WebInput title={"Form Event"} showTitle={false} default_value={formEvent} setParallelValue={setFormEvent} style={{flex: 2, height: 50, backgroundColor: Globals.ButtonColor}}/>
+              <View style={{width: '90%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                <Text style={{flex: 1, fontSize: 20, color: 'white', fontWeight: 'bold', verticalAlign: 'center', marginRight: 10, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>Year</Text>
+                <AppInput title={"Form Year"} showTitle={false} default_value={formYear} onValueChanged={setFormYear} outerStyle={{flex: 3, height: 50}}/>
               </View>
             </View>
-            <WebButton title='Upload' onClick={() => {postFormDataAPI(formName, formEvent);}} style={{width: '100%', height: 50, borderRadius: 20}} innerStyle={{borderRadius: 20}}/>
+            <WebButton title='Upload' onClick={() => {postFormDataAPI(formName, formYear);}} style={{width: '100%', height: '100%'}} outerStyle={{width: '100%', height: 50, borderRadius: 20}} innerStyle={{borderRadius: 20}}/>
           </View>
         </View>
       )
@@ -541,23 +543,38 @@ const FormBuildingScreen = () => {
           <Pressable style={{width: '100%', height: '100%', position: 'absolute', zIndex: -100}} onPress={() => setShowModal('')}/>
           <View style={{width: 400, padding: 5, backgroundColor: Globals.PageColor, borderRadius: 20, alignItems: 'center', justifyContent: 'center'}}>
             <WebHeader title='Load Form' fontSize={30} style={{margin: 10, alignItems: 'center', justifyContent: 'center'}}/>
+
             <AppButton outerStyle={{width: 45, height: 45, position: 'absolute', right: 15, top: 15}} onPress={() => setShowModal('')}>
               <Text style={{color: 'rgba(255, 0, 0, 0.6)', marginBottom: 2, fontSize: 20, fontWeight: 'thin'}}>X</Text>
             </AppButton>
-            <WebInput title='Event (Should be dropdown)' setParallelValue={setFormLoadEvent} showTitle={true} outerStyle={{width: '90%'}} style={{height: 50, borderRadius: 20, marginBottom: 5}}/>
-            <WebInput title='Search' setParallelValue={setFormLoadSearch} showTitle={true} outerStyle={{width: '90%'}} style={{height: 50, borderRadius: 20, marginBottom: 5}}/>
-            <CustomScrollView key={selectedFormID} addScrollbarSpace={false} style={{maxHeight: 400, width: '90%', marginBottom: 5, borderRadius: 20, overflow: 'hidden'}}>
+            <AppButton 
+                outerStyle={{width: 45, height: 45, position: 'absolute', left: 15, top: 15}}
+                onPress={() => {
+                  if (selectedFormID !== -1) {
+                    const formToPrint = JSON.stringify(formAPIData.find((form) => form._id === selectedFormID).form);
+                    alert(formToPrint)
+                    console.log(formToPrint)
+                  }
+                }}
+              >
+                <Text style={{color: 'white', fontSize: 16, textAlign: 'center', verticalAlign: 'center'}}>Print</Text>
+            </AppButton>
+
+            <AppInput title='Year (Should be dropdown)' onValueChanged={setFormLoadYear} showTitle={true} outerStyle={{width: '90%', height: 60, marginBottom: 5}}/>
+            <AppInput title='Search' onValueChanged={setFormLoadSearch} showTitle={true} outerStyle={{width: '90%', height: 60, marginBottom: 5}}/>
+            { shownPagesToLoad.length > 0 ? <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center', marginBottom: 5}}>Results:</Text> : null }
+            <CustomScrollView addScrollbarSpace={false} style={{maxHeight: 300, width: '90%', marginBottom: 5, borderRadius: 20, overflow: 'hidden'}}>
               {
                 shownPagesToLoad.map((form, index) => {
                   return [
                     <AppCheckbox
                       key={form._id}
                       onPress={() => {selectedFormID === form._id ? setSelectedFormID(-1) : setSelectedFormID(form._id);}} 
-                      outerStyle={{width: '100%', borderRadius: 0}} 
-                      style={{margin: 5}}
+                      outerStyle={{width: '100%', borderRadius: 0}}
+                      style={{borderRadius: 0, padding: 5}}
                       checked={selectedFormID === form._id}
                     >
-                      <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center'}}>{form.name} - {form.event}</Text>
+                      <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center'}}>{form.name} - {form.year}</Text>
                     </AppCheckbox>,
 
                     index !== shownPagesToLoad.length - 1 ? <View style={{height: 2, width: '100%', backgroundColor: 'hsl(39, 70%, 40%)', borderRadius: 20}}/> : null
@@ -565,11 +582,20 @@ const FormBuildingScreen = () => {
                 })
               }
             </CustomScrollView>
-            <AppButton onPress={() => {if (selectedFormID !== -1) { setCurrentPage(null); setCurrentPageIndex(0); setFormPages(formAPIData.find((form) => form._id === selectedFormID).form); setShowModal('')}}} outerStyle={{width: '100%', height: 50, borderRadius: 20}}>
-              <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center'}}>Load</Text>
-            </AppButton>
-            <AppButton onPress={() => {if (selectedFormID !== -1) { console.log(JSON.stringify(formAPIData.find((form) => form._id === selectedFormID).form)); setShowModal('')}}} outerStyle={{width: '100%', height: 50, borderRadius: 20}}>
-              <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center'}}>Print</Text>
+            <AppButton 
+              outerStyle={{width: '100%', height: 50, borderRadius: 20}} 
+              onPress={() => {
+                if (selectedFormID !== -1) { 
+                  setCurrentPage(null); 
+                  setCurrentPageIndex(0); 
+                  setCurrentElement(null);
+                  setFocusedElementIndex(-1);
+                  setFormPages(formAPIData.find((form) => form._id === selectedFormID).form); 
+                  setShowModal('');
+                }
+              }}
+            >
+              <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center', verticalAlign: 'center'}}>Load</Text>
             </AppButton>
           </View>
         </View>
@@ -584,7 +610,7 @@ const FormBuildingScreen = () => {
           { /* This is the Hierarchy, where we can see the pages that we have made, and go into them and change their elements & names. */ }
           <View style={{width: '100%', margin: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap'}}>
             <WebHeader title='Hierarchy' fontSize={30} style={{marginRight: 10, marginLeft: 10}}/>
-            <WebButton title='+' onClick={addPage} innerStyle={{borderRadius: 10}} style={{width: 30, height: 30, borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}} textStyle={{paddingBottom: 3}}/>
+            <WebButton title='+' onClick={addPage} innerStyle={{borderRadius: 10}} outerStyle={{borderRadius: 10}} style={{width: 30, height: 30, borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}} textStyle={{paddingBottom: 3}}/>
           </View>
           <View style={{height: 3, width: '80%', backgroundColor: 'hsl(39, 70%, 40%)', borderRadius: 20, marginBottom: 10}}/>
           <CustomScrollView style={{flex: 1, width: '100%'}} showsVerticalScrollIndicator={false}>
@@ -595,8 +621,16 @@ const FormBuildingScreen = () => {
                     <Pressable onPress={() => setSelectedPage(index)} style={{padding: 10, flex: 1, height: '100%'}}>
                       <Text style={{color: 'white', fontSize: 20, fontWeight: 'thin', textAlign: 'left', verticalAlign: 'center'}}>{page.name}</Text>
                     </Pressable>
-                    <View style={{width: 40, height: '100%', padding: 5, paddingLeft: 0}}>
-                      <WebButton title='X' onClick={() => deletePage(index)} innerStyle={{borderRadius: 10}} style={{width: '100%', height: '100%', borderRadius: 10}} textStyle={{fontSize: 20, color: 'red', paddingBottom: 2}}/>
+                    <View style={{width: 40, height: '100%', padding: 5, paddingLeft: 0, justifyContent: 'center'}}>
+                      <WebButton 
+                        onClick={() => {
+                          deletePage(index);
+                        }} 
+                        title="x" 
+                        textStyle={{position: 'absolute', fontSize: 30, fontWeight: 'normal', marginBottom: 9, color: 'red'}} 
+                        style={{width: '100%', height: '100%'}} 
+                        outerStyle={{width: '100%', height: '100%', borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}}
+                      />
                     </View>
                   </View>
                 );
@@ -641,7 +675,6 @@ const FormBuildingScreen = () => {
                     for (const key of Object.keys(elem)) {
                       props[key] = elem[key];
                     }
-
                     return React.cloneElement(baseElements[elem.type], {key: index, ...props, title: elem.title, choices: elem.choices, selected: elem === currentElement, emulated: true, onEmulateClick: () => setFocusedElementIndex(index)})
                   })
                 : null
@@ -664,7 +697,7 @@ const FormBuildingScreen = () => {
               { 
                 ['label', 'choice', 'input', 'checkbox'].map((componentType, index) => (
                   [<View key={componentType} style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
-                    <WebButton title={toTitleCase(componentType)} onClick={() => addElementToPage(componentType)} style={{width: '100%', height: 50}}/>
+                    <WebButton title={toTitleCase(componentType)} onClick={() => addElementToPage(componentType, !(componentType === 'label'))} outerStyle={{width: '100%', height: 50}} style={{width: '100%', height: '100%'}}/>
                     <WebButton 
                       title='Edit Base Values' 
                       onClick={() => { 
@@ -672,8 +705,9 @@ const FormBuildingScreen = () => {
                         setCurrentElement(baseElementJSON[componentType]); 
                       }} 
                       innerStyle={{backgroundColor: editingBaseElement === componentType ? 'rgba(255, 0, 0, 0.3)' : Globals.ButtonColor}} 
-                      style={{width: 60, height: '100%', position: 'absolute', right: 0}} 
-                      textStyle={{fontSize: 10, fontWeight: 'thin'}}
+                      outerStyle={{width: 60, height: '100%', position: 'absolute', right: 0}} 
+                      style={{width: '100%', height: '100%'}}
+                      textStyle={{fontSize: 10, textAlign: 'center', fontWeight: 'thin'}}
                     />
                   </View>,
                   <View style={{height: 2, width: '60%', backgroundColor: 'hsl(39, 70%, 40%)', borderRadius: 20}}/>]
@@ -687,13 +721,15 @@ const FormBuildingScreen = () => {
           <View style={{width: '100%', flex: 3, alignItems: 'center', paddingHorizontal: 10}}>
             <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
               <WebHeader title='Editing' fontSize={30} style={{margin: 10}}/>
-              <WebCheckbox
+              <AppCheckbox
                 checked={showHighlight} 
-                setParallelValue={setShowHighlight} 
+                onValueChanged={setShowHighlight} 
                 checkedColor={'rgba(255, 0, 0, 0.6)'} 
-                title='Show Highlight' 
-                textStyle={{fontSize: 10}} style={{width: 75, height: 30, border: '2px solid hsl(39, 70%, 40%)'}}
-              />
+                outerStyle={{width: 75, height: 30, border: '2px solid hsl(39, 70%, 40%)'}}
+                style={{justifyContent: 'center', alignItems: 'center'}}
+              >
+                <Text style={{textAlign: 'center', verticalAlign: 'center', width: '90%', color: 'white', fontSize: 10}}>Show Highlight</Text>
+              </AppCheckbox>
             </View>
             <View style={{height: 3, width: '80%', backgroundColor: 'hsl(39, 70%, 40%)', borderRadius: 20, marginBottom: 10}}/>
             <CustomScrollView style={{flex: 1, width: '100%'}} addScrollbarSpace={true} contentContainerStyle={{alignItems: 'center', paddingTop: 10}} showsVerticalScrollIndicator={false}>

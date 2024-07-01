@@ -23,4 +23,9 @@ export default Globals = {
 
   FailedMatchColor: 'rgba(100,0,50,0.6)', // Default: 'rgb(255, 0, 0)'
   SuccessfulMatchColor: 'rgba(0,100,50,0.6)', // Default: 'rgb(0, 255, 0)'
+
+  NotificationSuccessColor: 'rgb(0, 135, 0)',
+  NotificationRegularColor: 'rgb(0, 0, 65)',
+  NotificationWarningColor: 'rgb(170, 135, 0)',
+  NotificationErrorColor: 'rgb(135, 0, 0)',
 };
