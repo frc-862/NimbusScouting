@@ -9,9 +9,11 @@ import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "../FormBuilder";
 import { LineChart } from 'react-native-chart-kit';
 import { DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
-import { getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
+import { APIGet, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Dropdown } from "react-native-element-dropdown";
+import DropdownComponent from "./Dropdown";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
@@ -81,15 +83,15 @@ const HomeScreen = memo(({gradientDir}) => {
             return;
           }
           ctx.showLoadError(50).then(() => {ctx.showNotification("Failed to load matches! The data you view may not be up to date!", Globals.NotificationWarningColor);});
+          AsyncStorage.setItem('stored view matches', JSON.stringify(ctx.loadedMatches.map((match) => DeflateString(JSON.stringify(match)))));
           ctx.setScreens([{screen: DataViewScreen, name: 'View Data', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);
           return;
         } else {
           AsyncStorage.setItem('stored view matches', JSON.stringify(data.map((match) => DeflateString(JSON.stringify(match)))));
-          ctx.setLoadedMatches(data);
         }
 
         ctx.setScreens([{screen: DataViewScreen, name: 'View Data', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);
-       
+
         await ctx.setLoadPercent(100, 300);
       }}/>
     </ScreenShell>
@@ -244,7 +246,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
 
             let failedMatches = 0;
 
-            for (const matchIndex in selectedMatches) {
+            // Using OF works here, but IN does not. This is because in works like for i in range, and of works like foreach.
+            for (const matchIndex of selectedMatches) {
               await putOneToDatabase(
                 {
                   data: matches[matchIndex],
@@ -411,26 +414,41 @@ const FormSelectScreen = memo(({gradientDir}) => {
 
 const DataViewScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
+  const [matches, setMatches] = useState([]);
+  const [data, setData] = useState({labels: [], datasets: [{data: []}]});
 
-  const dataSetValues = {};
+  useEffect(() => {
+    // Sort the matches by match number.
+    matches.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"]));
 
-  ctx.loadedMatches.forEach(match => {
-    dataSetValues[match['data']['0{match_num}']] = match['data']['0{team}'];
-  })
+    data.labels = matches.map((match) => match.data["0{match_num}"]);
+    data.datasets[0].data = matches.map((match) => Number(match.data["3{numbers}"]));
+  }, [matches]);
 
-  //console.log(ctx.loadedMatches.map(match => (dataSetValues[match["data"]["0{match_num}"]])));
-
-  const data = {
-    labels: ctx.loadedMatches.map(match => match["data"]["0{match_num}"]),
-    datasets: [
-      {
-        data: ctx.loadedMatches.map(match => Math.random() * 100)
-      }
-    ]
+  // Try and get the matches from the stored data.
+  if (matches.length === 0) {
+    AsyncStorage.getItem('stored view matches').then((data) => {
+      // Set the matches to the decompressed data.
+      setMatches(JSON.parse(data).map((match) => JSON.parse(InflateString(match))));
+    });
   }
+
+  // Which form's data values should be used
+  const formFilter = ctx.currentForm;
+  // The page number of which value you want, may be able to be intertwined with value filter, specifying which page each value is from.
+  const pageFilter = null;
+  // The value of the data you want to filter by.
+  const valueFilter = null;
+  // How the data you got should be used
+  const dataUseFilter = null;
+
+  // How the data should be displayed.
+  const dataShowStyle = null;
+  
 
   return (
     <ScreenShell gradientDir={gradientDir}>
+      <DropdownComponent data={ctx.loadedForms.map((form) => ({label: form.name, value: form.name}))} placeholder="Form to use" default_value={ctx.currentForm ? ctx.currentForm.name : undefined}/>
       <LineChart
         data={data}
         width={400} // from react-native
@@ -518,7 +536,7 @@ const SettingsScreen = memo(({gradientDir}) => {
 
       <HeaderTitle title='Testing Buttons' fontSize={30}/>
 
-      <GradientButton title={"Test fill match data"} textStyle={{fontSize: 17, textAlign: 'center'}} onPress={async () => {
+      <GradientButton title={"Test fill match data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
       }}/>
     </ScreenShell>
