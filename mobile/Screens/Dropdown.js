@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Globals from '../../Globals';
 
 const DropdownComponent = ({default_value, data, placeholder = "Dropdown 1", onChange = (item) => {}, onBlur = () => {}, onFocus = () => {}}) => {

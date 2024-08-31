@@ -35,7 +35,7 @@ async function APIGet(fullURI, timeoutTime) {
         "Content-Type": "application/json",
       },
     })
-      .then((resp) => resp.json())
+      .then((resp) => { console.log("AAA: " + resp); return resp.json() })
       .then((json) => json)
       .catch((error) => alert(error));
 }

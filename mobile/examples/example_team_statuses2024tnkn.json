@@ -1,0 +1,1259 @@
+{
+  "frc1014": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 2",
+      "number": 2,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 2</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 1014 was <b>Rank 31/33</b> with a record of <b>3-8-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 2</b>, and was eliminated in the <b>Finals</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Finals</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 31,
+        "record": { "losses": 8, "ties": 0, "wins": 3 },
+        "sort_orders": [0.55, 0, 35.55, 14.64, 4.45, 0],
+        "team_key": "frc1014"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc1466": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 4",
+      "number": 4,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 4</b>",
+    "last_match_key": "2024tnkn_sf12m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 1466 was <b>Rank 6/33</b> with a record of <b>8-3-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 4</b>, and was eliminated in the <b>Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 2 },
+      "double_elim_round": "Round 4",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 2 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 6,
+        "record": { "losses": 3, "ties": 0, "wins": 8 },
+        "sort_orders": [1.82, 0.27, 42.18, 18.91, 5.55, 0],
+        "team_key": "frc1466"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc1592": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 7",
+      "number": 7,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 7</b>",
+    "last_match_key": "2024tnkn_sf9m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 1592 was <b>Rank 12/33</b> with a record of <b>6-5-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 7</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 12,
+        "record": { "losses": 5, "ties": 0, "wins": 6 },
+        "sort_orders": [1.45, 0.45, 39.91, 15.45, 5.09, 0],
+        "team_key": "frc1592"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc2010": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 5",
+      "number": 5,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 5</b>",
+    "last_match_key": "2024tnkn_sf13m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 2010 was <b>Rank 18/33</b> with a record of <b>5-6-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 5</b>, and was eliminated in the <b>Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 3 },
+      "double_elim_round": "Round 5",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 18,
+        "record": { "losses": 6, "ties": 0, "wins": 5 },
+        "sort_orders": [1.18, 0.55, 38.27, 17.18, 3.73, 0],
+        "team_key": "frc2010"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc234": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 6",
+      "number": 6,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 6</b>",
+    "last_match_key": "2024tnkn_sf6m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 234 was <b>Rank 14/33</b> with a record of <b>6-5-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 6</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 14,
+        "record": { "losses": 5, "ties": 0, "wins": 6 },
+        "sort_orders": [1.36, 0.18, 39.45, 12.09, 4.55, 0],
+        "team_key": "frc234"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc2393": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 8",
+      "number": 8,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 8</b>",
+    "last_match_key": "2024tnkn_sf5m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 2393 was <b>Rank 26/33</b> with a record of <b>4-7-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 8</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 26,
+        "record": { "losses": 7, "ties": 0, "wins": 4 },
+        "sort_orders": [0.82, 0.18, 36.82, 17.64, 3.82, 0],
+        "team_key": "frc2393"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc2783": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 4",
+      "number": 4,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 4</b>",
+    "last_match_key": "2024tnkn_sf12m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 2783 was <b>Rank 5/33</b> with a record of <b>7-4-0</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 4</b>, and was eliminated in the <b>Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 2 },
+      "double_elim_round": "Round 4",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 2 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 5,
+        "record": { "losses": 4, "ties": 0, "wins": 7 },
+        "sort_orders": [1.82, 0.36, 49.55, 19, 5.73, 0],
+        "team_key": "frc2783"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc2856": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 8",
+      "number": 8,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 8</b>",
+    "last_match_key": "2024tnkn_sf5m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 2856 was <b>Rank 13/33</b> with a record of <b>7-4-0</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 8</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 13,
+        "record": { "losses": 4, "ties": 0, "wins": 7 },
+        "sort_orders": [1.45, 0.18, 35, 16.45, 4.09, 0],
+        "team_key": "frc2856"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc2872": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 6",
+      "number": 6,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 6</b>",
+    "last_match_key": "2024tnkn_sf6m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 2872 was <b>Rank 9/33</b> with a record of <b>7-4-0</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 6</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 9,
+        "record": { "losses": 4, "ties": 0, "wins": 7 },
+        "sort_orders": [1.64, 0.36, 42.18, 15.09, 4.91, 0],
+        "team_key": "frc2872"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3139": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 7",
+      "number": 7,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 7</b>",
+    "last_match_key": "2024tnkn_sf9m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 3139 was <b>Rank 15/33</b> with a record of <b>6-5-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 7</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 15,
+        "record": { "losses": 5, "ties": 0, "wins": 6 },
+        "sort_orders": [1.27, 0.45, 32, 11.27, 3, 0],
+        "team_key": "frc3139"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3140": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 6",
+      "number": 6,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 6</b>",
+    "last_match_key": "2024tnkn_sf6m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 3140 was <b>Rank 21/33</b> with a record of <b>5-6-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 6</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 21,
+        "record": { "losses": 6, "ties": 0, "wins": 5 },
+        "sort_orders": [1.09, 0.09, 34.91, 13.64, 3, 0],
+        "team_key": "frc3140"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3821": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm57",
+    "next_match_key": null,
+    "overall_status_str": "Team 3821 was <b>Rank 28/33</b> with a record of <b>2-9-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 28,
+        "record": { "losses": 9, "ties": 0, "wins": 2 },
+        "sort_orders": [0.64, 0.36, 26.82, 12.09, 2.82, 0],
+        "team_key": "frc3821"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3824": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 3",
+      "number": 3,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 3</b>",
+    "last_match_key": "2024tnkn_sf10m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 3824 was <b>Rank 24/33</b> with a record of <b>4-6-1</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 3</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 24,
+        "record": { "losses": 6, "ties": 1, "wins": 4 },
+        "sort_orders": [1, 0.09, 30.91, 13.45, 4.73, 0],
+        "team_key": "frc3824"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3843": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 4",
+      "number": 4,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 4</b>",
+    "last_match_key": "2024tnkn_sf12m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 3843 was <b>Rank 16/33</b> with a record of <b>6-5-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 4</b>, and was eliminated in the <b>Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 2 },
+      "double_elim_round": "Round 4",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 2 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 4)</b> with a playoff record of <b>2-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 16,
+        "record": { "losses": 5, "ties": 0, "wins": 6 },
+        "sort_orders": [1.27, 0.27, 34.82, 15.82, 3.45, 0],
+        "team_key": "frc3843"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3966": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm60",
+    "next_match_key": null,
+    "overall_status_str": "Team 3966 was <b>Rank 29/33</b> with a record of <b>2-9-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 29,
+        "record": { "losses": 9, "ties": 0, "wins": 2 },
+        "sort_orders": [0.64, 0.18, 28.09, 12.82, 3.27, 0],
+        "team_key": "frc3966"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc3984": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 3",
+      "number": 3,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 3</b>",
+    "last_match_key": "2024tnkn_sf10m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 3984 was <b>Rank 7/33</b> with a record of <b>7-4-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 3</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 7,
+        "record": { "losses": 4, "ties": 0, "wins": 7 },
+        "sort_orders": [1.73, 0.45, 41.73, 12.27, 5.18, 0],
+        "team_key": "frc3984"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc4020": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 1",
+      "number": 1,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 1</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 4020 was <b>Rank 2/33</b> with a record of <b>9-2-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 1</b>, and <b>won the event</b> with a playoff record of <b>5-1-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 0, "ties": 0, "wins": 2 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 1, "ties": 0, "wins": 5 },
+      "status": "won"
+    },
+    "playoff_status_str": "<b>Won the event</b> with a playoff record of <b>5-1-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 2,
+        "record": { "losses": 2, "ties": 0, "wins": 9 },
+        "sort_orders": [2.36, 0.27, 54.45, 21.27, 5.27, 0],
+        "team_key": "frc4020"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc4265": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 2",
+      "number": 2,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 2</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 4265 was <b>Rank 19/33</b> with a record of <b>5-6-0</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 2</b>, and was eliminated in the <b>Finals</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Finals</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 19,
+        "record": { "losses": 6, "ties": 0, "wins": 5 },
+        "sort_orders": [1.18, 0.36, 39.91, 16.45, 3.82, 0],
+        "team_key": "frc4265"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc4462": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 7",
+      "number": 7,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 7</b>",
+    "last_match_key": "2024tnkn_sf9m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 4462 was <b>Rank 11/33</b> with a record of <b>7-4-0</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 7</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 11,
+        "record": { "losses": 4, "ties": 0, "wins": 7 },
+        "sort_orders": [1.55, 0.18, 42.27, 16.18, 5.64, 0],
+        "team_key": "frc4462"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc4630": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 1",
+      "number": 1,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 1</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 4630 was <b>Rank 27/33</b> with a record of <b>4-7-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 1</b>, and <b>won the event</b> with a playoff record of <b>5-1-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 0, "ties": 0, "wins": 2 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 1, "ties": 0, "wins": 5 },
+      "status": "won"
+    },
+    "playoff_status_str": "<b>Won the event</b> with a playoff record of <b>5-1-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 27,
+        "record": { "losses": 7, "ties": 0, "wins": 4 },
+        "sort_orders": [0.82, 0.18, 33.18, 16.82, 2.91, 0],
+        "team_key": "frc4630"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc5005": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 5",
+      "number": 5,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 5</b>",
+    "last_match_key": "2024tnkn_sf13m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 5005 was <b>Rank 8/33</b> with a record of <b>7-3-1</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 5</b>, and was eliminated in the <b>Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 3 },
+      "double_elim_round": "Round 5",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 8,
+        "record": { "losses": 3, "ties": 1, "wins": 7 },
+        "sort_orders": [1.73, 0.45, 38.18, 13.91, 3.91, 0],
+        "team_key": "frc5005"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc538": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 8",
+      "number": 8,
+      "pick": 3
+    },
+    "alliance_status_str": "<b>3rd Pick</b> of <b>Alliance 8</b>",
+    "last_match_key": "2024tnkn_sf5m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 538 was <b>Rank 17/33</b> with a record of <b>6-5-0</b> in quals, competed in the playoffs as the <b>3rd Pick</b> of <b>Alliance 8</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 17,
+        "record": { "losses": 5, "ties": 0, "wins": 6 },
+        "sort_orders": [1.27, 0.18, 33.09, 15.09, 4.09, 0],
+        "team_key": "frc538"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc5744": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm57",
+    "next_match_key": null,
+    "overall_status_str": "Team 5744 was <b>Rank 33/33</b> with a record of <b>2-9-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 33,
+        "record": { "losses": 9, "ties": 0, "wins": 2 },
+        "sort_orders": [0.36, 0.27, 29.18, 12.82, 3.27, 0],
+        "team_key": "frc5744"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc6107": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm61",
+    "next_match_key": null,
+    "overall_status_str": "Team 6107 was <b>Rank 20/33</b> with a record of <b>5-5-1</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 20,
+        "record": { "losses": 5, "ties": 1, "wins": 5 },
+        "sort_orders": [1.18, 0.09, 32.45, 11.64, 3.82, 0],
+        "team_key": "frc6107"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc6302": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm60",
+    "next_match_key": null,
+    "overall_status_str": "Team 6302 was <b>Rank 25/33</b> with a record of <b>3-8-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 25,
+        "record": { "losses": 8, "ties": 0, "wins": 3 },
+        "sort_orders": [0.82, 0.36, 30.36, 11.18, 3.82, 0],
+        "team_key": "frc6302"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc6517": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 2",
+      "number": 2,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 2</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 6517 was <b>Rank 3/33</b> with a record of <b>8-2-1</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 2</b>, and was eliminated in the <b>Finals</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Finals</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 3,
+        "record": { "losses": 2, "ties": 1, "wins": 8 },
+        "sort_orders": [2, 0.27, 49, 21.45, 3.55, 0],
+        "team_key": "frc6517"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc7428": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 3",
+      "number": 3,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 3</b>",
+    "last_match_key": "2024tnkn_sf10m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 7428 was <b>Rank 4/33</b> with a record of <b>7-3-1</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 3</b>, and was eliminated in the <b>Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 1 },
+      "double_elim_round": "Round 3",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 1 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 3)</b> with a playoff record of <b>1-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 4,
+        "record": { "losses": 3, "ties": 1, "wins": 7 },
+        "sort_orders": [1.91, 0.64, 42.27, 14.82, 5.82, 0],
+        "team_key": "frc7428"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc7431": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 5",
+      "number": 5,
+      "pick": 1
+    },
+    "alliance_status_str": "<b>1st Pick</b> of <b>Alliance 5</b>",
+    "last_match_key": "2024tnkn_sf13m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 7431 was <b>Rank 10/33</b> with a record of <b>6-4-1</b> in quals, competed in the playoffs as the <b>1st Pick</b> of <b>Alliance 5</b>, and was eliminated in the <b>Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 3 },
+      "double_elim_round": "Round 5",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 3 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 5)</b> with a playoff record of <b>3-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 10,
+        "record": { "losses": 4, "ties": 1, "wins": 6 },
+        "sort_orders": [1.55, 0.18, 45.09, 19.36, 5.55, 0],
+        "team_key": "frc7431"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc7516": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm56",
+    "next_match_key": null,
+    "overall_status_str": "Team 7516 was <b>Rank 22/33</b> with a record of <b>4-7-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 22,
+        "record": { "losses": 7, "ties": 0, "wins": 4 },
+        "sort_orders": [1, 0.18, 30.82, 12.73, 3.64, 0],
+        "team_key": "frc7516"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc801": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 1",
+      "number": 1,
+      "pick": 0
+    },
+    "alliance_status_str": "<b>Captain</b> of <b>Alliance 1</b>",
+    "last_match_key": "2024tnkn_f1m2",
+    "next_match_key": null,
+    "overall_status_str": "Team 801 was <b>Rank 1/33</b> with a record of <b>11-0-0</b> in quals, competed in the playoffs as the <b>Captain</b> of <b>Alliance 1</b>, and <b>won the event</b> with a playoff record of <b>5-1-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 0, "ties": 0, "wins": 2 },
+      "double_elim_round": "Finals",
+      "level": "f",
+      "playoff_type": 10,
+      "record": { "losses": 1, "ties": 0, "wins": 5 },
+      "status": "won"
+    },
+    "playoff_status_str": "<b>Won the event</b> with a playoff record of <b>5-1-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 1,
+        "record": { "losses": 0, "ties": 0, "wins": 11 },
+        "sort_orders": [2.64, 0.45, 49.27, 20.73, 6, 0],
+        "team_key": "frc801"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc9097": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm58",
+    "next_match_key": null,
+    "overall_status_str": "Team 9097 was <b>Rank 30/33</b> with a record of <b>3-8-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 30,
+        "record": { "losses": 8, "ties": 0, "wins": 3 },
+        "sort_orders": [0.64, 0.09, 30.36, 14.09, 3, 0],
+        "team_key": "frc9097"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc9152": {
+    "alliance": {
+      "backup": null,
+      "name": "Alliance 8",
+      "number": 8,
+      "pick": 2
+    },
+    "alliance_status_str": "<b>2nd Pick</b> of <b>Alliance 8</b>",
+    "last_match_key": "2024tnkn_sf1m1",
+    "next_match_key": null,
+    "overall_status_str": "Team 9152 was <b>Rank 23/33</b> with a record of <b>5-6-0</b> in quals, competed in the playoffs as the <b>2nd Pick</b> of <b>Alliance 8</b>, and was eliminated in the <b>Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>.",
+    "playoff": {
+      "current_level_record": { "losses": 2, "ties": 0, "wins": 0 },
+      "double_elim_round": "Round 2",
+      "level": "sf",
+      "playoff_type": 10,
+      "record": { "losses": 2, "ties": 0, "wins": 0 },
+      "status": "eliminated"
+    },
+    "playoff_status_str": "<b>Eliminated in the Double Elimination Bracket (Round 2)</b> with a playoff record of <b>0-2-0</b>",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 23,
+        "record": { "losses": 6, "ties": 0, "wins": 5 },
+        "sort_orders": [1, 0.18, 30.73, 12.73, 3.36, 0],
+        "team_key": "frc9152"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  },
+  "frc9668": {
+    "alliance": null,
+    "alliance_status_str": "--",
+    "last_match_key": "2024tnkn_qm56",
+    "next_match_key": null,
+    "overall_status_str": "Team 9668 was <b>Rank 32/33</b> with a record of <b>1-10-0</b> in quals.",
+    "playoff": null,
+    "playoff_status_str": "--",
+    "qual": {
+      "num_teams": 33,
+      "ranking": {
+        "dq": 0,
+        "matches_played": 11,
+        "qual_average": null,
+        "rank": 32,
+        "record": { "losses": 10, "ties": 0, "wins": 1 },
+        "sort_orders": [0.45, 0.45, 27.91, 10.64, 2.64, 0],
+        "team_key": "frc9668"
+      },
+      "sort_order_info": [
+        { "name": "Ranking Score", "precision": 2 },
+        { "name": "Avg Coop", "precision": 2 },
+        { "name": "Avg Match", "precision": 2 },
+        { "name": "Avg Auto", "precision": 2 },
+        { "name": "Avg Stage", "precision": 2 }
+      ],
+      "status": "completed"
+    }
+  }
+}

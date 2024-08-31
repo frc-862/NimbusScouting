@@ -451,7 +451,7 @@ const FormBuildingScreen = () => {
 
     return (
       <View style={{width: '100%', alignItems: 'center', padding: 5, marginBottom: 10, borderRadius: 20, backgroundColor: 'hsl(240, 70%, 20%)'}}>
-        <WebButton title='Delete Element' textStyle={{color: 'red', margin: 10}} onClick={deleteElement}/>
+        <WebButton title='Delete Element' textStyle={{color: 'red', margin: 10}} hoverAnimation="scale-x" onClick={deleteElement}/>
         {
           properties.map((prop, index) => {
             if (!prop) { return null; }
@@ -522,7 +522,7 @@ const FormBuildingScreen = () => {
           <Pressable style={{width: '100%', height: '100%', position: 'absolute', zIndex: -100}} onPress={() => setShowModal('')}/>
           <View style={{width: 400, padding: 5, backgroundColor: Globals.PageColor, borderRadius: 20, alignItems: 'center', justifyContent: 'center'}}>
             <WebHeader title='Upload Form' fontSize={30} style={{margin: 10, alignItems: 'center', justifyContent: 'center'}}/>
-            <WebButton title='X' textStyle={{color: 'rgba(255, 0, 0, 0.6)', marginBottom: 2, fontSize: 20, fontWeight: 'thin'}} style={{width: 45, height: 45, position: 'absolute', right: 15, top: 15}} onClick={() => setShowModal('')}/>
+            <WebButton title='X' hoverAnimation="scale" textStyle={{color: 'rgba(255, 0, 0, 0.6)', marginBottom: 2, fontSize: 20, fontWeight: 'thin'}} style={{width: 45, height: 45, position: 'absolute', right: 15, top: 15}} onClick={() => setShowModal('')}/>
             <View style={{padding: 5, flex: 1, width: '100%', alignItems: 'center'}}>
               <View style={{width: '90%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 5}}>
                 <Text style={{flex: 1, fontSize: 20, color: 'white', fontWeight: 'bold', verticalAlign: 'center', marginRight: 10, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>Name</Text>
@@ -610,7 +610,7 @@ const FormBuildingScreen = () => {
           { /* This is the Hierarchy, where we can see the pages that we have made, and go into them and change their elements & names. */ }
           <View style={{width: '100%', margin: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap'}}>
             <WebHeader title='Hierarchy' fontSize={30} style={{marginRight: 10, marginLeft: 10}}/>
-            <WebButton title='+' onClick={addPage} innerStyle={{borderRadius: 10}} outerStyle={{borderRadius: 10}} style={{width: 30, height: 30, borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}} textStyle={{paddingBottom: 3}}/>
+            <WebButton title='+' hoverAnimation="scale" onClick={addPage} innerStyle={{borderRadius: 10}} outerStyle={{borderRadius: 10}} style={{width: 30, height: 30, borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}} textStyle={{paddingBottom: 3}}/>
           </View>
           <View style={{height: 3, width: '80%', backgroundColor: 'hsl(39, 70%, 40%)', borderRadius: 20, marginBottom: 10}}/>
           <CustomScrollView style={{flex: 1, width: '100%'}} showsVerticalScrollIndicator={false}>
@@ -627,6 +627,7 @@ const FormBuildingScreen = () => {
                           deletePage(index);
                         }} 
                         title="x" 
+                        hoverAnimation="scale"
                         textStyle={{position: 'absolute', fontSize: 30, fontWeight: 'normal', marginBottom: 9, color: 'red'}} 
                         style={{width: '100%', height: '100%'}} 
                         outerStyle={{width: '100%', height: '100%', borderRadius: 10, border: '2px solid hsl(39, 70%, 40%)'}}
@@ -645,20 +646,20 @@ const FormBuildingScreen = () => {
         { /* The is the center View, or the "Emulator", meant to show you what it may look like on a phone */ }
         <ScrollView showsVerticalScrollIndicator={false} style={{backgroundColor: Globals.PageColor}} contentContainerStyle={{flex: 1, alignItems: 'center'}}>
           <View style={{width: '100%', height: 40, flexDirection: 'row'}}>
-            <AppButton onPress={() => {saveFormData();}} style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
+            <AppButton onPress={() => {saveFormData();}} hoverAnimation="scale" style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
               <Image source={saveSvg} style={{tintColor: 'white', width: 20, height: 20}}/>
             </AppButton>
-            <AppButton onPress={() => setShowModal('upload')} style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
+            <AppButton onPress={() => setShowModal('upload')} hoverAnimation="scale" style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
               <Image source={uploadSvg} style={{tintColor: 'white', maxWidth: 26, maxHeight: 18}}/>
             </AppButton>
-            <AppButton onPress={() => setShowModal('load')} style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
+            <AppButton onPress={() => setShowModal('load')} hoverAnimation="scale" style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
               <Image source={loadSvg} style={{tintColor: 'white', maxWidth: 23, maxHeight: 20}}/>
             </AppButton>
             <View style={{flex: 1, height: '100%', backgroundColor: Globals.ButtonColor}}/>
-            <AppButton onPress={() => Linking.openURL(`mailto:jeeves51243@gmail.com?subject=${encodeURIComponent("I found a bug it the form builder! Here is what it is...")}`)} style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
+            <AppButton onPress={() => Linking.openURL(`mailto:jeeves51243@gmail.com?subject=${encodeURIComponent("I found a bug it the form builder! Here is what it is...")}`)} hoverAnimation="scale" style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
               <Image source={bugMailSvg} style={{tintColor: 'white', maxWidth: 26, maxHeight: 18}}/>
             </AppButton>
-            <AppButton onPress={() => alert("delete form (show confirmation modal)")} style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
+            <AppButton onPress={() => alert("delete form (show confirmation modal)")} hoverAnimation="scale" style={{width: 40, height: 40}} outerStyle={{borderRadius: 0}}>
               <Image source={clearSvg} style={{tintColor: 'red', maxWidth: 20, maxHeight: 20}}/>
             </AppButton>
           </View>
@@ -699,6 +700,7 @@ const FormBuildingScreen = () => {
                   [<View key={componentType} style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
                     <WebButton title={toTitleCase(componentType)} onClick={() => addElementToPage(componentType, !(componentType === 'label'))} outerStyle={{width: '100%', height: 50}} style={{width: '100%', height: '100%'}}/>
                     <WebButton 
+                      hoverAnimation='scale'
                       title='Edit Base Values' 
                       onClick={() => { 
                         setEditingBaseElement(componentType); 

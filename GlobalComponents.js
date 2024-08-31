@@ -3,7 +3,7 @@ import Globals from './Globals';
 import { View, Animated, Text, Pressable, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle, gradientDirection, disabled, onPress = () => {}, onLayout = () => {}}) => {
+const AppButton = React.forwardRef(({children, hasGradient = true, style, outerStyle, innerStyle, gradientDirection, disabled, onHover = () => {}, onHoverLeave = () => {}, onPress = () => {}, onLayout = () => {}}, ref) => {
 
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -16,7 +16,7 @@ const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle,
   }
 
   return (
-    <Pressable onLayout={onLayout} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
+    <Pressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={onPress} style={[outerStyle, {borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}]}>
       <LinearGradient
         style={[{justifyContent: 'center', alignItems: 'center', position: 'absolute', width: '100%', height: '100%'}]}
         colors={hasGradient ? [Globals.GradientColor1, Globals.GradientColor2] : ['transparent', 'transparent']}
@@ -30,7 +30,7 @@ const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle,
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 const AppLabel = ({title, style, onLayout = () => {}}) => {
   return (

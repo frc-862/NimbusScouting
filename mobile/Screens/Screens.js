@@ -1,6 +1,6 @@
 import ScreenShell from "./ScreenShell";
 import { GradientButton, GradientCheckBox, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
-import { Animated, View, Text, ScrollView, Image, Pressable } from "react-native";
+import { Animated, View, Text, ScrollView, Image, Pressable, Easing } from "react-native";
 import AppContext from "../../components/AppContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
 import { HeaderTitle, RelatedContentContainer } from "../PageComponents";
@@ -9,11 +9,14 @@ import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "../FormBuilder";
 import { LineChart } from 'react-native-chart-kit';
 import { DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
-import { APIGet, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
+import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceEvents, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Dropdown } from "react-native-element-dropdown";
 import DropdownComponent from "./Dropdown";
+import { G } from "react-native-svg";
+import Example from "../examples/ExampleDragDrop";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import DragDropList from "../DragDropList";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
@@ -94,6 +97,7 @@ const HomeScreen = memo(({gradientDir}) => {
 
         await ctx.setLoadPercent(100, 300);
       }}/>
+      <GradientButton title={"Picklist"} onPress={() => {ctx.setScreens([{screen: PicklistScreen, name: 'Picklist', infoText: '', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);}}/>
     </ScreenShell>
   );
 });
@@ -127,6 +131,9 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
   const checkIcon = require('../../assets/icons/check-mark-icon.png');
   const editIcon = require('../../assets/icons/file-edit-icon.png');
   const exportIcon = require('../../assets/icons/file-export-icon.png');
+
+  const buttonWidthAndMargins = useRef(new Animated.ValueXY({x: 0, y: 0})).current;
+
 
   const [matches, setMatches] = useState([]);
   const [selectedMatches, setSelectedMatches] = useState([]);
@@ -167,6 +174,28 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
   useEffect(() => { 
     decompressMatches();
   }, []);
+
+  useEffect(() => {
+    if (selectedMatches.length > 0) {
+      Animated.timing(buttonWidthAndMargins, 
+        {
+          toValue: {x: 75, y: 5}, 
+          duration: 200, 
+          easing: Easing.inOut(Easing.quad), 
+          useNativeDriver: false
+        }
+      ).start();      
+    } else {
+      Animated.timing(buttonWidthAndMargins, 
+        {
+          toValue: {x: 0, y: 0}, 
+          duration: 200, 
+          easing: Easing.inOut(Easing.quad), 
+          useNativeDriver: false
+        }
+      ).start(); 
+    }
+  }, [selectedMatches]);
   
   const DeleteButton = ({onShouldDelete = () => {}}) => {
     const opactiyAnim = useRef(new Animated.Value(1)).current;
@@ -185,7 +214,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
     }, [onConfirmation]);
 
     return (
-      <Animated.View style={{flex: 1, justifyContent: 'center', alignItems: 'center', opacity: opactiyAnim}}>
+      <Animated.View style={{flex: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', opacity: opactiyAnim}}>
         <Pressable 
           onPressIn={() => {opactiyAnim.setValue(0.5)}} 
           onPressOut={() => {Animated.timing(opactiyAnim, {toValue: 1, duration: 200, useNativeDriver: false}).start()}}
@@ -196,13 +225,13 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               setOnConfirmation(true);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20}}
+          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
           { 
             onConfirmation ? 
-            <Image source={checkIcon} style={{width: 30, height: 22}} tintColor={'green'}/> 
+            <Image source={checkIcon} style={{position: 'absolute', width: 30, height: 22}} tintColor={'green'}/> 
             : 
-            <Image source={trashIcon} style={{width: 25, height: 30}} tintColor={'red'}/> 
+            <Image source={trashIcon} style={{position: 'absolute', width: 25, height: 30}} tintColor={'red'}/> 
           }
           
         </Pressable>
@@ -235,7 +264,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
     const opactiyAnim = useRef(new Animated.Value(1)).current;
 
     return (
-      <Animated.View style={{flex: 1, justifyContent: 'center', alignItems: 'center', opacity: opactiyAnim}}>
+      <Animated.View style={{flex: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', opacity: opactiyAnim}}>
         <Pressable 
           onPressIn={() => {opactiyAnim.setValue(0.5)}} 
           onPressOut={() => {Animated.timing(opactiyAnim, {toValue: 1, duration: 200, useNativeDriver: false}).start()}}
@@ -277,9 +306,9 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               ctx.showNotification("Successfully uploaded all selected matches!", Globals.NotificationRegularColor);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20}}
+          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
-          <Image source={exportIcon} style={{width: 24, height: 30}} tintColor={'white'}/>
+          <Image source={exportIcon} style={{position: 'absolute', width: 24, height: 30}} tintColor={'white'}/>
         </Pressable>
       </Animated.View>
     );
@@ -342,10 +371,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
       </ScrollView>
       <View style={{width: '90%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
         { matches.length > 0 ? <GradientButton outerStyle={{flex: 1}} title={selectedMatches.length === matches.length ? 'Deselect All' : 'Select All'} onPress={trySelectAll}/> : null }
-        { selectedMatches.length > 0 ? [
-        <View key={0} style={{height: 75, width: 75, margin: 5, borderRadius: 20, backgroundColor: Globals.ButtonColor}}><ExportButton/></View>,
-        <View key={1} style={{height: 75, width: 75, margin: 5, borderRadius: 20, backgroundColor: Globals.ButtonColor}}><DeleteButton onShouldDelete={deleteSelectedMatches}/></View>
-        ] : null }
+        <Animated.View key={0} style={{height: 75, width: buttonWidthAndMargins.x, margin: buttonWidthAndMargins.y, borderRadius: 20, backgroundColor: Globals.ButtonColor}}><ExportButton/></Animated.View>
+        <Animated.View key={1} style={{height: 75, width: buttonWidthAndMargins.x, margin: buttonWidthAndMargins.y, borderRadius: 20, backgroundColor: Globals.ButtonColor}}><DeleteButton onShouldDelete={deleteSelectedMatches}/></Animated.View>
       </View>
     </ScreenShell>
   )
@@ -541,6 +568,60 @@ const SettingsScreen = memo(({gradientDir}) => {
       }}/>
     </ScreenShell>
   )
+});
+
+const PicklistScreen = memo(({gradientDir}) => {
+  // TODO: Make a different picklist section for both quals and for alliances in elims.
+
+  const [teams, setTeams] = useState([]);
+  const [teamNames, setTeamNames] = useState({});
+  const [teamStatuses, setTeamStatuses] = useState({});
+  const [dragListData, setDragListData] = useState([]);
+
+  async function getTeamNamesFromAPI() {
+    getBlueAllianceTeams('2024tnkn', 3000).then((data) => {
+      setTeamNames(data);
+    });
+  }
+  
+  if (teams.length === 0) {
+    getBlueAllianceEvents('2024').then((data) => { console.log(data); });
+    getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + '2024tnkn' + "/teams/statuses", 3000).then((data) => {
+      setTeamStatuses(data);
+      setTeams(Object.keys(data));
+    });
+  }
+
+  useEffect(() => {
+    setDragListData(
+      teams.map((team) => {
+        const teamStatus = teamStatuses[team];
+
+        return ({
+          key: team, 
+          team_number: team.replace('frc', ''),
+          team_name: teamStatus.team.nickname,
+          ranking: teamStatus.qual.ranking.rank,
+          alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
+          alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
+          qual_wins: teamStatus.qual.ranking.record.wins,
+          qual_losses: teamStatus.qual.ranking.record.losses,
+          qual_ties: teamStatus.qual.ranking.record.ties,
+          playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
+          playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
+          playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+        });
+      }
+    ));
+  }, [teams]);
+
+  return (
+    <ScreenShell gradientDir={gradientDir} scrollable={false} style={{paddingTop: 0, paddingBottom: 0}}>
+      <GestureHandlerRootView style={{width: '100%', flex: 1}}>
+        <DragDropList data={dragListData}/>
+      </GestureHandlerRootView>
+    </ScreenShell>
+  );
 });
 
 /*

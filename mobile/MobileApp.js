@@ -26,6 +26,7 @@ import { HomeScreen, PrematchScreen, SaveMatchScreen } from "./Screens/Screens";
 import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";
 import { AppInput } from "../GlobalComponents";
+import { getBlueAllianceTeams } from "../backend/APIRequests";
 
 const DisplayScreen = ({Component, gradientDir}) => {
   return <Component gradientDir={gradientDir}/>;
@@ -117,7 +118,7 @@ const MobileApp = () => {
   }
 
   // Changing / Displaying Screens
-  const [screens, setScreens] = useState([{screen: HomeScreen, name: 'Home', onNext: undefined, onBack: undefined}]);
+  const [screens, setScreens] = useState([{screen: HomeScreen, name: 'Home'}]);
   const [screenIndex, setScreenIndex] = useState(0);
 
   useEffect(() => {

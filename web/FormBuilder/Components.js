@@ -5,9 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import FormBuilderContext from '../../components/FormBuilderContext';
 import { AppButton, AppCheckbox, AppChoice, AppInput } from '../../GlobalComponents';
 
-const WebButton = ({title, outerStyle, style, innerStyle, textStyle, onClick = () => {}, emulated, onEmulateClick = () => {},}) => {
+const WebButton = ({title, outerStyle, style, innerStyle, textStyle, hoverAnimation = "opacity", onClick = () => {}, emulated, onEmulateClick = () => {},}) => {
   return (
-    <AppButton onPress={onClick} outerStyle={outerStyle} style={style} innerStyle={innerStyle}>
+    <AppButton hoverAnimation={hoverAnimation} onPress={onClick} outerStyle={outerStyle} style={style} innerStyle={innerStyle}>
       <Text selectable={false} style={[{color: 'white', fontSize: 16, fontWeight: 'bold'}, textStyle]}>{title}</Text>
     </AppButton>
   )
