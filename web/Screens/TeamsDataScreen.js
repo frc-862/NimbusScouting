@@ -33,24 +33,26 @@ const TeamsDataScreen = () => {
       getMatches();
     }
   }, []);
+
+  loadingFadeOut.start(() => {setLoaded(true)});
   
-  useEffect(() => {
-    if (matches.length === 0) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (matches.length === 0) {
+  //     return;
+  //   }
 
-    // Sort the matches by match number.
-    matches.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"]));
+  //   // Sort the matches by match number.
+  //   matches.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"]));
 
-    setData({
-      // Change the labels
-      labels: matches.map((match) => match.data["0{match_num}"]),
-      // Change the data for each label
-      datasets: [{data: matches.map((match) => Number(match.data["3{numbers}"]))}]
-    });
+  //   setData({
+  //     // Change the labels
+  //     labels: matches.map((match) => match.data["0{match_num}"]),
+  //     // Change the data for each label
+  //     datasets: [{data: matches.map((match) => Number(match.data["3{numbers}"]))}]
+  //   });
 
-    loadingFadeOut.start(() => {setLoaded(true)});
-  }, [matches]);
+  //   loadingFadeOut.start(() => {setLoaded(true)});
+  // }, [matches]);
 
 
   const initialData = [

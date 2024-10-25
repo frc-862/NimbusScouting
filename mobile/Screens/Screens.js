@@ -1,22 +1,21 @@
 import ScreenShell from "./ScreenShell";
-import { GradientButton, GradientCheckBox, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
+import { GradientButton, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
 import { Animated, View, Text, ScrollView, Image, Pressable, Easing } from "react-native";
 import AppContext from "../../components/AppContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
-import { HeaderTitle, RelatedContentContainer } from "../PageComponents";
-import { AppButton, AppCheckbox, AppChoice, AppInput } from "../../GlobalComponents";
-import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "../FormBuilder";
+import { HeaderTitle } from "../PageComponents";
+import { AppCheckbox, AppInput } from "../../GlobalComponents";
+import { GetFormJSONAsMatch } from "../FormBuilder";
 import { LineChart } from 'react-native-chart-kit';
 import { DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
-import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceEvents, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
+import { getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DropdownComponent from "./Dropdown";
-import { G } from "react-native-svg";
-import Example from "../examples/ExampleDragDrop";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import DragDropList from "../DragDropList";
+// import LineChart from "../../web/LineGraph";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
@@ -443,39 +442,161 @@ const DataViewScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
   const [matches, setMatches] = useState([]);
   const [data, setData] = useState({labels: [], datasets: [{data: []}]});
+  // How our data show be displayed. ("auto" means that we want it to choose a line chart for numerical data, and a pie chart for categorical data, or a percentage thingy or something for true/false values)
+  const [displayStyle, setDisplayStyle] = useState("auto");
+
+  // Our different data filters.
+  const [dataFilters, setDataFilters] = useState({
+    form: ctx.currentForm,
+    dataYValues: [
+      {
+        pageNum: 0, // A hidden value from the user, only used if there are multiple values in the same form on different pages.
+        value: "match_num",
+        conditionalValue: null,
+      },
+      {
+        pageNum: 3,
+        value: "numbers",
+        conditionalValue: null,
+      }
+    ],
+    overrideXAxisPageNum: null,
+    overrideXAxisValue: null,
+    dataUse: "auto" // Auto means that it will try to automatically guess what kind of data it is, numerical, or categorical
+  });
+
+  function getGraphType(data) {
+    if (data[0].constructor == Boolean)
+      return "TF";
+    else if (data[0].constructor == Array)
+      return "Categorical";
+    else if (!isNaN(data[0])) // Will only return true if data[0] is NOT a number
+      return "Numerical";
+    else
+      return "Unknown";
+  }
+
+  function formatAndFilterGraphData(rawData) {
+    const finalData = {labels: [], datasets: []};
+    let graphType = undefined;
+
+    // If there is no data, dont try doing anything with it. 
+    if (rawData.length === 0 || !rawData) {
+      return {labels: [], datasets: [{data: []}]};
+    }
+
+    // First, filter our data by the form.
+    const filteredData = rawData.filter((match) => match.data.form.name === dataFilters.form.name && match.data.form.year === dataFilters.form.year);
+
+    // First loop through the conditional values, and filter the data by them.
+    for (let dataY of dataFilters.dataYValues) {
+      if (dataY.conditionalValue === null) {
+        continue
+      }
+
+      // Filter the data by the conditional value. (Each match that the data is being pulled from must have the conditional value)
+      filteredData = filteredData.filter((match) => match.data[`${dataY.pageNum}{${dataY.value}}`] === dataY.conditionalValue);
+    }
+
+    // Next, loop through everything else, making sure that our y values are not conditional, finding the data for the lines.
+    for (const dataY of dataFilters.dataYValues) {
+      if (dataY.conditionalValue !== null) {
+        continue;
+      }
+
+      const newYData = {data: []};
+
+      let isFaultyData = false;
+
+      // Next, filter our data by the value and page. 
+      const yData = filteredData.map((match) => {
+        const val = match.data[`${dataY.pageNum}{${dataY.value}}`]
+
+        // Something is going on w/ our data, so we should not use it.
+        if (val === null || val === undefined) {
+          isFaultyData = true;
+        }
+
+        return val;
+      });
+
+      // As long as our data is not faulty (nothing went wrong), add it to the final data.
+      if (isFaultyData) {
+        continue;
+      }
+
+      // Make sure to find what kind of data we are working with, and if it is not the same as the other data, give an error.
+      let typeFound = getGraphType(yData);
+      if (graphType !== undefined && graphType !== typeFound) {
+        console.log("Data types do not match!");
+        return {labels: [], datasets: [{data: []}]};
+      }
+      graphType = typeFound;
+
+      newYData.data = yData;      
+      finalData.datasets.push(newYData);
+    }
+
+    let xData = [];
+    if (dataFilters.overrideXAxisPageNum !== null && dataFilters.overrideXAxisValue !== null) {
+      xData = filteredData.map((match) => match.data[`${dataFilters.overrideXAxisPageNum}{${dataFilters.overrideXAxisValue}}`]);
+    } else {
+      // If there is no override set for the x-axis, use the default value (Match Number).
+      xData = filteredData.map((match) => match.data[`0{match_num}`]);
+    }
+
+    if (finalData.datasets.length === 0 || graphType === undefined || graphType === "Unknown") { 
+      // Give back an empty line graph
+      return {labels: [], datasets: [{data: []}]}
+    }
+
+    setData(finalData);
+    setDisplayStyle(graphType);
+  }
+
+  function trySetData() {
+    formatAndFilterGraphData(matches);
+  }
+
+  function setValueOfYData(index, value_id, value) {
+    let newYValues = [...dataFilters.dataYValues];
+    newYValues[index][value_id] = value;
+    setDataFilters({...dataFilters, dataYValues: newYValues});
+  }
+
+  useEffect(() => {
+    // Try and get the matches from the stored data.
+    if (matches.length === 0) {
+      AsyncStorage.getItem('stored view matches').then((data) => {
+        // Set the matches to the decompressed data.
+        setMatches(JSON.parse(data).map((match) => JSON.parse(InflateString(match))));
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // Sort the matches by match number.
     matches.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"]));
 
-    data.labels = matches.map((match) => match.data["0{match_num}"]);
-    data.datasets[0].data = matches.map((match) => Number(match.data["3{numbers}"]));
+    trySetData();
   }, [matches]);
 
-  // Try and get the matches from the stored data.
-  if (matches.length === 0) {
-    AsyncStorage.getItem('stored view matches').then((data) => {
-      // Set the matches to the decompressed data.
-      setMatches(JSON.parse(data).map((match) => JSON.parse(InflateString(match))));
-    });
-  }
-
-  // Which form's data values should be used
-  const formFilter = ctx.currentForm;
-  // The page number of which value you want, may be able to be intertwined with value filter, specifying which page each value is from.
-  const pageFilter = null;
-  // The value of the data you want to filter by.
-  const valueFilter = null;
-  // How the data you got should be used
-  const dataUseFilter = null;
-
-  // How the data should be displayed.
-  const dataShowStyle = null;
-  
+  useEffect(() => {
+    trySetData();
+  }, [dataFilters]);
 
   return (
     <ScreenShell gradientDir={gradientDir}>
-      <DropdownComponent data={ctx.loadedForms.map((form) => ({label: form.name, value: form.name}))} placeholder="Form to use" default_value={ctx.currentForm ? ctx.currentForm.name : undefined}/>
+      <AppInput title="Page Num" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(0, "pageNum", value)}}/>
+      <AppInput title="Value" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(0, "value", value)}}/>
+      <AppInput title="Page Num Cond" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "pageNum", value)}}/>
+      <AppInput title="Value Cond" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "value", value)}}/>
+      <AppInput title="Conditional Value" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "conditionalValue", value)}}/>
+      <DropdownComponent 
+        data={ctx.loadedForms.map((form) => ({label: form.name, value: form.name}))} 
+        placeholder="Form to use" 
+        default_value={ctx.currentForm ? ctx.currentForm.name : undefined}
+      />
       <LineChart
         data={data}
         width={400} // from react-native
@@ -507,6 +628,7 @@ const DataViewScreen = memo(({gradientDir}) => {
           borderRadius: 16
         }}
       />
+      {/* <LineChart data={testData} translation={{x: 50, y: 50}} padding={100} width={1600} height={800}/> */}
     </ScreenShell>
   )
 });
@@ -583,36 +705,75 @@ const PicklistScreen = memo(({gradientDir}) => {
       setTeamNames(data);
     });
   }
+
+  function getAndSetDragListData() {
+    const baseDragData = {
+      key: '', 
+      is_tier_card: false,
+      tier_info: null,
+      team_number: 0,
+      team_name: '',
+      ranking: 0,
+      alliance: null,
+      alliance_pick: null,
+      qual_wins: 0,
+      qual_losses: 0,
+      qual_ties: 0,
+      playoff_wins: null,
+      playoff_losses: null,
+      playoff_ties: null,
+    }
+
+    const tiersDragData = [
+      {...baseDragData, key: 'tier1', is_tier_card: true, tier_info: 'Tier 1'},
+      {...baseDragData, key: 'tier2', is_tier_card: true, tier_info: 'Tier 2'},
+      {...baseDragData, key: 'tier3', is_tier_card: true, tier_info: 'Tier 3'},
+      {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
+    ]
+
+    const teamsDragData = teams.map((team) => {
+      const teamStatus = teamStatuses[team];
+
+      return ({
+        key: team, 
+        is_tier_card: false,
+        tier_info: null,
+        team_number: team.replace('frc', ''),
+        team_name: 'None',//teamStatus.team.nickname,
+        ranking: teamStatus.qual.ranking.rank,
+        alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
+        alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
+        qual_wins: teamStatus.qual.ranking.record.wins,
+        qual_losses: teamStatus.qual.ranking.record.losses,
+        qual_ties: teamStatus.qual.ranking.record.ties,
+        playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
+        playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
+        playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+      });
+    });
+
+    
+    setDragListData(
+      [...tiersDragData, ...teamsDragData]
+    );
+  }
   
   if (teams.length === 0) {
-    getBlueAllianceEvents('2024').then((data) => { console.log(data); });
-    getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + '2024tnkn' + "/teams/statuses", 3000).then((data) => {
+    // getBlueAllianceEvents('2024').then((data) => { console.log(data); });
+    getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + '2024tnkn' + "/teams/statuses", 10000).then((data) => {
       setTeamStatuses(data);
       setTeams(Object.keys(data));
     });
   }
 
-  useEffect(() => {
-    setDragListData(
-      teams.map((team) => {
-        const teamStatus = teamStatuses[team];
+  if (teamNames.length === 0) {
+    getBlueAllianceTeams('2024tnkn', 3000).then((data) => {
+      setTeamNames(data);
+    });
+  }
 
-        return ({
-          key: team, 
-          team_number: team.replace('frc', ''),
-          team_name: teamStatus.team.nickname,
-          ranking: teamStatus.qual.ranking.rank,
-          alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
-          alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
-          qual_wins: teamStatus.qual.ranking.record.wins,
-          qual_losses: teamStatus.qual.ranking.record.losses,
-          qual_ties: teamStatus.qual.ranking.record.ties,
-          playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
-          playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
-          playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
-        });
-      }
-    ));
+  useEffect(() => {
+    getAndSetDragListData();
   }, [teams]);
 
   return (
