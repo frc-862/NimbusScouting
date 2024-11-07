@@ -32,9 +32,10 @@ const TeamsDataScreen = () => {
     if (matches.length === 0) {
       getMatches();
     }
+    loadingFadeOut.start(() => {setLoaded(true)}); // Comment out later
   }, []);
 
-  loadingFadeOut.start(() => {setLoaded(true)});
+  
   
   // useEffect(() => {
   //   if (matches.length === 0) {
@@ -123,7 +124,7 @@ const TeamsDataScreen = () => {
           borderRadius: 16
         }}
       /> */}
-      <LineChart data={testData} translation={{x: 50, y: 50}} padding={100} width={1600} height={800}/>
+      <LineChart data={initialData} translation={{x: 50, y: 50}} padding={100} width={1600} height={800}/>
       <Button title="Update Data" onPress={updateData} />
     </View>
   ]

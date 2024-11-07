@@ -7,7 +7,6 @@ import Animated, { useAnimatedProps, withTiming, useSharedValue } from 'react-na
 
 interface LineChartProps {
   data: { x: number; y: number }[];
-  data2: { x: number; y: number }[];
   width: number;
   height: number;
   translation?: { x: number; y: number };
@@ -111,6 +110,8 @@ const LineChart: React.FC<LineChartProps> = memo(({
     progress.value = 0;
     progress.value = withTiming(1, {duration: 500});
   }, [pathData]);
+
+  console.log("WEB: " + interpolatePath(String(pathData.prev), String(pathData.current))(progress.value));
 
   const animatedProps = useAnimatedProps(() => ({
     d: interpolatePath(String(pathData.prev), String(pathData.current))(progress.value),

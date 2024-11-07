@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import Globals from '../../Globals';
 
-const DropdownComponent = ({default_value, data, placeholder = "Dropdown 1", onChange = (item) => {}, onBlur = () => {}, onFocus = () => {}}) => {
+const DropdownComponent = ({outerStyle, style, default_value, data, placeholder = "Dropdown 1", onChange = (item) => {}, onBlur = () => {}, onFocus = () => {}}) => {
   // console.log(default_value, data.some((item) => item.value === default_value));
   if (data === undefined) {
     data = [
@@ -34,10 +34,10 @@ const DropdownComponent = ({default_value, data, placeholder = "Dropdown 1", onC
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, outerStyle]}>
       {renderLabel()}
       <Dropdown
-        style={[styles.dropdown, { borderColor: isFocus ? Globals.GradientColor2 : Globals.ButtonColor }]}
+        style={[styles.dropdown, { borderColor: isFocus ? Globals.GradientColor2 : Globals.ButtonColor }, style]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
         inputSearchStyle={styles.inputSearchStyle}
@@ -45,8 +45,8 @@ const DropdownComponent = ({default_value, data, placeholder = "Dropdown 1", onC
         data={data}
         autoScroll
         search
-        maxHeight={300}
-        minHeight={100}
+        // maxHeight={300}
+        // minHeight={100}
         labelField="label"
         valueField="value"
         searchField="search"
@@ -72,12 +72,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   dropdown: {
+    width: '100%',
     height: 75,
     backgroundColor: Globals.ButtonColor,
     borderColor: 'gray',
     borderWidth: 2,
     borderRadius: 20,
     paddingHorizontal: 8,
+    paddingVertical: 0,
   },
   icon: {
     marginRight: 5,
@@ -98,10 +100,14 @@ const styles = StyleSheet.create({
   },
   placeholderStyle: {
     fontSize: 16,
+    height: 75,
+    lineHeight: 75,
     color: Globals.TextColor,
   },
   selectedTextStyle: {
     fontSize: 16,
+    height: 75,
+    lineHeight: 75,
     color: Globals.TextColor,
   },
   iconStyle: {

@@ -1,12 +1,11 @@
 import ScreenShell from "./ScreenShell";
 import { GradientButton, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
-import { Animated, View, Text, ScrollView, Image, Pressable, Easing } from "react-native";
+import { Animated, View, Text, ScrollView, Image, Pressable, Easing, StyleSheet, Platform, StatusBar } from "react-native";
 import AppContext from "../../components/AppContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
 import { HeaderTitle } from "../PageComponents";
 import { AppCheckbox, AppInput } from "../../GlobalComponents";
 import { GetFormJSONAsMatch } from "../FormBuilder";
-import { LineChart } from 'react-native-chart-kit';
 import { DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
 import { getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
@@ -15,7 +14,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DropdownComponent from "./Dropdown";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import DragDropList from "../DragDropList";
-// import LineChart from "../../web/LineGraph";
+import DataDisplay from "../DataDisplay";
+import { PageHeader, PageContent, PageFooter } from "../PageComponents";
+import { LinearGradient } from "expo-linear-gradient";
+import { Dropdown } from "react-native-element-dropdown";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
@@ -441,196 +443,152 @@ const FormSelectScreen = memo(({gradientDir}) => {
 const DataViewScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
   const [matches, setMatches] = useState([]);
-  const [data, setData] = useState({labels: [], datasets: [{data: []}]});
   // How our data show be displayed. ("auto" means that we want it to choose a line chart for numerical data, and a pie chart for categorical data, or a percentage thingy or something for true/false values)
-  const [displayStyle, setDisplayStyle] = useState("auto");
+  const [displayStyleOverride, setDisplayStyleOverride] = useState("auto");
+  const [formKeyValueChoices, setFormKeyValueChoices] = useState(getFormKeyValues());
+
+  const displayViewSize = useRef(new Animated.Value(150)).current;
 
   // Our different data filters.
   const [dataFilters, setDataFilters] = useState({
     form: ctx.currentForm,
     dataYValues: [
       {
-        pageNum: 0, // A hidden value from the user, only used if there are multiple values in the same form on different pages.
-        value: "match_num",
+        value: "0{match_num}",
         conditionalValue: null,
       },
       {
-        pageNum: 3,
-        value: "numbers",
+        value: "3{numbers}",
         conditionalValue: null,
       }
     ],
-    overrideXAxisPageNum: null,
     overrideXAxisValue: null,
     dataUse: "auto" // Auto means that it will try to automatically guess what kind of data it is, numerical, or categorical
   });
 
-  function getGraphType(data) {
-    if (data[0].constructor == Boolean)
-      return "TF";
-    else if (data[0].constructor == Array)
-      return "Categorical";
-    else if (!isNaN(data[0])) // Will only return true if data[0] is NOT a number
-      return "Numerical";
-    else
-      return "Unknown";
-  }
-
-  function formatAndFilterGraphData(rawData) {
-    const finalData = {labels: [], datasets: []};
-    let graphType = undefined;
-
-    // If there is no data, dont try doing anything with it. 
-    if (rawData.length === 0 || !rawData) {
-      return {labels: [], datasets: [{data: []}]};
-    }
-
-    // First, filter our data by the form.
-    const filteredData = rawData.filter((match) => match.data.form.name === dataFilters.form.name && match.data.form.year === dataFilters.form.year);
-
-    // First loop through the conditional values, and filter the data by them.
-    for (let dataY of dataFilters.dataYValues) {
-      if (dataY.conditionalValue === null) {
-        continue
-      }
-
-      // Filter the data by the conditional value. (Each match that the data is being pulled from must have the conditional value)
-      filteredData = filteredData.filter((match) => match.data[`${dataY.pageNum}{${dataY.value}}`] === dataY.conditionalValue);
-    }
-
-    // Next, loop through everything else, making sure that our y values are not conditional, finding the data for the lines.
-    for (const dataY of dataFilters.dataYValues) {
-      if (dataY.conditionalValue !== null) {
-        continue;
-      }
-
-      const newYData = {data: []};
-
-      let isFaultyData = false;
-
-      // Next, filter our data by the value and page. 
-      const yData = filteredData.map((match) => {
-        const val = match.data[`${dataY.pageNum}{${dataY.value}}`]
-
-        // Something is going on w/ our data, so we should not use it.
-        if (val === null || val === undefined) {
-          isFaultyData = true;
-        }
-
-        return val;
-      });
-
-      // As long as our data is not faulty (nothing went wrong), add it to the final data.
-      if (isFaultyData) {
-        continue;
-      }
-
-      // Make sure to find what kind of data we are working with, and if it is not the same as the other data, give an error.
-      let typeFound = getGraphType(yData);
-      if (graphType !== undefined && graphType !== typeFound) {
-        console.log("Data types do not match!");
-        return {labels: [], datasets: [{data: []}]};
-      }
-      graphType = typeFound;
-
-      newYData.data = yData;      
-      finalData.datasets.push(newYData);
-    }
-
-    let xData = [];
-    if (dataFilters.overrideXAxisPageNum !== null && dataFilters.overrideXAxisValue !== null) {
-      xData = filteredData.map((match) => match.data[`${dataFilters.overrideXAxisPageNum}{${dataFilters.overrideXAxisValue}}`]);
-    } else {
-      // If there is no override set for the x-axis, use the default value (Match Number).
-      xData = filteredData.map((match) => match.data[`0{match_num}`]);
-    }
-
-    if (finalData.datasets.length === 0 || graphType === undefined || graphType === "Unknown") { 
-      // Give back an empty line graph
-      return {labels: [], datasets: [{data: []}]}
-    }
-
-    setData(finalData);
-    setDisplayStyle(graphType);
-  }
-
-  function trySetData() {
-    formatAndFilterGraphData(matches);
-  }
-
+  // Getting and setting the data filters
   function setValueOfYData(index, value_id, value) {
     let newYValues = [...dataFilters.dataYValues];
     newYValues[index][value_id] = value;
     setDataFilters({...dataFilters, dataYValues: newYValues});
   }
 
+  function getValueOfYData(index, value_id) {
+    let value = dataFilters.dataYValues[index][value_id];
+    // Give the actual value if its not null or empty, otherwise give an empty string.
+    return !value && value !== 0 ? '' : value;
+  }
+
+  function getFormKeyValues() {
+
+    const formToUse = dataFilters !== undefined ? dataFilters.form : ctx.currentForm;
+
+    if (formToUse === undefined) { return []; }
+
+    let keyVals = [{label: "Prematch: Match Number", value: "0{match_num}"}, {label: "Prematch: Alliance", value: "0{alliance}"}, {label: "Prematch: Team", value: "0{team}"}];
+    formToUse.form.forEach((page, i) => {
+      page.elements.forEach((field) => {
+        if (!field["key_value"] || !field["title"]) { return; }
+        keyVals.push({label: page.name + ": " + field["title"], value: `${i + 1}{${field["key_value"]}}`});
+      });
+    });
+
+    return keyVals;
+  }
+
   useEffect(() => {
     // Try and get the matches from the stored data.
     if (matches.length === 0) {
       AsyncStorage.getItem('stored view matches').then((data) => {
-        // Set the matches to the decompressed data.
-        setMatches(JSON.parse(data).map((match) => JSON.parse(InflateString(match))));
+        const decompData = JSON.parse(data).map((match) => JSON.parse(InflateString(match)));
+        // Set the matches to the sorted decompressed data.
+        setMatches(decompData.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"])));
       });
     }
+
+    setFormKeyValueChoices(getFormKeyValues());
   }, []);
 
   useEffect(() => {
-    // Sort the matches by match number.
-    matches.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"]));
-
-    trySetData();
-  }, [matches]);
-
-  useEffect(() => {
-    trySetData();
+    // console.log(dataFilters.form.name)
+    setFormKeyValueChoices(getFormKeyValues());
   }, [dataFilters]);
 
+
+  // Part of the "Screen Shell" here. Just makes sure the right name is shown for the screen.
+  const {name, infoText} = ctx.screens[ctx.screenIndex];
+
+  const [value, setValue] = useState("b");
+
+  // I wouldv'e used my ScreenShell here, but I wanted to alter the top, an I can't do that with the ScreenShell.
   return (
-    <ScreenShell gradientDir={gradientDir}>
-      <AppInput title="Page Num" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(0, "pageNum", value)}}/>
-      <AppInput title="Value" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(0, "value", value)}}/>
-      <AppInput title="Page Num Cond" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "pageNum", value)}}/>
-      <AppInput title="Value Cond" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "value", value)}}/>
-      <AppInput title="Conditional Value" outerStyle={{width: '80%'}} onValueChanged={(value) => {setValueOfYData(1, "conditionalValue", value)}}/>
+  <View style={[styles.page, {backgroundColor: Globals.PageColor}]}>
+    <PageHeader gradientDir={gradientDir} infoText={infoText} title={name}/>
+
+    <Animated.View style={{
+      marginTop: -3, 
+      width: '100%', height: displayViewSize, 
+      justifyContent: 'center', alignItems: 'center', 
+      backgroundColor: Globals.PageHeaderFooterColor,
+      overflow: 'hidden'
+    }}>
+      <DataDisplay d={matches} dataFilters={dataFilters} displayStyleOverride={displayStyleOverride} onDisplaySizeChange={(recomScale) => {
+        // Change it to the recommended scale (recomScale)
+        Animated.timing(displayViewSize, {toValue: recomScale.y + 30, duration: 500, easing: Easing.inOut(Easing.cubic), useNativeDriver: false}).start();
+        // displayViewSize.setValue(recomScale.y + 30);
+      }}/>
+      
+    </Animated.View>
+    <LinearGradient
+      colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
+      start={{x: gradientDir ? 0 : 1, y: 0}}
+      end={{x: gradientDir ? 1 : 0, y: 0}}
+      style={{width: '100%', height: 5}}
+    >
+    </LinearGradient>
+
+    <PageContent gradientDir={gradientDir} scrollable={true} style={{paddingTop: 15}}>
+
+      <DropdownComponent
+        data={ formKeyValueChoices }
+        outerStyle={{width: '80%', marginBottom: 10}}
+        placeholder="Value to Display"
+        default_value={getValueOfYData(0, "value")}
+        onChange={(choice) => { setValueOfYData(0, "value", choice.value) }}
+      />
+      <DropdownComponent
+        data={ formKeyValueChoices }
+        placeholder="Value to Check"
+        default_value={getValueOfYData(1, "value")}
+        onChange={(choice) => { setValueOfYData(1, "value", choice.value) }}
+      />
+      <AppInput title="Conditional Value" outerStyle={{width: '80%'}} default_value={getValueOfYData(1, "conditionalValue")} onValueChanged={(value) => {setValueOfYData(1, "conditionalValue", value)}}/>
+
       <DropdownComponent 
         data={ctx.loadedForms.map((form) => ({label: form.name, value: form.name}))} 
         placeholder="Form to use" 
         default_value={ctx.currentForm ? ctx.currentForm.name : undefined}
+        onChange={(choice) => { setDataFilters({...dataFilters, form: ctx.loadedForms.find((form) => form.name === choice.value)}) }}
       />
-      <LineChart
-        data={data}
-        width={400} // from react-native
-        height={220}
-        yAxisInterval={1} // optional, defaults to 1
-        yLabelsOffset={10}
-        bezier
-        chartConfig={{
-          backgroundColor: "#e26a00",
-          backgroundGradientFrom: "#fb8c00",
-          backgroundGradientTo: "#ffa726",
-          decimalPlaces: 0, // optional, defaults to 2dp
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16
-          },
-          propsForDots: {
-            r: "4",
-            strokeWidth: "2",
-            stroke: "#ffa726"
-          }
-        }}
-        withVerticalLines={true}
-        withHorizontalLines={true}
-        
-        style={{
-          marginVertical: 8,
-          borderRadius: 16
-        }}
-      />
-      {/* <LineChart data={testData} translation={{x: 50, y: 50}} padding={100} width={1600} height={800}/> */}
-    </ScreenShell>
-  )
+    </PageContent>
+
+    <PageFooter gradientDir={gradientDir}/>
+    <StatusBar style="light" />
+  </View>
+  );
+});
+
+const styles = StyleSheet.create({
+  page: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: "red",
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
+    margin: 0,
+  },
 });
 
 const SettingsScreen = memo(({gradientDir}) => {
