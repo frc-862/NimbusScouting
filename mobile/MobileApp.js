@@ -12,7 +12,6 @@ import {
   Text,
   Keyboard
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 
 // Third Party Components
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -21,12 +20,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // My Custom Components & Functions
 import Globals from "../Globals";
 import AppContext from "../components/AppContext";
-import { PageFooter, PageContent, PageHeader } from "./PageComponents";
 import { HomeScreen, PrematchScreen, SaveMatchScreen } from "./Screens/Screens";
 import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";
-import { AppInput } from "../GlobalComponents";
-import { getBlueAllianceTeams } from "../backend/APIRequests";
+import { getBlueAllianceDataFromURL, getBlueAllianceMatches, getBlueAllianceTeams } from "../backend/APIRequests";
 
 const DisplayScreen = ({Component, gradientDir}) => {
   return <Component gradientDir={gradientDir}/>;
@@ -40,7 +37,50 @@ const MobileApp = () => {
     setLoadPercent(0, 0);
 
     // Use for testing having some empty keys in the storage.
-    //await AsyncStorage.multiRemove(await AsyncStorage.getAllKeys())
+    // await AsyncStorage.multiRemove(await AsyncStorage.getAllKeys())
+
+    let year = String(new Date().getFullYear());
+    let event = "";
+
+    // Load the year from storage
+    await AsyncStorage.getItem('scouting settings').then((data) => {
+      if (data) {
+        let parsed = JSON.parse(data);
+        setScoutingSettings(JSON.parse(data));
+        year = parsed.year;
+        event = parsed.event;
+        return;
+      }
+      setScoutingSettings({event: 'none', year: year});
+      AsyncStorage.setItem('scouting settings', JSON.stringify({event: 'none', year: year}));
+    });
+
+    // Load the events for the year
+    await AsyncStorage.getItem('events').then((data) => {
+      if (data) { 
+        setEvents(JSON.parse(data));
+        return; 
+      }
+
+      getBlueAllianceDataFromURL("events/" + year + "/simple").then((data) => {
+        let eventStuff = data.map((event) => ({key: event.key, name: event.name}));
+        setEvents(eventStuff);
+        AsyncStorage.setItem('events', JSON.stringify(eventStuff));
+      });
+    });
+
+    // Load the matches for our event
+    await AsyncStorage.getItem('event matches').then((data) => {
+      if (data) {
+        setEventMatches(JSON.parse(data));
+        return;
+      }
+
+      getBlueAllianceMatches(event, 3000).then((data) => {
+        setEventMatches(data);
+        AsyncStorage.setItem('event matches', JSON.stringify(data));
+      });
+    });
 
     // Ensure that you have a base value stored for your server info.
     await AsyncStorage.getItem('serverInfo').then((data) => {
@@ -80,6 +120,24 @@ const MobileApp = () => {
   const [currentForm, setCurrentForm] = useState(undefined);
   const [formInfo, setFormInfo] = useState(undefined);
 
+  const [scoutingSettings, setScoutingSettings] = useState({event: '2024tnkn', year: 2024});
+  const [events, setEvents] = useState('2024tnkn');
+
+  useEffect(() => {
+    AsyncStorage.setItem('scouting settings', JSON.stringify(scoutingSettings));
+    
+    getBlueAllianceDataFromURL("events/" + scoutingSettings.year + "/simple").then((data) => {
+      let eventStuff = data.map((event) => ({key: event.key, name: event.name}));
+      setEvents(eventStuff);
+      AsyncStorage.setItem('events', JSON.stringify(eventStuff));
+    });
+
+    getBlueAllianceMatches(scoutingSettings.event, 3000).then((data) => {
+      setEventMatches(data);
+      AsyncStorage.setItem('event matches', JSON.stringify(data));
+    });
+  }, [scoutingSettings]);
+
   useEffect(() => {
     if (currentForm === undefined) {
       return;
@@ -89,14 +147,14 @@ const MobileApp = () => {
       {
         screen: PrematchScreen, 
         name: 'Prematch', 
-        infoText: 'Put current event here',
+        infoText: scoutingSettings.eventName,
         onBack: () => setScreens([{screen: HomeScreen, name: 'Home'}])
       },
-      ...FormBuilder(JSON.stringify(currentForm.form)).map((form) => ({screen: form.screen, name: form.name})),
+      ...FormBuilder(JSON.stringify(currentForm.form)).map((form) => ({screen: form.screen, name: form.name, infoText: scoutingSettings.eventName})),
       {
         screen: SaveMatchScreen,
         name: 'Save Match',
-        infoText: 'Put current event here',
+        infoText: scoutingSettings.eventName,
       }
     ]);
 
@@ -104,6 +162,7 @@ const MobileApp = () => {
   }, [currentForm]);
 
   // Match States
+  const [eventMatches, setEventMatches] = useState([]);
   const [loadedMatches, setLoadedMatches] = useState([]);
   const [matchData, setMatchData] = useState(undefined);
 
@@ -124,6 +183,12 @@ const MobileApp = () => {
   useEffect(() => {
     setScreenIndex(0);
   }, [screens]);
+
+  useEffect(() => {
+    if (matchData === undefined) { return; }
+    if (matchData.event !== undefined || matchData.event === scoutingSettings.event) { return; }
+    setMatchData({...matchData, event: scoutingSettings.event});
+  }, [matchData]);
 
   function slideScreen(dist) {
     setScreenIndex(screenIndex + dist);
@@ -231,10 +296,16 @@ const MobileApp = () => {
     setLoadedForms,
     loadedMatches,
     setLoadedMatches,
+    eventMatches,
+    setEventMatches,
     formInfo,
     setFormInfo,
     currentForm,
     setCurrentForm,
+    events,
+    setEvents,
+    scoutingSettings,
+    setScoutingSettings,
 
     slideScreen,
     setLoadPercent,

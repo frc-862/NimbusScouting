@@ -45,6 +45,11 @@ const GetFormJSONAsMatch = (jsonString) => {
     const page = json[pageIndex];
     for (const element of page.elements) {
       if (element.key_value) {
+        if (element.type === 'checkbox') {
+          finalData[`${Number(pageIndex) + 1}{${element.key_value}}`] = element.default_value || false;
+          continue;
+        }
+
         if (element.type === 'choice') {
           let selectedValues = [];
           // Map the string with the indexes into a list of numbers for the indexes
@@ -54,9 +59,10 @@ const GetFormJSONAsMatch = (jsonString) => {
           }
 
           finalData[`${Number(pageIndex) + 1}{${element.key_value}}`] = selectedValues || [];
-        } else {
-          finalData[`${Number(pageIndex) + 1}{${element.key_value}}`] = element.default_value || '';
+          continue;
         }
+
+        finalData[`${Number(pageIndex) + 1}{${element.key_value}}`] = element.default_value || '';
       }
     }
   }

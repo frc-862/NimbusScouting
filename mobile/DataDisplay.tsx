@@ -4,7 +4,9 @@ import LineChart from './LineGraph';
 import PieChart from './PieChart';
 import { HeaderTitle } from './PageComponents';
 
-import { View, Text } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { GradientButton } from './GradientComponents';
+import { AppCheckbox } from '../GlobalComponents';
 
 
 
@@ -45,16 +47,20 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
 
   // Get the type of data we are working with.
   function getDisplayType(data: any[]) {
+    if (displayStyleOverride != "auto") {
+      return displayStyleOverride;
+    }
+
     if (data.length === 0) {
       return undefined;
     }
 
     if (data[0].constructor == Boolean)
-      return "TF";
-    else if (data[0].constructor == Array)
-      return "Categorical";
-    else if (!isNaN(data[0])) // Will only return true if data[0] is NOT a number
-      return "Numerical";
+      return "percentage";
+    else if (data[0].constructor == Array || data[0].constructor == String)
+      return "pie";
+    else if (!isNaN(data[0]))
+      return "line";
     else
       return undefined;
   }
@@ -69,6 +75,7 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
       return undefined;
     }
 
+    // console.log(rawData[0].data.event);
     // First, filter our data by the form.
     let filteredData = rawData.filter((match: any) => match.data.form.name === dataFilters.form.name && match.data.form.year === dataFilters.form.year);
 
@@ -78,8 +85,9 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
         continue
       }
 
+      console.log("Condition: ", dataY.value, "", dataY.conditionalValue);
       // Filter the data by the conditional value. (Each match that the data is being pulled from must have the conditional value)
-      filteredData = filteredData.filter((match: any) => match.data[dataY.value] === dataY.conditionalValue);
+      filteredData = filteredData.filter((match: any) => String(match.data[dataY.value]) === String(dataY.conditionalValue));
     }
 
     // Next, loop through everything else, making sure that our y values are not conditional, finding the data for the lines.
@@ -140,12 +148,19 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
 
   function constructLineChart() {
     const lineChartData = data.y[0].map((item: any, i: number) => ({x: data.x[i], y: item}));
-    return <LineChart data={lineChartData} translation={{x: 20, y: 10}} strokeWidth={3} padding={40} width={300} height={180} verticalSteps={-1}/>
+    return [
+      <LineChart key={0} data={lineChartData} translation={{x: 20, y: 10}} strokeWidth={3} padding={40} width={300} height={180} verticalSteps={-1}/>,
+      <Text key={1} style={{color: 'white', textAlign: 'center'}}>x-axis: {dataFilters.overrideXAxisValue?.substring(1, dataFilters.overrideXAxisValue.length - 2) || "match_num"}</Text>
+    ]
   }
 
   function constructPieChart() {
     // Find how many of each unique item there is in the data.
     const itemValues = data.y[0].reduce((acc, itemList: string[]) => {
+      if (itemList.constructor === String) {
+        acc[itemList] ? acc[itemList]++ : acc[itemList] = 1;
+        return acc;
+      }
       itemList.forEach((item: string) => {
         if (acc[item] === undefined) {
           acc[item] = 1;
@@ -156,6 +171,8 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
 
       return acc;
     }, {});
+    console.log(data.y[0])
+    console.log(itemValues);
     // Transform it into data we can use for our pie chart.
     const pieChartData = Object.keys(itemValues).map((key) => ({label: key, value: itemValues[key]}));
     
@@ -175,6 +192,44 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
     )
   }
 
+  function constructRankingDisplay() {
+    if (isNaN(data.y[0][0])) {
+      return (
+        <HeaderTitle title='Your y-data is not numbers!' fontSize={30}/>
+      )
+    }
+
+    let cumulativeData: any = {};
+    let amountsData: any = {};
+    data.y[0].forEach((item: any, i: number) => {
+      if (cumulativeData[data.x[i]] === undefined) {
+        cumulativeData[data.x[i]] = item;
+        amountsData[data.x[i]] = 1;
+      } else {
+        cumulativeData[data.x[i]] += item;
+        amountsData[data.x[i]]++;
+      }
+    });
+
+    let avgData = Object.keys(cumulativeData).map((key) => ({
+      x: key, y: (cumulativeData[key] / amountsData[key]).toFixed(2)
+    })).sort((a, b) => Number(b.y) - Number(a.y));
+
+
+    return (
+      <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{alignItems: 'center'}}>
+        <HeaderTitle title='Rankings (Averaged):' fontSize={30}/>
+        { 
+          avgData.map((item: any, i: number) => (
+            <Pressable key={i} style={{width: '100%', justifyContent: 'center', alignItems: 'center'}}>
+              <HeaderTitle style={{flex: 1}} title={`x: ${item.x}, y: ${item.y}`}/>
+            </Pressable>
+          )) 
+        }
+      </ScrollView>
+    )
+  }
+
   // Construct the data display based on the data we have filtered
   function constructDataDisplay() {
 
@@ -187,19 +242,32 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
     }
 
     // If we have data, and we know what kind of data it is, display it.
-    if (displayStyle === "Numerical" && data.x.length > 0) {
-      onDisplaySizeChange({x: 0, y: 190});
+    if (displayStyle === "line" && data.x.length > 0) {
+      if (data.x.length >= 100) {
+        onDisplaySizeChange({x: 0, y: 40});
+        return <HeaderTitle title='Too much data to display!' fontSize={30}/>
+      }
+      onDisplaySizeChange({x: 0, y: 220});
       return constructLineChart();
     }
 
-    if (displayStyle === "Categorical") { // No need to check for x data as pie charts don't need it.
+    if (displayStyle === "pie") { // No need to check for x data as pie charts don't need it.
+      if (data.x.length >= 100) {
+        onDisplaySizeChange({x: 0, y: 40});
+        return <HeaderTitle title='Too much data to display!' fontSize={30}/>
+      }
       onDisplaySizeChange({x: 0, y: 190});
       return constructPieChart();
     }
 
-    if (displayStyle === "TF") {
+    if (displayStyle === "percentage") {
       onDisplaySizeChange({x: 0, y: 60});
       return constructTrueFalseDisplay();
+    }
+
+    if (displayStyle === "ranking") {
+      onDisplaySizeChange({x: 0, y: 190});
+      return constructRankingDisplay();
     }
   }
 

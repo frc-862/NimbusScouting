@@ -19,5 +19,5 @@
     "node_modules",
     "babel.config.js"
   ],
-  "extends": "expo/tsconfig.base"
+  "extends": "./node_modules/expo/tsconfig.base"
 }

@@ -197,8 +197,6 @@ const LineChart: React.FC<LineChartProps> = memo(({
       { Array.from({length: verticalSteps + 1}).map((_, index) => (
           <Text key={index} numberOfLines={1} style={{position: 'absolute', color: 'white', left: translation.x - 25, textAlign: 'center', top: index * (height / (verticalSteps)) + translation.y - 6, overflow: "visible", width: 20, fontSize: 10}}>{((yMax / (verticalSteps)) * (verticalSteps - index)).toFixed(0)}</Text>
       ))}
-
-
     </View>
   );
 });

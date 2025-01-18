@@ -104,20 +104,20 @@ async function deleteDatabaseDataFromURL(url_after, headers = { password: "Abrac
 const blueAllianceAuthKey = "uTHeEfPigDp9huQCpLNkWK7FBQIb01Qrzvt4MAjh9z2WQDkrsvNE77ch6bOPvPb6";
 
 async function getBlueAllianceEvents(year, timeoutTime) {
-	return getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/events/" + year + "/simple", timeoutTime);
+	return getBlueAllianceDataFromURL("events/" + year + "/simple", timeoutTime);
 }
 
 async function getBlueAllianceTeams(eventCode, timeoutTime) {
-	return getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + eventCode + "/teams/simple", timeoutTime);
+	return getBlueAllianceDataFromURL("event/" + eventCode + "/teams/simple", timeoutTime);
 }
 
 async function getBlueAllianceMatches(eventCode, timeoutTime) {
-	return getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + eventCode + "/matches/simple", timeoutTime);
+	return getBlueAllianceDataFromURL("event/" + eventCode + "/matches/simple", timeoutTime);
 }
 
 async function getBlueAllianceDataFromURL(url, timeoutTime) {
   if (blueAllianceAuthKey) {
-    return await axios.default.get(url, { headers: { "X-TBA-Auth-Key": blueAllianceAuthKey }, timeout: timeoutTime })
+    return await axios.default.get("https://www.thebluealliance.com/api/v3/" + url, { headers: { "X-TBA-Auth-Key": blueAllianceAuthKey }, timeout: timeoutTime })
       .then(response => {
         return response.data;
       })

@@ -17,18 +17,20 @@ import DragDropList from "../DragDropList";
 import DataDisplay from "../DataDisplay";
 import { PageHeader, PageContent, PageFooter } from "../PageComponents";
 import { LinearGradient } from "expo-linear-gradient";
-import { Dropdown } from "react-native-element-dropdown";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
 
   return (
-    <ScreenShell gradientDir={gradientDir} scrollable={false}>
+    <ScreenShell gradientDir={gradientDir} scrollable={true}>
       <GradientButton outerStyle={{height: 100, width: '90%'}} style={{padding: 5}} textStyle={{fontSize: 25}} title={"Time to Scout!"} onPress={() => {
         if (ctx.currentForm === undefined) { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); return; }
+        if (ctx.scoutingSettings.event === "none") { ctx.showNotification("You don't have an event selected!", Globals.NotificationWarningColor); return; }
 
         ctx.setScreens(ctx.formInfo);
+
         if (ctx.matchData === undefined) {
+          // console.log(GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form)));
           ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
         }
       }}/>
@@ -78,15 +80,20 @@ const HomeScreen = memo(({gradientDir}) => {
       <GradientButton title={"View Data"} onPress={async () => {
         await ctx.setLoadPercent(0, 0);
 
+        if (ctx.currentForm === undefined) { 
+          ctx.showLoadError(33).then(() => { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); });
+          return;
+        }
+
         const serverInfo = JSON.parse(await AsyncStorage.getItem("serverInfo"));
 
         let data = await getDatabaseDataFromURL('/matches', {}, {}, serverInfo.ip, serverInfo.port, serverInfo.timeout);
-        if (data === "ERROR") { 
+        if (data === "ERROR") {
           if (ctx.loadedMatches.length === 0) {
-            ctx.showLoadError(50).then(() => {ctx.showNotification("Failed to load matches! Try again later.", Globals.NotificationErrorColor);});
+            ctx.showLoadError(66).then(() => {ctx.showNotification("Failed to load matches! Try again later.", Globals.NotificationErrorColor);});
             return;
           }
-          ctx.showLoadError(50).then(() => {ctx.showNotification("Failed to load matches! The data you view may not be up to date!", Globals.NotificationWarningColor);});
+          ctx.showLoadError(66).then(() => {ctx.showNotification("Failed to load matches! The data you view may not be up to date!", Globals.NotificationWarningColor);});
           AsyncStorage.setItem('stored view matches', JSON.stringify(ctx.loadedMatches.map((match) => DeflateString(JSON.stringify(match)))));
           ctx.setScreens([{screen: DataViewScreen, name: 'View Data', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);
           return;
@@ -417,9 +424,7 @@ const FormSelectScreen = memo(({gradientDir}) => {
 
             return (
               <AppCheckbox key={String(currentSelected === index) + String(index)} onPress={() => {setSelected(index)}} checked={currentSelected === index} checkedColor={'rgba(0,255,0,0.3)'} style={{height: undefined}} outerStyle={{marginBottom: 10, width: '75%'}}>
-                <Text style={{color: 'white', fontSize: 10, marginTop: 10, textAlign: 'center'}}>
-                  {form.year}      
-                </Text>
+                <Text style={{color: 'white', fontSize: 10, marginTop: 10, textAlign: 'center'}}>{form.year}</Text>
                 <Text style={{ color: 'white', fontSize: 17, marginBottom: 10, textAlign: 'center', fontWeight: 'bold'}}>{form.name}</Text>
               </AppCheckbox>
             )
@@ -454,11 +459,11 @@ const DataViewScreen = memo(({gradientDir}) => {
     form: ctx.currentForm,
     dataYValues: [
       {
-        value: "0{match_num}",
+        value: null,
         conditionalValue: null,
       },
       {
-        value: "3{numbers}",
+        value: null,
         conditionalValue: null,
       }
     ],
@@ -485,7 +490,7 @@ const DataViewScreen = memo(({gradientDir}) => {
 
     if (formToUse === undefined) { return []; }
 
-    let keyVals = [{label: "Prematch: Match Number", value: "0{match_num}"}, {label: "Prematch: Alliance", value: "0{alliance}"}, {label: "Prematch: Team", value: "0{team}"}];
+    let keyVals = [{label: "None", value: null}, {label: "Event", value: "event"}, {label: "Prematch: Match Number", value: "0{match_num}"}, {label: "Prematch: Alliance", value: "0{alliance}"}, {label: "Prematch: Team", value: "0{team}"}];
     formToUse.form.forEach((page, i) => {
       page.elements.forEach((field) => {
         if (!field["key_value"] || !field["title"]) { return; }
@@ -496,11 +501,68 @@ const DataViewScreen = memo(({gradientDir}) => {
     return keyVals;
   }
 
+  function displayFilterChoices() {
+    if (displayStyleOverride == "ranking") {
+      return (
+        <View style={{width: '100%', alignItems: 'center'}}>
+          <DropdownComponent
+            key={"override_x: " + dataFilters.overrideXAxisValue}
+            data={ formKeyValueChoices }
+            outerStyle={{width: '80%', marginBottom: 10}}
+            placeholder="Value to Rank"
+            default_value={dataFilters.overrideXAxisValue}
+            onChange={(choice) => { setDataFilters({...dataFilters, overrideXAxisValue: choice.value}) }}
+          />
+          <DropdownComponent
+            key={"y-val 0 " + getValueOfYData(0, "value")}
+            data={ formKeyValueChoices }
+            outerStyle={{width: '80%', marginBottom: 10}}
+            placeholder="Value to Rank By"
+            default_value={getValueOfYData(0, "value")}
+            onChange={(choice) => { setValueOfYData(0, "value", choice.value) }}
+          />
+        </View>
+      )
+    }
+
+
+
+    return (
+      <View style={{width: '100%', alignItems: 'center'}}>
+        <DropdownComponent
+          key={"y-val 0 " + getValueOfYData(0, "value")}
+          data={ formKeyValueChoices }
+          outerStyle={{width: '80%', marginBottom: 10}}
+          placeholder="Value to Display"
+          default_value={getValueOfYData(0, "value")}
+          onChange={(choice) => { setValueOfYData(0, "value", choice.value) }}
+        />
+
+        <DropdownComponent
+          key={getValueOfYData(1, "value")}
+          data={ formKeyValueChoices }
+          outerStyle={{width: '80%', marginBottom: 10}}
+          placeholder="Value to Check"
+          default_value={getValueOfYData(1, "value")}
+          onChange={(choice) => { setValueOfYData(1, "value", choice.value) }}
+        />
+
+        <AppInput title="Conditional Value" outerStyle={{width: '80%'}} default_value={getValueOfYData(1, "conditionalValue")} onValueChanged={(value) => {setValueOfYData(1, "conditionalValue", value)}}/>
+      </View>
+    )
+  }
+
   useEffect(() => {
     // Try and get the matches from the stored data.
     if (matches.length === 0) {
       AsyncStorage.getItem('stored view matches').then((data) => {
-        const decompData = JSON.parse(data).map((match) => JSON.parse(InflateString(match)));
+        let decompData = JSON.parse(data).map((match) => JSON.parse(InflateString(match)));
+
+        // Remove the matches that don't have the right form name and year. 
+        decompData = decompData.filter((match) => match.data && match.data["form"] && match.data["form"].name === ctx.currentForm.name && match.data["form"].year === ctx.currentForm.year);
+        
+        // console.log("Decompdata: " + decompData);
+
         // Set the matches to the sorted decompressed data.
         setMatches(decompData.sort((a, b) => Number(a.data["0{match_num}"]) - Number(b.data["0{match_num}"])));
       });
@@ -518,8 +580,6 @@ const DataViewScreen = memo(({gradientDir}) => {
   // Part of the "Screen Shell" here. Just makes sure the right name is shown for the screen.
   const {name, infoText} = ctx.screens[ctx.screenIndex];
 
-  const [value, setValue] = useState("b");
-
   // I wouldv'e used my ScreenShell here, but I wanted to alter the top, an I can't do that with the ScreenShell.
   return (
   <View style={[styles.page, {backgroundColor: Globals.PageColor}]}>
@@ -530,12 +590,11 @@ const DataViewScreen = memo(({gradientDir}) => {
       width: '100%', height: displayViewSize, 
       justifyContent: 'center', alignItems: 'center', 
       backgroundColor: Globals.PageHeaderFooterColor,
-      overflow: 'hidden'
+      overflow: 'hidden',
     }}>
       <DataDisplay d={matches} dataFilters={dataFilters} displayStyleOverride={displayStyleOverride} onDisplaySizeChange={(recomScale) => {
         // Change it to the recommended scale (recomScale)
         Animated.timing(displayViewSize, {toValue: recomScale.y + 30, duration: 500, easing: Easing.inOut(Easing.cubic), useNativeDriver: false}).start();
-        // displayViewSize.setValue(recomScale.y + 30);
       }}/>
       
     </Animated.View>
@@ -548,28 +607,22 @@ const DataViewScreen = memo(({gradientDir}) => {
     </LinearGradient>
 
     <PageContent gradientDir={gradientDir} scrollable={true} style={{paddingTop: 15}}>
-
       <DropdownComponent
-        data={ formKeyValueChoices }
+        data={[{label: "Auto", value: "auto"}, {label: "Ranking", value: "ranking"}]}//, {label: "Line Chart", value: "line"}, {label: "Pie Chart", value: "pie"}, {label: "Percentage", value: "percentage"}]}
         outerStyle={{width: '80%', marginBottom: 10}}
-        placeholder="Value to Display"
-        default_value={getValueOfYData(0, "value")}
-        onChange={(choice) => { setValueOfYData(0, "value", choice.value) }}
+        placeholder="Display Style"
+        default_value={displayStyleOverride}
+        onChange={(choice) => { setDisplayStyleOverride(choice.value) }}
       />
-      <DropdownComponent
-        data={ formKeyValueChoices }
-        placeholder="Value to Check"
-        default_value={getValueOfYData(1, "value")}
-        onChange={(choice) => { setValueOfYData(1, "value", choice.value) }}
-      />
-      <AppInput title="Conditional Value" outerStyle={{width: '80%'}} default_value={getValueOfYData(1, "conditionalValue")} onValueChanged={(value) => {setValueOfYData(1, "conditionalValue", value)}}/>
+      
+      { displayFilterChoices() }
 
-      <DropdownComponent 
+      {/* <DropdownComponent 
         data={ctx.loadedForms.map((form) => ({label: form.name, value: form.name}))} 
         placeholder="Form to use" 
         default_value={ctx.currentForm ? ctx.currentForm.name : undefined}
         onChange={(choice) => { setDataFilters({...dataFilters, form: ctx.loadedForms.find((form) => form.name === choice.value)}) }}
-      />
+      /> */}
     </PageContent>
 
     <PageFooter gradientDir={gradientDir}/>
@@ -610,8 +663,29 @@ const SettingsScreen = memo(({gradientDir}) => {
     });
   }
 
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({length: 50}).map((_, i) => ({label: String(currentYear - i), value: String(currentYear - i)}));
+
   return (
-    <ScreenShell gradientDir={gradientDir} scrollable={false}>
+    <ScreenShell gradientDir={gradientDir} scrollable={true}>
+      <HeaderTitle title='Scouting Details' fontSize={30}/>
+
+      <DropdownComponent
+        data={ years }
+        outerStyle={{width: '80%', marginBottom: 10}}
+        placeholder="Year"
+        default_value={ctx.scoutingSettings.year}
+        onChange={(choice) => { ctx.setScoutingSettings({...ctx.scoutingSettings, year: choice.value}) }}
+      />
+
+      <DropdownComponent
+        data={ [{label: "None", value: "none"}, ...ctx.events.map((item) => ({label: item.name, value: item.key}))] }
+        outerStyle={{width: '80%', marginBottom: 10}}
+        placeholder="Event"
+        default_value={ctx.scoutingSettings.event}
+        onChange={(choice) => { ctx.setScoutingSettings({...ctx.scoutingSettings, event: choice.value, eventName: choice.label}); }}
+      />
+
       <HeaderTitle title='Server Details' fontSize={30}/>
 
       <AppInput key={(ip !== undefined) + "1"} default_value={ip} title='IP' outerStyle={{marginBottom: 10, width: '80%'}} onValueChanged={setIP}/>
@@ -646,25 +720,26 @@ const SettingsScreen = memo(({gradientDir}) => {
       <GradientButton title={"Test fill match data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
       }}/>
+
+      <GradientButton title={"Delete all stored data"} textStyle={{textAlign: 'center'}} onPress={async () => {
+        AsyncStorage.multiRemove(await AsyncStorage.getAllKeys());
+      }}/>
     </ScreenShell>
   )
 });
 
 const PicklistScreen = memo(({gradientDir}) => {
   // TODO: Make a different picklist section for both quals and for alliances in elims.
+  const ctx = useContext(AppContext);
 
   const [teams, setTeams] = useState([]);
   const [teamNames, setTeamNames] = useState({});
   const [teamStatuses, setTeamStatuses] = useState({});
   const [dragListData, setDragListData] = useState([]);
 
-  async function getTeamNamesFromAPI() {
-    getBlueAllianceTeams('2024tnkn', 3000).then((data) => {
-      setTeamNames(data);
-    });
-  }
-
   function getAndSetDragListData() {
+    if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
+
     const baseDragData = {
       key: '', 
       is_tier_card: false,
@@ -717,15 +792,14 @@ const PicklistScreen = memo(({gradientDir}) => {
   }
   
   if (teams.length === 0) {
-    // getBlueAllianceEvents('2024').then((data) => { console.log(data); });
-    getBlueAllianceDataFromURL("https://www.thebluealliance.com/api/v3/event/" + '2024tnkn' + "/teams/statuses", 10000).then((data) => {
+    getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
       setTeamStatuses(data);
       setTeams(Object.keys(data));
     });
   }
 
   if (teamNames.length === 0) {
-    getBlueAllianceTeams('2024tnkn', 3000).then((data) => {
+    getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
       setTeamNames(data);
     });
   }
@@ -752,21 +826,60 @@ const PicklistScreen = memo(({gradientDir}) => {
 
 const PrematchScreen = memo(({ gradientDir }) => {
   const ctx = useContext(AppContext);
-  const [matchNum, setMatchNum] = useState();
+  const [matchNum, setMatchNum] = useState(ctx.matchData["0{match_num}"]);
+  const [alliance, setAlliance] = useState(ctx.matchData["0{alliance}"]);
+  const [teamsData, setTeamsData] = useState([]);
+  const [matches, setMatches] = useState(ctx.eventMatches);
+
+  const baseTeamData = [
+    {label: 'Team 1', value: 't1', select_color: 'rgba(0, 0, 255, 0.3)'},
+    {label: 'Team 2', value: 't2', select_color: 'rgba(0, 0, 255, 0.3)'},
+    {label: 'Team 3', value: 't3', select_color: 'rgba(0, 0, 255, 0.3)'},
+  ];
+
+  function refreshTeamData() {
+    // If team data cannot be found with our current info, just say t1, t2, t3.
+    if (matches === undefined || matches.length === 0 || matches == "ERROR" || matchNum === undefined || alliance === undefined) {
+      setTeamsData(baseTeamData);
+      return;
+    }
+    // Get the team data from the matches.
+    let match = matches.find((match) => match.comp_level === 'qm' && match.match_number === Number(matchNum));
+  
+    if (match === undefined) {
+      setTeamsData(baseTeamData);
+      return;
+    }
+
+    console.log(alliance);
+
+    let TD = match.alliances[alliance].team_keys.map((team) => {
+      let teamNumber = team.replace('frc', '');
+      return { label: teamNumber, value: teamNumber, select_color: 'rgba(0, 0, 255, 0.3)' };
+    });
+    setTeamsData(TD);
+  }
+
+  if (teamsData.length === 0) {
+    refreshTeamData();
+  }
+
+  useEffect(() => {
+    refreshTeamData();
+  }, [matchNum, alliance, matches]);
+
+  const alliance_types = ["red", "blue"];
 
   return (
   <ScreenShell gradientDir={gradientDir}>
     <GradientTextInput onlyNumbers key_value="match_num" title='Match Number' onValueChanged={setMatchNum}/>
     <HeaderTitle title='Team Info' fontSize={30}/>
-    <GradientChoice key_value="alliance" title='Alliance Color' onValueChanged={setMatchNum} choices={[
+    <GradientChoice key_value="alliance" title='Alliance Color' onValueChanged={(newIndexes) => setAlliance(alliance_types[newIndexes[0]])} choices={[
       {label: 'Red', value: 'red', select_color: 'rgba(255, 0, 0, 0.6)'},
       {label: 'Blue', value: 'blue', select_color: 'rgba(0, 0, 255, 0.6)'},
     ]}/>
-    <GradientChoice key_value="team" title='Team' onValueChanged={setMatchNum} choices={[
-      {label: 'Team 1', value: 't1', select_color: 'rgba(0, 0, 255, 0.3)'},
-      {label: 'Team 2', value: 't2', select_color: 'rgba(0, 0, 255, 0.3)'},
-      {label: 'Team 3', value: 't3', select_color: 'rgba(0, 0, 255, 0.3)'},
-    ]}/>
+
+    <GradientChoice key_value="team" title='Team' choices={teamsData}/>
     
   </ScreenShell>
   )

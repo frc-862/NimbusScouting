@@ -93,7 +93,7 @@ const AppInput = ({default_value = '', regex, inputMode = 'search', title, showT
         <View key={1} style={{width: '90%', height: 2, backgroundColor: 'hsl(39, 70%, 40%)'}}/>
       ] : null }
       
-      <TextInput inputMode={inputMode} onBlur={onLeave} value={String(text)} onChangeText={textChanged} style={[{height: 40, width: '100%', padding: 5, paddingHorizontal: 7, outline: 'none', justifyContent: 'center', textAlign: 'center', color: 'white'}, style]}/>
+      <TextInput selectTextOnFocus={true} inputMode={inputMode} onBlur={onLeave} value={String(text)} onChangeText={textChanged} style={[{height: 40, width: '100%', padding: 5, paddingHorizontal: 7, outline: 'none', justifyContent: 'center', textAlign: 'center', color: 'white'}, style]}/>
     </View>
   );
 }
@@ -103,9 +103,6 @@ const AppChoice = ({default_indexes, default_choices, multiChoice, title, showTi
   default_values = default_choices ? choices.filter((choice) => default_choices.includes(choice.value)).map((choice) => choices.indexOf(choice)) : default_values;
 
   const [selectedIndexes, setSelectedIndexes] = useState(default_values);
-
-  useEffect(() => {
-  }, [selectedIndexes]);
 
   function selectIndex(value, index) {
     let newSelectedIndexes = [];

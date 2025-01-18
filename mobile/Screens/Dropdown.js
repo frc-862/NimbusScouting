@@ -8,14 +8,14 @@ const DropdownComponent = ({outerStyle, style, default_value, data, placeholder 
   // console.log(default_value, data.some((item) => item.value === default_value));
   if (data === undefined) {
     data = [
-      { label: 'KKKKKKKKKKKKKKKKKKK', value: 'k', search: 'Item 1' },
-      { label: 'Item 2', value: '2', search: 'Item 2' },
-      { label: 'Item 3', value: '3', search: 'Item 3' },
-      { label: 'Item 4', value: '4', search: 'Item 4' },
-      { label: 'Item 5', value: '5', search: 'Item 5' },
-      { label: 'Item 6', value: '6', search: 'Item 6' },
-      { label: 'Item 7', value: '7', search: 'Item 7' },
-      { label: 'Item 8', value: '8', search: 'Item 8' },
+      { label: 'KKKKKKKKKKKKKKKKKKK', value: 'k' },
+      { label: 'Item 2', value: '2' },
+      { label: 'Item 3', value: '3' },
+      { label: 'Item 4', value: '4' },
+      { label: 'Item 5', value: '5' },
+      { label: 'Item 6', value: '6' },
+      { label: 'Item 7', value: '7' },
+      { label: 'Item 8', value: '8' },
     ];
   }
 
@@ -49,7 +49,6 @@ const DropdownComponent = ({outerStyle, style, default_value, data, placeholder 
         // minHeight={100}
         labelField="label"
         valueField="value"
-        searchField="search"
         placeholder={!isFocus ? placeholder : '...'}
         searchPlaceholder="Search..."
         value={value}
@@ -65,7 +64,35 @@ const DropdownComponent = ({outerStyle, style, default_value, data, placeholder 
   );
 };
 
-export default DropdownComponent;
+// const data = [
+//   { label: 'Item 1', value: '1' },
+//   { label: 'Item 2', value: '2' },
+//   { label: 'Item 3', value: '3' },
+// ];
+
+// const DropdownComponent = () => {
+//   const [value, setValue] = useState(null);
+
+//   return (
+//     <View style={[styles.container]}>
+//       <Dropdown
+//         style={styles.dropdown}
+//         placeholderStyle={styles.placeholderStyle}
+//         selectedTextStyle={styles.selectedTextStyle}
+//         inputSearchStyle={styles.inputSearchStyle}
+//         iconStyle={styles.iconStyle}
+//         data={data}
+//         labelField="label"
+//         valueField="value"
+//         placeholder="Select item"
+//         autoScroll
+//         search
+//         value={value}
+//         onChange={item => setValue(item.value)}
+//       />
+//     </View>
+//   );
+// };
 
 const styles = StyleSheet.create({
   container: {
@@ -119,3 +146,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+export default DropdownComponent;

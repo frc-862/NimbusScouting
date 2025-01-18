@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { View, TouchableOpacity, Text, Animated } from "react-native";
+import { View, TouchableOpacity, Text, Animated, Pressable } from "react-native";
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { useSharedValue } from "react-native-reanimated";
 import DragListContect from "../components/DragListContext";
+import { drag } from "d3";
 
 const NUM_ITEMS = 10;
 
@@ -38,15 +39,18 @@ function DragDropList({ data } : DragDropProps) {
   }, [data])
 
 
-  const TeamCard = ({ item, index, tierCardsAbove }: { item: Item, index: number | undefined, tierCardsAbove: number }) => {
+  const TeamCard = ({ item, index, dragFunc, tierCardsAbove }: { item: Item, index: number | undefined, dragFunc: () => void, tierCardsAbove: number }) => {
     return (
       <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: "blue", margin: 5, padding: 10, }}>
         
         {/* View for the picklist rank of the team */}
-        <View style={{height: '100%', justifyContent: 'center', flex: 5}}>
+        <View style={{height: '100%', justifyContent: 'center', alignItems: 'center', flex: 5}}>
           <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 32, }}>
-            {Number(index) + 1 - tierCardsAbove}
+              {Number(index) + 1 - tierCardsAbove}
           </Text>
+          <Pressable style={{position: 'absolute', backgroundColor: 'red', width: '50%', height: '50%'}} onPressIn={() => {dragFunc();}}>
+          
+          </Pressable>
         </View>
 
         {/* View for the team info (as in name and number) */}
@@ -79,7 +83,7 @@ function DragDropList({ data } : DragDropProps) {
     );
   }
 
-  const TierCard = ({ item, index }: { item: Item, index: number | undefined }) => {
+  const TierCard = ({ item, index, dragFunc }: { item: Item, index: number | undefined, dragFunc: () => void }) => {
     return (
       <View style={{ width: '80%', height: 50, borderRadius: 10, justifyContent: 'center', backgroundColor: "orange", margin: 5, padding: 10, }}>
         <Text style={{ textAlign: 'center', color: "white", fontSize: 20, fontWeight: "bold",}}>{item.tier_info}</Text>
@@ -99,9 +103,9 @@ function DragDropList({ data } : DragDropProps) {
             justifyContent: "center",
             // transform: [{ scale: scale }],
           }}
-          onLongPress={drag}
+          // onLongPress={drag}
         >
-          { item.is_tier_card ? <TierCard item={item} index={getIndex()}/> : <TeamCard item={item} index={getIndex()} tierCardsAbove={tierCardsAbove}/> }
+          { item.is_tier_card ? <TierCard item={item} index={getIndex()} dragFunc={drag}/> : <TeamCard item={item} index={getIndex()} tierCardsAbove={tierCardsAbove} dragFunc={drag}/> }
         </TouchableOpacity>
       );
     },
@@ -120,6 +124,7 @@ function DragDropList({ data } : DragDropProps) {
             setData(data)
           }}
           extraData={listData}
+          scrollEnabled={true}
         />
       </DragListContect.Provider>
     </View>

@@ -1,7 +1,9 @@
 # NimbusScouting
+
 The Scouting App for the 2024 season, and hopefully later.
 
-# How to run the app in development.
+## How to run the app in development
+
 First, you have to make sure that your computer has node.js and npm (Pretty sure it comes with it)
 After, in vscode, you have to go into the project, open a powershell terminal, and type in "npm start"
 Then, press enter to start the app.

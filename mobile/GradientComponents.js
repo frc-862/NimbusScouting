@@ -52,7 +52,7 @@ const GradientCheckBox = ({key_value, onValueChanged = () => {}, style = {}, out
     return (<AppCheckbox checked={ctx.matchData[full_key]} onValueChanged={onChange} style={style} outerStyle={[{justifyContent: 'center', alignItems: 'center', marginBottom: 10, width: '50%', height: 50},outerStyle]} checkedColor={checkedColor}><Text style={{color: 'white', fontSize: 17, fontWeight: 'bold'}}>{title}</Text></AppCheckbox>)
 }
 
-const GradientChoice = ({key_value, onValueChanged = (newIndexes) => {}, multiChoice = false, style = {}, outerStyle, choices = [], disabled, title = "", gradientDir = 1}) => {
+const GradientChoice = ({key_value, onValueChanged = (newIndexes) => {}, multiChoice = false, style = {}, outerStyle, choices = [], disabled, title = "", gradientDir = 1, default_value = undefined}) => {
     const ctx = useContext(AppContext)
     const full_key = getFullKey(ctx, key_value);
 
