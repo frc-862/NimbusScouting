@@ -326,7 +326,7 @@ const MobileApp = () => {
           { screens.length > 0 ? <DisplayScreen Component={screens[screenIndex].screen} gradientDir={(screenIndex) % 2}/> : null }
           
           {/* Notification pop-up (down) */}
-          <Animated.View onLayout={(event) => {setNotificationBoxSize(event.nativeEvent.layout.height)}} style={{width: '100%', position: 'absolute', top: notificationHeight, justifyContent: 'center', alignItems: 'center'}}>
+          <Animated.View onLayout={(event) => {setNotificationBoxSize(event.nativeEvent.layout.height)}} style={{width: '100%', zIndex: 10000, position: 'absolute', top: notificationHeight, justifyContent: 'center', alignItems: 'center'}}>
             <View style={{maxWidth: '80%', padding: 15, paddingHorizontal: 25, borderRadius: 20, backgroundColor: notificationInfo.color, alignItems: 'center'}}>
               <Text style={{fontSize: 17, fontWeight: 'thin', color: 'white', textAlign: 'center'}}>{notificationInfo.message}</Text>
             </View>

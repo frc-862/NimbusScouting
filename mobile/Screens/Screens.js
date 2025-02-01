@@ -14,9 +14,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DropdownComponent from "./Dropdown";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import DragDropList from "../DragDropList";
+import DraggableLyrics from "../DragDropSimple";
 import DataDisplay from "../DataDisplay";
 import { PageHeader, PageContent, PageFooter } from "../PageComponents";
 import { LinearGradient } from "expo-linear-gradient";
+import { json } from "d3";
 
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
@@ -452,6 +454,8 @@ const DataViewScreen = memo(({gradientDir}) => {
   const [displayStyleOverride, setDisplayStyleOverride] = useState("auto");
   const [formKeyValueChoices, setFormKeyValueChoices] = useState(getFormKeyValues());
 
+  const [fullScreen, setFullscreen] = useState(false);
+
   const displayViewSize = useRef(new Animated.Value(150)).current;
 
   // Our different data filters.
@@ -460,10 +464,12 @@ const DataViewScreen = memo(({gradientDir}) => {
     dataYValues: [
       {
         value: null,
+        uses: [],
         conditionalValue: null,
       },
       {
         value: null,
+        uses: [],
         conditionalValue: null,
       }
     ],
@@ -482,6 +488,12 @@ const DataViewScreen = memo(({gradientDir}) => {
     let value = dataFilters.dataYValues[index][value_id];
     // Give the actual value if its not null or empty, otherwise give an empty string.
     return !value && value !== 0 ? '' : value;
+  }
+
+  function addYValue() {
+    let newYValues = [...dataFilters.dataYValues];
+    newYValues.push({value: null, uses: [], conditionalValue: null});
+    setDataFilters({...dataFilters, dataYValues: newYValues});
   }
 
   function getFormKeyValues() {
@@ -513,14 +525,28 @@ const DataViewScreen = memo(({gradientDir}) => {
             default_value={dataFilters.overrideXAxisValue}
             onChange={(choice) => { setDataFilters({...dataFilters, overrideXAxisValue: choice.value}) }}
           />
-          <DropdownComponent
-            key={"y-val 0 " + getValueOfYData(0, "value")}
-            data={ formKeyValueChoices }
-            outerStyle={{width: '80%', marginBottom: 10}}
-            placeholder="Value to Rank By"
-            default_value={getValueOfYData(0, "value")}
-            onChange={(choice) => { setValueOfYData(0, "value", choice.value) }}
-          />
+          <HeaderTitle title='Values to Factor In' fontSize={20}/>
+          <GradientButton title='Add Value' onPress={addYValue}/>
+          { 
+            dataFilters.dataYValues.map((yData, index) => {
+
+              return (
+                <View key={index} style={{width: '80%', backgroundColor: Globals.ButtonColor, borderRadius: 20, alignItems: 'center', paddingVertical: 10, marginBottom: 10}}>
+                  <HeaderTitle title={`Value ${index + 1}`} fontSize={15}/>
+                  <DropdownComponent
+                    key={`y-val ${index} ` + getValueOfYData(index, "value")}
+                    data={ formKeyValueChoices }
+                    outerStyle={{width: '90%', marginBottom: 10}}
+                    style={{backgroundColor: Globals.PageColor}}
+                    placeholder="Value to Rank By"
+                    dropdownPosition="top"
+                    default_value={getValueOfYData(index, "value")}
+                    onChange={(choice) => { setValueOfYData(index, "value", choice.value) }}
+                  />
+                </View>
+              )
+            })
+          }
         </View>
       )
     }
@@ -539,7 +565,7 @@ const DataViewScreen = memo(({gradientDir}) => {
         />
 
         <DropdownComponent
-          key={getValueOfYData(1, "value")}
+          key={"y-val 1" + getValueOfYData(1, "value")}
           data={ formKeyValueChoices }
           outerStyle={{width: '80%', marginBottom: 10}}
           placeholder="Value to Check"
@@ -576,6 +602,12 @@ const DataViewScreen = memo(({gradientDir}) => {
     setFormKeyValueChoices(getFormKeyValues());
   }, [dataFilters]);
 
+  useEffect(() => {
+    if (displayStyleOverride == "ranking") {
+      setDataFilters({...dataFilters, overrideXAxisValue: '0{team}'});
+    }
+  }, [displayStyleOverride])
+
 
   // Part of the "Screen Shell" here. Just makes sure the right name is shown for the screen.
   const {name, infoText} = ctx.screens[ctx.screenIndex];
@@ -587,12 +619,13 @@ const DataViewScreen = memo(({gradientDir}) => {
 
     <Animated.View style={{
       marginTop: -3, 
-      width: '100%', height: displayViewSize, 
+      width: '100%', height: fullScreen ? '100%' : displayViewSize, 
       justifyContent: 'center', alignItems: 'center', 
       backgroundColor: Globals.PageHeaderFooterColor,
       overflow: 'hidden',
     }}>
       <DataDisplay d={matches} dataFilters={dataFilters} displayStyleOverride={displayStyleOverride} onDisplaySizeChange={(recomScale) => {
+        setFullscreen(recomScale.y >= 1000);
         // Change it to the recommended scale (recomScale)
         Animated.timing(displayViewSize, {toValue: recomScale.y + 30, duration: 500, easing: Easing.inOut(Easing.cubic), useNativeDriver: false}).start();
       }}/>
@@ -652,6 +685,8 @@ const SettingsScreen = memo(({gradientDir}) => {
   const [port, setPort] = useState(undefined);
   const [timeout, setTimeout] = useState(undefined);
 
+  const [errorText, setErrorText] = useState('');
+
   if (ip === undefined || port === undefined || timeout === undefined) {
     AsyncStorage.getItem("serverInfo", (err, result) => {
       if (result) {
@@ -699,7 +734,10 @@ const SettingsScreen = memo(({gradientDir}) => {
           AsyncStorage.setItem("serverInfo", JSON.stringify({ip: ip, port: port, timeout: timeout}), () => {
             testGet(ip, port, timeout).then((data) => {
               if (data !== "API is running! Your connection worked!") {
-                ctx.showNotification("Failed to connect to server!", Globals.NotificationErrorColor);
+                let jsonData = JSON.parse(data); 
+                setErrorText(data);
+
+                ctx.showNotification(`Failed to connect to server! ${jsonData.code} ${jsonData.message} ${jsonData.stack}`, Globals.NotificationErrorColor);
               } else {
                 ctx.showNotification("Connected to server!", Globals.NotificationSuccessColor);
               }
@@ -724,6 +762,8 @@ const SettingsScreen = memo(({gradientDir}) => {
       <GradientButton title={"Delete all stored data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.multiRemove(await AsyncStorage.getAllKeys());
       }}/>
+
+      <HeaderTitle title={`Error Text: ${errorText}`} fontSize={15}/>
     </ScreenShell>
   )
 });
@@ -737,81 +777,81 @@ const PicklistScreen = memo(({gradientDir}) => {
   const [teamStatuses, setTeamStatuses] = useState({});
   const [dragListData, setDragListData] = useState([]);
 
-  function getAndSetDragListData() {
-    if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
+  // function getAndSetDragListData() {
+  //   if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
 
-    const baseDragData = {
-      key: '', 
-      is_tier_card: false,
-      tier_info: null,
-      team_number: 0,
-      team_name: '',
-      ranking: 0,
-      alliance: null,
-      alliance_pick: null,
-      qual_wins: 0,
-      qual_losses: 0,
-      qual_ties: 0,
-      playoff_wins: null,
-      playoff_losses: null,
-      playoff_ties: null,
-    }
+  //   const baseDragData = {
+  //     key: '', 
+  //     is_tier_card: false,
+  //     tier_info: null,
+  //     team_number: 0,
+  //     team_name: '',
+  //     ranking: 0,
+  //     alliance: null,
+  //     alliance_pick: null,
+  //     qual_wins: 0,
+  //     qual_losses: 0,
+  //     qual_ties: 0,
+  //     playoff_wins: null,
+  //     playoff_losses: null,
+  //     playoff_ties: null,
+  //   }
 
-    const tiersDragData = [
-      {...baseDragData, key: 'tier1', is_tier_card: true, tier_info: 'Tier 1'},
-      {...baseDragData, key: 'tier2', is_tier_card: true, tier_info: 'Tier 2'},
-      {...baseDragData, key: 'tier3', is_tier_card: true, tier_info: 'Tier 3'},
-      {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
-    ]
+  //   const tiersDragData = [
+  //     {...baseDragData, key: 'tier1', is_tier_card: true, tier_info: 'Tier 1'},
+  //     {...baseDragData, key: 'tier2', is_tier_card: true, tier_info: 'Tier 2'},
+  //     {...baseDragData, key: 'tier3', is_tier_card: true, tier_info: 'Tier 3'},
+  //     {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
+  //   ]
 
-    const teamsDragData = teams.map((team) => {
-      const teamStatus = teamStatuses[team];
+  //   const teamsDragData = teams.map((team) => {
+  //     const teamStatus = teamStatuses[team];
 
-      return ({
-        key: team, 
-        is_tier_card: false,
-        tier_info: null,
-        team_number: team.replace('frc', ''),
-        team_name: 'None',//teamStatus.team.nickname,
-        ranking: teamStatus.qual.ranking.rank,
-        alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
-        alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
-        qual_wins: teamStatus.qual.ranking.record.wins,
-        qual_losses: teamStatus.qual.ranking.record.losses,
-        qual_ties: teamStatus.qual.ranking.record.ties,
-        playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
-        playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
-        playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
-      });
-    });
+  //     return ({
+  //       key: team, 
+  //       is_tier_card: false,
+  //       tier_info: null,
+  //       team_number: team.replace('frc', ''),
+  //       team_name: 'None',//teamStatus.team.nickname,
+  //       ranking: teamStatus.qual.ranking.rank,
+  //       alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
+  //       alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
+  //       qual_wins: teamStatus.qual.ranking.record.wins,
+  //       qual_losses: teamStatus.qual.ranking.record.losses,
+  //       qual_ties: teamStatus.qual.ranking.record.ties,
+  //       playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
+  //       playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
+  //       playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+  //     });
+  //   });
 
     
-    setDragListData(
-      [...tiersDragData, ...teamsDragData]
-    );
-  }
+  //   setDragListData(
+  //     [...tiersDragData, ...teamsDragData]
+  //   );
+  // }
   
-  if (teams.length === 0) {
-    getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
-      setTeamStatuses(data);
-      setTeams(Object.keys(data));
-    });
-  }
+  // if (teams.length === 0) {
+  //   getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
+  //     setTeamStatuses(data);
+  //     setTeams(Object.keys(data));
+  //   });
+  // }
 
-  if (teamNames.length === 0) {
-    getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
-      setTeamNames(data);
-    });
-  }
+  // if (teamNames.length === 0) {
+  //   getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
+  //     setTeamNames(data);
+  //   });
+  // }
 
-  useEffect(() => {
-    getAndSetDragListData();
-  }, [teams]);
+  // useEffect(() => {
+  //   getAndSetDragListData();
+  // }, [teams]);
 
   return (
     <ScreenShell gradientDir={gradientDir} scrollable={false} style={{paddingTop: 0, paddingBottom: 0}}>
       <GestureHandlerRootView style={{width: '100%', flex: 1}}>
-        <DragDropList data={dragListData}/>
+        <DraggableLyrics data={dragListData}/>
       </GestureHandlerRootView>
     </ScreenShell>
   );
@@ -830,6 +870,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
   const [alliance, setAlliance] = useState(ctx.matchData["0{alliance}"]);
   const [teamsData, setTeamsData] = useState([]);
   const [matches, setMatches] = useState(ctx.eventMatches);
+  const [manualTeamInput, setManualTeamInput] = useState(false);
 
   const baseTeamData = [
     {label: 'Team 1', value: 't1', select_color: 'rgba(0, 0, 255, 0.3)'},
@@ -840,6 +881,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
   function refreshTeamData() {
     // If team data cannot be found with our current info, just say t1, t2, t3.
     if (matches === undefined || matches.length === 0 || matches == "ERROR" || matchNum === undefined || alliance === undefined) {
+      setManualTeamInput(true);
       setTeamsData(baseTeamData);
       return;
     }
@@ -847,9 +889,12 @@ const PrematchScreen = memo(({ gradientDir }) => {
     let match = matches.find((match) => match.comp_level === 'qm' && match.match_number === Number(matchNum));
   
     if (match === undefined) {
+      setManualTeamInput(true);
       setTeamsData(baseTeamData);
       return;
     }
+
+    setManualTeamInput(false);
 
     console.log(alliance);
 
@@ -878,8 +923,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
       {label: 'Red', value: 'red', select_color: 'rgba(255, 0, 0, 0.6)'},
       {label: 'Blue', value: 'blue', select_color: 'rgba(0, 0, 255, 0.6)'},
     ]}/>
-
-    <GradientChoice key_value="team" title='Team' choices={teamsData}/>
+    { manualTeamInput ? <GradientTextInput inputMode="numeric" regex={/[^0-9]/g} key_value="team" title='Team'/> : <GradientChoice key_value="team" title='Team' choices={teamsData}/> }
     
   </ScreenShell>
   )

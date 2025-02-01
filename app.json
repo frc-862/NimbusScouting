@@ -39,6 +39,8 @@
       "buildNumber": "16"
     },
     "android": {
+      "minSdkVersion": 22,
+      "targetSdkVersion": 22,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

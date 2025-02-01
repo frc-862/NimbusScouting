@@ -82,8 +82,6 @@ const FormBuildingScreen = () => {
       }
     });
 
-    alert(`LOOK ON NOTEPAD FOR ESSENTIAL FIXES!`)
-
     return () => {
       window.removeEventListener("beforeunload", () => {});
     }

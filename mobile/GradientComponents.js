@@ -4,6 +4,7 @@ import {
   Text, 
   View,
   StyleSheet,
+  Pressable,
 } from 'react-native';
 import * as Svg from 'react-native-svg';
 import Globals from '../Globals';
@@ -30,7 +31,7 @@ function getFullKey(ctx, key) {
     return `${ctx.screenIndex}{${key}}`;
 }
 
-const GradientButton = ({textStyle = {}, innerStyle = {}, outerStyle, style = {}, disabled, onPress = ()=>{}, title = "", gradientDir = 1}) => {
+const GradientButton = ({textStyle = {}, innerStyle = {}, outerStyle = {}, style = {}, disabled = false, onPress = ()=>{}, title = "", gradientDir = 1}) => {
     return (
         <AppButton gradientDirection={gradientDir} outerStyle={[{height: 75, width: '80%', margin: 5, borderRadius: 20}, outerStyle]} style={[{width: '100%', borderRadius: 15, height: '100%'}, style]} innerStyle={[{borderRadius: 15}, innerStyle]} onPress={() => { if (!disabled) {onPress();}}}><Text style={[{fontSize: 20, fontWeight: 'bold', color: 'white'}, textStyle]}>{title}</Text></AppButton>
     )
@@ -72,17 +73,70 @@ const GradientChoice = ({key_value, onValueChanged = (newIndexes) => {}, multiCh
 const GradientTextInput = ({key_value, style = {}, default_value="", onValueChanged = () => {}, disabled, title = "", outerStyle, onlyNumbers = false, regex = '', inputMode = 'search', maxLength = 20, gradientDir = 1}) => {
     const ctx = useContext(AppContext)
     const full_key = getFullKey(ctx, key_value);
+    const [key, setKey] = React.useState(true);
 
     useEffect(() => {
         setUnsetKey(ctx, full_key, '');
     }, []);
+
+    if (ctx.matchData[full_key] === undefined || ctx.matchData[full_key] === null || ctx.matchData[full_key] === '' && onlyNumbers) {
+        setMatchDataKey(ctx, full_key, 0);
+    }   
+
+    if (ctx.matchData[full_key].constructor === String && onlyNumbers) {
+        setMatchDataKey(ctx, full_key, parseInt(ctx.matchData[full_key]));
+    }
 
     function onChange(newValue) {
         onValueChanged(newValue);
         setMatchDataKey(ctx, full_key, newValue);
     }
     
-    return (<AppInput default_value={ctx.matchData[full_key]} title={title} style={style} outerStyle={[{marginBottom: 10, width: '80%'}, outerStyle]} onValueChanged={onChange} regex={onlyNumbers ? /[^0-9]/g : regex} inputMode={onlyNumbers ? 'numeric' : inputMode}/>)
+    return (
+        <View style={{width: '100%', alignItems: 'center'}}>
+            <AppInput key={key} default_value={ctx.matchData[full_key]} title={title} style={style} outerStyle={[{marginBottom: 10, width: '80%'}, outerStyle]} onValueChanged={onChange} regex={onlyNumbers ? /[^0-9]/g : regex} inputMode={onlyNumbers ? 'numeric' : inputMode}>
+                {  onlyNumbers ?
+                <View style={{position: 'absolute', width: '100%', height: '100%', flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <GradientButton 
+                        outerStyle={{margin: 0, backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderRadius: 0, justifyContent: 'center', alignItems: 'center'}}
+                        style={{width: '100%', height: '100%', borderRadius: 0}}
+                        innerStyle={{borderRadius: 0, borderRightColor: 'hsl(39, 70%, 40%)', borderRightWidth: 2}}
+                        title='+' 
+                        textStyle={{fontSize: 40, marginBottom: 4}}
+                        onPress={() => {setKey(!key); onChange(getMatchDataValue(ctx, full_key, 0) + 1);}}
+                    />
+                    <GradientButton 
+                        outerStyle={{margin: 0, backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderRadius: 0, justifyContent: 'center', alignItems: 'center'}}
+                        style={{width: '100%', height: '100%', borderRadius: 0}}
+                        innerStyle={{borderRadius: 0, borderLeftColor: 'hsl(39, 70%, 40%)', borderLeftWidth: 2}}
+                        title='-' 
+                        textStyle={{fontSize: 40, marginBottom: 4}}
+                        onPress={() => {setKey(!key); onChange(Math.max(0, getMatchDataValue(ctx, full_key, 0) - 1));}}
+                    /> 
+
+                    {/* <Pressable 
+                        style={{backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderRightColor: 'hsl(39, 70%, 40%)', borderRightWidth: 2, justifyContent: 'center', alignItems: 'center'}}
+                        onPress={() => {
+                            setKey(!key); 
+                            onChange(getMatchDataValue(ctx, full_key, 0) + 1);
+                        }}    
+                    >
+                        <Text style={{color: Globals.TextColor, fontSize: 40, fontWeight: 'bold', marginBottom: 4}}>+</Text>
+                    </Pressable> */}
+                    {/* <Pressable 
+                        style={{backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderLeftColor: 'hsl(39, 70%, 40%)', borderLeftWidth: 2, justifyContent: 'center', alignItems: 'center'}}
+                        onPress={() => {
+                            setKey(!key); 
+                            onChange(Math.max(0, getMatchDataValue(ctx, full_key, 0) - 1));
+                        }}
+                    >
+                        <Text style={{color: Globals.TextColor, fontSize: 40, fontWeight: 'bold', marginBottom: 4}}>-</Text>
+                    </Pressable> */}
+                </View>
+                : null }   
+            </AppInput>
+        </View>
+    )
 };
 
 const GradientQRCode = ({text}) => {

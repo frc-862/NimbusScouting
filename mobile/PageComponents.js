@@ -263,7 +263,7 @@ const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {
           onContentSizeChange={(w, h) => setScrollHeight(h)} 
           onLayout={({nativeEvent}) => { setBaseHeight(nativeEvent.layout.height) }}
           onMomentumScrollEnd={({nativeEvent}) => handleScroll(nativeEvent)} 
-          scrollEventThrottle={100} 
+          scrollEventThrottle={17} 
           bounces={false} persistentScrollbar={true} alwaysBounceVertical={false} overScrollMode='never'>
           <TouchableNativeFeedback style={{backgroundColor: 'red'}}>
             <View style={[styles.pageContent, style]}>

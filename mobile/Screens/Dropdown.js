@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import Globals from '../../Globals';
 
-const DropdownComponent = ({outerStyle, style, default_value, data, placeholder = "Dropdown 1", onChange = (item) => {}, onBlur = () => {}, onFocus = () => {}}) => {
+const DropdownComponent = ({outerStyle, style, default_value, data, dropdownPosition="auto", placeholder = "Dropdown 1", onChange = (item) => {}, onBlur = () => {}, onFocus = () => {}}) => {
   // console.log(default_value, data.some((item) => item.value === default_value));
   if (data === undefined) {
     data = [
@@ -44,6 +44,8 @@ const DropdownComponent = ({outerStyle, style, default_value, data, placeholder 
         iconStyle={styles.iconStyle}
         data={data}
         autoScroll
+        keyboardAvoiding={true}
+        dropdownPosition={dropdownPosition}
         search
         // maxHeight={300}
         // minHeight={100}

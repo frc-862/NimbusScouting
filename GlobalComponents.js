@@ -16,7 +16,7 @@ const AppButton = React.forwardRef(({children, hasGradient = true, style, outerS
   }
 
   return (
-    <Pressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={onPress} style={[outerStyle, {borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}]}>
+    <Pressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
       <LinearGradient
         style={[{justifyContent: 'center', alignItems: 'center', position: 'absolute', width: '100%', height: '100%'}]}
         colors={hasGradient ? [Globals.GradientColor1, Globals.GradientColor2] : ['transparent', 'transparent']}
@@ -77,7 +77,7 @@ const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, gradi
   );
 }
 
-const AppInput = ({default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
+const AppInput = ({children, default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
   const [text, setText] = useState(default_value);
 
   function textChanged(newText) {
@@ -94,6 +94,8 @@ const AppInput = ({default_value = '', regex, inputMode = 'search', title, showT
       ] : null }
       
       <TextInput selectTextOnFocus={true} inputMode={inputMode} onBlur={onLeave} value={String(text)} onChangeText={textChanged} style={[{height: 40, width: '100%', padding: 5, paddingHorizontal: 7, outline: 'none', justifyContent: 'center', textAlign: 'center', color: 'white'}, style]}/>
+
+      { children }
     </View>
   );
 }

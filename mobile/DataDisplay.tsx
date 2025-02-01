@@ -4,10 +4,18 @@ import LineChart from './LineGraph';
 import PieChart from './PieChart';
 import { HeaderTitle } from './PageComponents';
 
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Dimensions } from "react-native";
 import { GradientButton } from './GradientComponents';
 import { AppCheckbox } from '../GlobalComponents';
+import { Numeric } from 'd3';
 
+
+function keyToTitleCase(str: string) {
+  return str.substring(2, str.length - 1).replace("_", " ").replace(
+    /\w\S*/g,
+    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  );
+}
 
 
 interface DataDisplayProps {
@@ -15,6 +23,7 @@ interface DataDisplayProps {
     form: any;
     dataYValues: {
       value: string;
+      uses: string[];
       conditionalValue?: any;
     }[];
     overrideXAxisValue?: string;
@@ -32,7 +41,7 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
   const [data, setData] = useState<{x: number[], y: any[][]}>({x: [], y: [[]]});
   // How our data show be displayed. ("auto" means that we want it to choose a line chart for numerical data, and a pie chart for categorical data, or a percentage thingy or something for true/false values)
   const [displayStyle, setDisplayStyle] = useState<string | undefined>(undefined);
-
+  const [fullScreen, setFullScreen] = useState(false);
 
   useEffect(() => {
     // If we have not been given any data, return nothing.
@@ -85,7 +94,7 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
         continue
       }
 
-      console.log("Condition: ", dataY.value, "", dataY.conditionalValue);
+      // console.log("Condition: ", dataY.value, "", dataY.conditionalValue);
       // Filter the data by the conditional value. (Each match that the data is being pulled from must have the conditional value)
       filteredData = filteredData.filter((match: any) => String(match.data[dataY.value]) === String(dataY.conditionalValue));
     }
@@ -199,32 +208,82 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
       )
     }
 
-    let cumulativeData: any = {};
-    let amountsData: any = {};
-    data.y[0].forEach((item: any, i: number) => {
-      if (cumulativeData[data.x[i]] === undefined) {
-        cumulativeData[data.x[i]] = item;
-        amountsData[data.x[i]] = 1;
-      } else {
-        cumulativeData[data.x[i]] += item;
-        amountsData[data.x[i]]++;
-      }
-    });
+    let totalCumulativeData: any = {};
+    let totalAmountsData: any = {};
+    let avgLists = [];
+    
+    for (let i = 0; i < data.y.length; i++) {
+      let cumulativeData: any = {};
+      let amountsData: any = {};
 
-    let avgData = Object.keys(cumulativeData).map((key) => ({
-      x: key, y: (cumulativeData[key] / amountsData[key]).toFixed(2)
+      data.y[i].forEach((item: any, j: number) => {
+        // Calculate the cumulative data for each y value.
+        if (cumulativeData[data.x[j]] === undefined) {
+          cumulativeData[data.x[j]] = item;
+          amountsData[data.x[j]] = 1;
+        } else {
+          cumulativeData[data.x[j]] += item;
+          amountsData[data.x[j]]++;
+        }
+
+        // Calculate the total cumulative data for all y values.
+        if (totalCumulativeData[data.x[j]] === undefined) {
+          totalCumulativeData[data.x[j]] = item;
+          totalAmountsData[data.x[j]] = 1;
+        } else {
+          totalCumulativeData[data.x[j]] += item;
+          totalAmountsData[data.x[j]]++;
+        }
+      });
+
+      // Calculate the average data for each y value.
+      let avgData = Object.keys(cumulativeData).map((key) => ({
+        x: key, y: (cumulativeData[key] / amountsData[key]).toFixed(2)
+      }));
+
+      avgLists.push(avgData);
+    }
+
+    let totalAvgData = Object.keys(totalCumulativeData).map((key) => ({
+      x: key, y: (totalCumulativeData[key] / totalAmountsData[key]).toFixed(2)
     })).sort((a, b) => Number(b.y) - Number(a.y));
 
 
     return (
       <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{alignItems: 'center'}}>
         <HeaderTitle title='Rankings (Averaged):' fontSize={30}/>
-        { 
-          avgData.map((item: any, i: number) => (
-            <Pressable key={i} style={{width: '100%', justifyContent: 'center', alignItems: 'center'}}>
-              <HeaderTitle style={{flex: 1}} title={`x: ${item.x}, y: ${item.y}`}/>
-            </Pressable>
-          )) 
+        <View style={{flexDirection: 'row', width: '100%'}}>
+          <HeaderTitle title={dataFilters.overrideXAxisValue ? "    " + keyToTitleCase(String(dataFilters.overrideXAxisValue)) : '    Match Number'} style={{textAlign: 'left', flex: 1}} fontSize={20}/>
+          { avgLists.length > 1 ? <HeaderTitle title='Total' style={{textAlign: 'left', flex: 1}} fontSize={20}/> : null }
+          {
+            dataFilters.dataYValues.map((item: any, i: number) => {
+              if (item.conditionalValue || item.conditionalValue === 0 || !item.value) {
+                return null;
+              }
+              
+              return <HeaderTitle key={i} title={keyToTitleCase(item.value)} style={{textAlign: 'left', flex: 1}} fontSize={20}/>
+            })
+          }
+          {/* <HeaderTitle title={`    ${dataFilters.dataYValues}`} style={{textAlign: 'left', flex: 1}} fontSize={20}/>
+          <HeaderTitle title='Average' style={{textAlign: 'left', flex: 1}} fontSize={20}/> */}
+        </View>
+        {
+          totalAvgData.map((item: any, i: number) => {
+            const rankedValue = item.x;
+            const totalAvg = item.y;
+            const yValueHeaders = avgLists.map((avgList, j) => {
+              const avg = avgList.find((item) => item.x === rankedValue)?.y || "N/A";
+              return <HeaderTitle key={j} title={avg} style={{textAlign: 'left', flex: 1}} fontSize={20}/>;
+            });
+
+            return (
+              <Pressable key={i} style={{flexDirection: 'row', width: '100%', justifyContent: 'center', alignItems: 'center'}}>
+                <HeaderTitle style={{paddingLeft: 10, textAlign: 'left', flex: 1}} fontSize={20} title={`${i + 1}: ${rankedValue}`}/>
+                { avgLists.length > 1 ? <HeaderTitle style={{textAlign: 'left', flex: 1}} fontSize={20} title={totalAvg}/> : null } 
+                { yValueHeaders }
+              </Pressable>
+            );
+          })
         }
       </ScrollView>
     )
@@ -266,8 +325,21 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
     }
 
     if (displayStyle === "ranking") {
-      onDisplaySizeChange({x: 0, y: 190});
-      return constructRankingDisplay();
+      onDisplaySizeChange({x: 0, y: fullScreen ? 1000 : 300});
+      return (
+        <View 
+          key={fullScreen ? 1 : 0}
+          style={{
+            flex: 1, 
+            width: '100%', 
+            height: '100%',
+            justifyContent: 'flex-end',
+          }}
+        >
+          { constructRankingDisplay() }
+          <GradientButton onPress={() => {setFullScreen(!fullScreen)}} outerStyle={{position: 'absolute', alignSelf: 'flex-end', width: '10%', height: 40, borderRadius: 0}} style={{borderRadius: 0}} innerStyle={{borderRadius: 0, backgroundColor: 'red'}} title='a'></GradientButton>
+        </View>
+      )
     }
   }
 

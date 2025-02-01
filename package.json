@@ -33,7 +33,7 @@
     "react-native-chart-kit": "^6.12.0",
     "react-native-draggable": "^3.3.0",
     "react-native-draggable-flatlist": "^4.0.1",
-    "react-native-draglist": "^3.6.2",
+    "react-native-draglist": "^3.8.2",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.12.2",
     "react-native-gesture-handler": "~2.20.2",
