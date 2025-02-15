@@ -256,13 +256,23 @@ const MobileApp = () => {
   const [matchData, setMatchData] = useState(undefined);
 
   async function storeMatch(match) {
+    const storedMatchData = await AsyncStorage.getItem('stored matches').then((data) => data ? JSON.parse(data) : []);
+    const decompressedData = storedMatchData.map((match) => JSON.parse(InflateString(match)));
+
+    for (const decompMatch of decompressedData) {
+      // console.log(decompMatch["0{match_num}"], match["0{match_num}"], decompMatch["0{team}"], match["0{team}"], decompMatch["event"], match["event"], decompMatch["0{alliance}"], match["0{alliance}"]);
+      if (decompMatch["0{match_num}"] == match["0{match_num}"] && Number(decompMatch["0{team}"]) == Number(match["0{team}"]) && decompMatch["event"] == match["event"] && String(decompMatch["0{alliance}"]) == String(match["0{alliance}"])) {
+        return false;
+      }
+    }
+
     const compressedMatch = DeflateString(JSON.stringify(match));
 
     // The the stored data from our storage and add the new match to it.
-    const storedMatchData = await AsyncStorage.getItem('stored matches').then((data) => data ? JSON.parse(data) : []);
     const newStoredMatchData = [...storedMatchData, compressedMatch];
 
     AsyncStorage.setItem('stored matches', JSON.stringify(newStoredMatchData));
+    return true;
   }
 
   async function getLinkMatch(event) {

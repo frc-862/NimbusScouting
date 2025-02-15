@@ -78,7 +78,7 @@ const HomeScreen = memo(({gradientDir}) => {
        
         await ctx.setLoadPercent(100, 300);
       }}/>
-      <GradientButton title={"View Data"} onPress={async () => {
+      {/* <GradientButton title={"View Data"} onPress={async () => {
         await ctx.setLoadPercent(0, 0);
 
         if (ctx.currentForm === undefined) { 
@@ -105,7 +105,7 @@ const HomeScreen = memo(({gradientDir}) => {
         ctx.setScreens([{screen: DataViewScreen, name: 'View Data', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);
 
         await ctx.setLoadPercent(100, 300);
-      }}/>
+      }}/> */}
       <GradientButton title={"Picklist"} onPress={() => {ctx.setScreens([{screen: PicklistScreen, name: 'Picklist', infoText: '', onBack: () => {ctx.setScreens([{screen: HomeScreen, name: 'Home'}])}}]);}}/>
     </ScreenShell>
   );
@@ -143,9 +143,15 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
 
   const buttonWidthAndMargins = useRef(new Animated.ValueXY({x: 0, y: 0})).current;
 
-
   const [matches, setMatches] = useState([]);
   const [selectedMatches, setSelectedMatches] = useState([]);
+  const [sentMatches, setSentMatches] = useState([]);
+
+  async function getSentMatches() { 
+    const storedSendMatches = await AsyncStorage.getItem('sent matches').then((data) => data ? JSON.parse(data) : []);
+    setSentMatches(storedSendMatches);
+  }
+
 
   function trySelectMatch(index) {
     if (selectedMatches.includes(index)) {
@@ -168,6 +174,12 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
     newMatches = newMatches.filter((match, index) => !selectedMatches.includes(index));
     setMatches(newMatches);
     setSelectedMatches([]);
+
+    let deflatedNewMatches = newMatches.map((match) => DeflateString(JSON.stringify(match)));
+    let newSentMatches = sentMatches.filter((match) => deflatedNewMatches.includes(match));
+    AsyncStorage.setItem('sent matches', JSON.stringify(newSentMatches));
+    setSentMatches(newSentMatches);
+
     AsyncStorage.setItem('stored matches', JSON.stringify(newMatches.map((match) => DeflateString(JSON.stringify(match)))));
   }
 
@@ -182,6 +194,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
 
   useEffect(() => { 
     decompressMatches();
+    getSentMatches();
   }, []);
 
   useEffect(() => {
@@ -261,7 +274,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
             ctx.setScreens(
               [{
                 screen: SaveMatchScreen, 
-                props: {dataToShow: JSON.stringify(matches[index])},
+                props: {dataToShow: matches[index]},
                 name: 'Match QR',
                 onBack: () => {
                   ctx.setScreens(
@@ -302,24 +315,38 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
             const serverInfo = JSON.parse(await AsyncStorage.getItem("serverInfo"));
 
             let failedMatches = 0;
+            let successfulMatches = []
 
             // Using OF works here, but IN does not. This is because in works like for i in range, and of works like foreach.
             for (const matchIndex of selectedMatches) {
+              if (!(matches[matchIndex] && matches[matchIndex]["0{match_num}"] && matches[matchIndex]["0{team}"] && matches[matchIndex]["0{team}"][0])) { failedMatches++; continue; }
               await putOneToDatabase(
                 {
                   data: matches[matchIndex],
                   number: matches[matchIndex]["0{match_num}"],
                   team: matches[matchIndex]["0{team}"][0],
                   scout: "NONE YET",
-                  event: "NONE YET"
+                  event: matches[matchIndex]["event"],
                 }, 
                 serverInfo.ip, 
                 serverInfo.port, 
                 serverInfo.timeout
-              ).then(async (data) => {
+              ).then((data) => {
                 if (data === "ERROR") { failedMatches++; }
+                else { successfulMatches.push(DeflateString(JSON.stringify(matches[matchIndex]))); }
               });
             }
+
+
+            const newSentMatches = sentMatches;
+            successfulMatches.forEach((index) => {
+              if (!newSentMatches.includes(index)) {
+                newSentMatches.push(index);
+              }
+            });
+            AsyncStorage.setItem('sent matches', JSON.stringify(newSentMatches));
+            setSentMatches(newSentMatches);
+
 
             if (failedMatches === selectedMatches.length) {
               await ctx.showLoadError(0);
@@ -350,6 +377,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
 
   if (matches.length > 0) {
     listRender = matches.map((match, index) => {
+      let sent = sentMatches.includes(DeflateString(JSON.stringify(match)));
+
       return (
         <AppCheckbox 
           onPress={() => {trySelectMatch(index)}} key={String(selectedMatches.includes(index)) + index} 
@@ -357,8 +386,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
           checkedColor={'rgba(0,255,0,0.3)'} 
           gradientColors={match['0{alliance}'][0] === 'red' ? ['rgb(182,0,0)', 'rgb(182,0,0)'] : ['rgb(0,0,182)', 'rgb(0,0,182)']} 
           innerStyle={{borderRadius: 17}} 
-          style={{overflow: 'hidden', padding: 5, height: undefined}} 
-          outerStyle={{ marginBottom: 10, marginHorizontal: 5, flex: 1, minWidth: '40%', maxWidth: '50%'}}
+          style={{overflow: 'hidden', padding: 5, height: undefined, backgroundColor: sent ? 'purple' : undefined}} 
+          outerStyle={{ marginBottom: 10, marginHorizontal: 5, flex: 1, minWidth: '40%', maxWidth: '50%', backgroundColor: sent ? 'purple' : undefined}}
         >    
 
           <View style={{flexDirection: 'row'}}>
@@ -701,7 +730,11 @@ const SettingsScreen = memo(({gradientDir}) => {
   // Server settings variables
   const [ip, setIP] = useState(undefined);
   const [port, setPort] = useState(undefined);
-  const [timeout, setTimeout] = useState(undefined);
+  const [timeout, setTimeout] = useState(undefined);  
+
+  useEffect(() => {
+    AsyncStorage.setItem("serverInfo", JSON.stringify({ip: ip, port: port, timeout: timeout}), () => {});
+  }, [ip, port, timeout]);
 
   const [errorText, setErrorText] = useState('');
 
@@ -761,12 +794,6 @@ const SettingsScreen = memo(({gradientDir}) => {
               }
             });
           })}}/>
-        <GradientButton title='Save Server Details' outerStyle={{flex: 1}} textStyle={{textAlign: 'center', fontSize: 18}} onPress={() => {
-          AsyncStorage.setItem("serverInfo", JSON.stringify({ip: ip, port: port, timeout: timeout}), () => {
-            ctx.setScreens([{screen: HomeScreen, name: 'Home'}]);
-            ctx.showNotification(`Server Details Saved!`);
-          });
-        }}/>
       </View>
 
       <HeaderTitle title='Color Scheme' fontSize={30}/>
@@ -795,81 +822,81 @@ const PicklistScreen = memo(({gradientDir}) => {
   const [teamStatuses, setTeamStatuses] = useState({});
   const [dragListData, setDragListData] = useState([]);
 
-  // function getAndSetDragListData() {
-  //   if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
+  function getAndSetDragListData() {
+    if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
 
-  //   const baseDragData = {
-  //     key: '', 
-  //     is_tier_card: false,
-  //     tier_info: null,
-  //     team_number: 0,
-  //     team_name: '',
-  //     ranking: 0,
-  //     alliance: null,
-  //     alliance_pick: null,
-  //     qual_wins: 0,
-  //     qual_losses: 0,
-  //     qual_ties: 0,
-  //     playoff_wins: null,
-  //     playoff_losses: null,
-  //     playoff_ties: null,
-  //   }
+    const baseDragData = {
+      key: '', 
+      is_tier_card: false,
+      tier_info: null,
+      team_number: 0,
+      team_name: '',
+      ranking: 0,
+      alliance: null,
+      alliance_pick: null,
+      qual_wins: 0,
+      qual_losses: 0,
+      qual_ties: 0,
+      playoff_wins: null,
+      playoff_losses: null,
+      playoff_ties: null,
+    }
 
-  //   const tiersDragData = [
-  //     {...baseDragData, key: 'tier1', is_tier_card: true, tier_info: 'Tier 1'},
-  //     {...baseDragData, key: 'tier2', is_tier_card: true, tier_info: 'Tier 2'},
-  //     {...baseDragData, key: 'tier3', is_tier_card: true, tier_info: 'Tier 3'},
-  //     {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
-  //   ]
+    const tiersDragData = [
+      {...baseDragData, key: 'tier1', is_tier_card: true, tier_info: 'Tier 1'},
+      {...baseDragData, key: 'tier2', is_tier_card: true, tier_info: 'Tier 2'},
+      {...baseDragData, key: 'tier3', is_tier_card: true, tier_info: 'Tier 3'},
+      {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
+    ]
 
-  //   const teamsDragData = teams.map((team) => {
-  //     const teamStatus = teamStatuses[team];
+    const teamsDragData = teams.map((team) => {
+      const teamStatus = teamStatuses[team];
 
-  //     return ({
-  //       key: team, 
-  //       is_tier_card: false,
-  //       tier_info: null,
-  //       team_number: team.replace('frc', ''),
-  //       team_name: 'None',//teamStatus.team.nickname,
-  //       ranking: teamStatus.qual.ranking.rank,
-  //       alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
-  //       alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
-  //       qual_wins: teamStatus.qual.ranking.record.wins,
-  //       qual_losses: teamStatus.qual.ranking.record.losses,
-  //       qual_ties: teamStatus.qual.ranking.record.ties,
-  //       playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
-  //       playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
-  //       playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
-  //     });
-  //   });
+      return ({
+        key: team, 
+        is_tier_card: false,
+        tier_info: null,
+        team_number: team.replace('frc', ''),
+        team_name: 'None',//teamStatus.team.nickname,
+        ranking: teamStatus.qual.ranking.rank,
+        alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
+        alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
+        qual_wins: teamStatus.qual.ranking.record.wins,
+        qual_losses: teamStatus.qual.ranking.record.losses,
+        qual_ties: teamStatus.qual.ranking.record.ties,
+        playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
+        playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
+        playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+      });
+    });
 
     
-  //   setDragListData(
-  //     [...tiersDragData, ...teamsDragData]
-  //   );
-  // }
+    setDragListData(
+      [...tiersDragData, ...teamsDragData]
+    );
+  }
   
-  // if (teams.length === 0) {
-  //   getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
-  //     setTeamStatuses(data);
-  //     setTeams(Object.keys(data));
-  //   });
-  // }
+  if (teams.length === 0) {
+    getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
+      setTeamStatuses(data);
+      setTeams(Object.keys(data));
+    });
+  }
 
-  // if (teamNames.length === 0) {
-  //   getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
-  //     setTeamNames(data);
-  //   });
-  // }
+  if (teamNames.length === 0) {
+    getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
+      setTeamNames(data);
+    });
+  }
 
-  // useEffect(() => {
-  //   getAndSetDragListData();
-  // }, [teams]);
+  useEffect(() => {
+    getAndSetDragListData();
+  }, [teams]);
 
   return (
     <ScreenShell gradientDir={gradientDir} scrollable={false} style={{paddingTop: 0, paddingBottom: 0}}>
       <GestureHandlerRootView style={{width: '100%', flex: 1}}>
-        <DraggableLyrics data={dragListData}/>
+        <DragDropList data={dragListData}/>
       </GestureHandlerRootView>
     </ScreenShell>
   );
@@ -976,8 +1003,19 @@ const PrematchScreen = memo(({ gradientDir }) => {
 
   const alliance_types = ["red", "blue"];
 
+
+  function tryGoNext() {
+    if (alliance && matchNum && ctx.matchData["0{team}"] && ctx.matchData["0{team}"].length != 0) {
+      console.log(alliance, matchNum, ctx.matchData["0{team}"]);
+      ctx.slideScreen(1)
+    } else {
+      console.log(alliance, matchNum, ctx.matchData["0{team}"]);
+      ctx.showNotification('Please fill out all fields!', Globals.NotificationErrorColor);
+    }
+  }
+
   return (
-  <ScreenShell gradientDir={gradientDir}>
+  <ScreenShell gradientDir={gradientDir} overrideNext={tryGoNext}>
     <GradientTextInput onlyNumbers key_value="match_num" title='Match Number' onValueChanged={setMatchNum}/>
     <HeaderTitle title='Team Info' fontSize={30}/>
     <GradientChoice key_value="alliance" title='Alliance Color' onValueChanged={(newIndexes) => setAlliance(alliance_types[newIndexes[0]])} choices={[
@@ -990,11 +1028,11 @@ const PrematchScreen = memo(({ gradientDir }) => {
   );
 });
 
-const SaveMatchScreen = memo(({ gradientDir, props }) => {
+const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
   const ctx = useContext(AppContext);
-  let qrData = "exp://10.168.81.243:8081/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
+  let qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
   if (props.dataToShow) {
-    qrData = "exp://10.168.81.243:8081/?match=" + encodeURIComponent(DeflateString(props.dataToShow));
+    qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify(props.dataToShow)));
   }
   
 
@@ -1003,14 +1041,20 @@ const SaveMatchScreen = memo(({ gradientDir, props }) => {
 
   return (
   <ScreenShell gradientDir={gradientDir} scrollable={false} style={{justifyContent: 'center'}}>
+    { props.dataToShow ? <HeaderTitle title={`Match ${props.dataToShow["0{match_num}"]}, Team: ${props.dataToShow["0{team}"]}`} fontSize={30}/> : <HeaderTitle title='Save Match' fontSize={30}/> }
+
     <GradientQRCode text={qrData}/>
     
     { props.dataToShow ? null :
-      <GradientButton title='Save Match' style={{padding: 5}} onPress={() => {
-          ctx.storeMatch({...ctx.matchData, date: new Date().toDateString()});
-          ctx.setMatchData(undefined);
-          ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
-          ctx.showNotification('Match Saved!');
+      <GradientButton title='Save Match' style={{padding: 5}} onPress={async () => {
+          if (await ctx.storeMatch({...ctx.matchData, date: new Date().toDateString()})) {
+            ctx.showNotification('Match Saved!');
+            ctx.setMatchData(undefined);
+            ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
+          } else {
+            ctx.showNotification('Match Already Exists!', Globals.NotificationErrorColor);
+          }
+          
         }}
       />
     }

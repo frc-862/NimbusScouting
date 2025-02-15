@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import DragList, {DragListRenderItemInfo} from 'react-native-draglist';
+import { ScrollView } from 'react-native-gesture-handler';
 
-const SOUND_OF_SILENCE = ['hello', 'darkness', 'my', 'old', 'friend'];
+const SOUND_OF_SILENCE = ['hello', 'darkness', 'my', 'old', 'friend', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 
 export default function DraggableLyrics() {
   const [data, setData] = useState(SOUND_OF_SILENCE);
@@ -13,13 +14,15 @@ export default function DraggableLyrics() {
 
   function renderItem(info: DragListRenderItemInfo<string>) {
     const {item, onDragStart, onDragEnd, isActive} = info;
+    const index = data.indexOf(item);
 
     return (
       <TouchableOpacity
         key={item}
         onPressIn={onDragStart}
-        onPressOut={onDragEnd}>
-        <Text>{item}</Text>
+        onPressOut={onDragEnd}
+        style={{backgroundColor: isActive ? 'purple' : 'orange', padding: 20, width: '100%'}}>
+        <Text style={{textAlign: 'center', color: 'white'}}>{item} + {index}</Text>
       </TouchableOpacity>
     );
   }
@@ -34,12 +37,15 @@ export default function DraggableLyrics() {
 
   return (
     <View>
-      <DragList
-        data={data}
-        keyExtractor={keyExtractor}
-        onReordered={onReordered}
-        renderItem={renderItem}
-      />
+        <DragList
+          data={data}
+          keyExtractor={keyExtractor}
+          onReordered={onReordered}
+          renderItem={renderItem}
+          onDragEnd={() => {
+            setData(data);
+          }}
+        />
     </View>
   );
 }

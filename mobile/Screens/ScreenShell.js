@@ -4,7 +4,7 @@ import { PageHeader, PageContent, PageFooter } from '../PageComponents';
 import Globals from '../../Globals';
 import AppContext from '../../components/AppContext';
 
-const ScreenShell = ({children, scrollable = true, style, gradientDir = 1}) => {
+const ScreenShell = ({children, scrollable = true, style, gradientDir = 1, overrideNext = undefined, overrideBack = undefined}) => {
   const ctx = useContext(AppContext);
 
   const {name, infoText} = ctx.screens[ctx.screenIndex];
@@ -17,7 +17,7 @@ const ScreenShell = ({children, scrollable = true, style, gradientDir = 1}) => {
       {children}
     </PageContent>
 
-    <PageFooter gradientDir={gradientDir}/>
+    <PageFooter gradientDir={gradientDir} overrideBack={overrideBack} overrideNext={overrideNext}/>
     <StatusBar style="light" />
   </View>
   );
