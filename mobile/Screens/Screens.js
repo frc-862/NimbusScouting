@@ -28,7 +28,6 @@ const HomeScreen = memo(({gradientDir}) => {
       <GradientButton outerStyle={{height: 100, width: '90%'}} style={{padding: 5}} textStyle={{fontSize: 25}} title={"Time to Scout!"} onPress={() => {
         if (ctx.currentForm === undefined) { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); return; }
         if (ctx.scoutingSettings.event === "none") { ctx.showNotification("You don't have an event selected!", Globals.NotificationWarningColor); return; }
-
         ctx.setScreens(ctx.formInfo);
 
         if (ctx.matchData === undefined) {
@@ -258,8 +257,27 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
           onPressIn={() => {opactiyAnim.setValue(0.5)}} 
           onPressOut={() => {Animated.timing(opactiyAnim, {toValue: 1, duration: 200, useNativeDriver: false}).start()}}
           onPress={() => {
-            ctx.showNotification("Edit function not implemented yet!", Globals.NotificationWarningColor);
-            // ctx.setMatchData(matches[selectedMatches[0]]);
+            ctx.setMatchData(matches[index]);
+            ctx.setScreens(
+              [{
+                screen: SaveMatchScreen, 
+                props: {dataToShow: JSON.stringify(matches[index])},
+                name: 'Match QR',
+                onBack: () => {
+                  ctx.setScreens(
+                    [{
+                      screen: ScoutedMatchesScreen, 
+                      name: 'Scouted Matches', 
+                      onBack: () => {
+                        ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
+                      }
+                    }]
+                  )
+                }
+              }]
+            );
+            // ctx.showNotification("Edit function not implemented yet!", Globals.NotificationWarningColor);
+            
             // ctx.setScreens(ctx.formInfo);
           }}
           style={{padding: 5, paddingHorizontal: 10, borderRadius: 20}}
@@ -709,8 +727,8 @@ const SettingsScreen = memo(({gradientDir}) => {
         data={ years }
         outerStyle={{width: '80%', marginBottom: 10}}
         placeholder="Year"
-        default_value={ctx.scoutingSettings.year}
-        onChange={(choice) => { ctx.setScoutingSettings({...ctx.scoutingSettings, year: choice.value}) }}
+        default_value={String(ctx.scoutingSettings.year)}
+        onChange={(choice) => { ctx.setMatchData(undefined); ctx.setScoutingSettings({...ctx.scoutingSettings, year: choice.value}) }}
       />
 
       <DropdownComponent
@@ -718,7 +736,7 @@ const SettingsScreen = memo(({gradientDir}) => {
         outerStyle={{width: '80%', marginBottom: 10}}
         placeholder="Event"
         default_value={ctx.scoutingSettings.event}
-        onChange={(choice) => { ctx.setScoutingSettings({...ctx.scoutingSettings, event: choice.value, eventName: choice.label}); }}
+        onChange={(choice) => { ctx.setMatchData(undefined); ctx.setScoutingSettings({...ctx.scoutingSettings, event: choice.value, eventName: choice.label}); }}
       />
 
       <HeaderTitle title='Server Details' fontSize={30}/>
@@ -870,7 +888,16 @@ const PrematchScreen = memo(({ gradientDir }) => {
   const [alliance, setAlliance] = useState(ctx.matchData["0{alliance}"]);
   const [teamsData, setTeamsData] = useState([]);
   const [matches, setMatches] = useState(ctx.eventMatches);
-  const [manualTeamInput, setManualTeamInput] = useState(false);
+  const [teamInputType, setTeamInputType] = useState("choice");
+  const [teamDriverStation, setTeamDriverStation] = useState(ctx.matchData['0{team_driver_station}']);
+
+  useEffect(() => {
+    if (teamInputType !== "choice") {
+      ctx.matchData['0{team_driver_station}'] = "";
+    } else {
+      ctx.matchData['0{team_driver_station}'] = teamDriverStation;
+    }
+  }, [teamInputType]);
 
   const baseTeamData = [
     {label: 'Team 1', value: 't1', select_color: 'rgba(0, 0, 255, 0.3)'},
@@ -878,10 +905,19 @@ const PrematchScreen = memo(({ gradientDir }) => {
     {label: 'Team 3', value: 't3', select_color: 'rgba(0, 0, 255, 0.3)'},
   ];
 
+  function setMatchDataKey(ctx, key, data) {
+    ctx.matchData[key] = data;
+    ctx.setMatchData(ctx.matchData)
+  }
+
   function refreshTeamData() {
     // If team data cannot be found with our current info, just say t1, t2, t3.
-    if (matches === undefined || matches.length === 0 || matches == "ERROR" || matchNum === undefined || alliance === undefined) {
-      setManualTeamInput(true);
+    if (matches === undefined || matches.length === 0 || matches == "ERROR" || matchNum === undefined || alliance === undefined || alliance.length === 0) {
+      if (ctx.teamData === undefined || ctx.teamData.length === 0) {
+        setTeamInputType("numbers");
+      } else {
+        setTeamInputType("dropdown");
+      }
       setTeamsData(baseTeamData);
       return;
     }
@@ -889,20 +925,45 @@ const PrematchScreen = memo(({ gradientDir }) => {
     let match = matches.find((match) => match.comp_level === 'qm' && match.match_number === Number(matchNum));
   
     if (match === undefined) {
-      setManualTeamInput(true);
+      if (ctx.teamData === undefined || ctx.teamData.length === 0) {
+        setTeamInputType("numbers");
+      } else {
+        setTeamInputType("dropdown");
+      }
       setTeamsData(baseTeamData);
       return;
     }
 
-    setManualTeamInput(false);
-
-    console.log(alliance);
+    setTeamInputType("choice");
 
     let TD = match.alliances[alliance].team_keys.map((team) => {
       let teamNumber = team.replace('frc', '');
       return { label: teamNumber, value: teamNumber, select_color: 'rgba(0, 0, 255, 0.3)' };
     });
     setTeamsData(TD);
+
+    if (teamDriverStation !== "" && teamDriverStation !== undefined) {
+      setMatchDataKey(ctx, '0{team}', TD[teamDriverStation - 1].value);
+    }
+  }
+
+  function makeTeamInput() {
+    switch (teamInputType) {
+      case "numbers":
+        return <GradientTextInput inputMode="numeric" regex={/[^0-9]/g} key_value="team" title='Team'/>;
+      case "dropdown":
+        return (
+          <DropdownComponent 
+            default_value={ctx.matchData["0{team}"]} 
+            style={{alignSelf: 'center', width: '80%'}} 
+            data={ctx.teamData.map((item) => ({label: item.team.replace('frc', ''), value: item.team.replace('frc', '')}))}
+            onChange={(value) => { setMatchDataKey(ctx, "0{team}", value.value)}}/>);
+      case "choice":
+        return <GradientChoice key_value="team" title='Team' choices={teamsData} onValueChanged={(newValue) => {
+          setTeamDriverStation(newValue.length == 0 || !newValue ? "" : Number(newValue[0]) + 1);
+          setMatchDataKey(ctx, '0{team_driver_station}', newValue.length == 0 || !newValue ? "" : Number(newValue[0]) + 1);
+        }}/>;
+    }
   }
 
   if (teamsData.length === 0) {
@@ -923,26 +984,36 @@ const PrematchScreen = memo(({ gradientDir }) => {
       {label: 'Red', value: 'red', select_color: 'rgba(255, 0, 0, 0.6)'},
       {label: 'Blue', value: 'blue', select_color: 'rgba(0, 0, 255, 0.6)'},
     ]}/>
-    { manualTeamInput ? <GradientTextInput inputMode="numeric" regex={/[^0-9]/g} key_value="team" title='Team'/> : <GradientChoice key_value="team" title='Team' choices={teamsData}/> }
+    { makeTeamInput() }
     
   </ScreenShell>
-  )
+  );
 });
 
-const SaveMatchScreen = memo(({ gradientDir }) => {
+const SaveMatchScreen = memo(({ gradientDir, props }) => {
   const ctx = useContext(AppContext);
+  let qrData = "exp://10.168.81.243:8081/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
+  if (props.dataToShow) {
+    qrData = "exp://10.168.81.243:8081/?match=" + encodeURIComponent(DeflateString(props.dataToShow));
+  }
+  
+
+  // expo link: exp://10.168.81.243:8081/?match=
+  // nimbus link: exp+nimbus://expo-development-client/?match=
 
   return (
   <ScreenShell gradientDir={gradientDir} scrollable={false} style={{justifyContent: 'center'}}>
-    <HeaderTitle title='QR code does NOT function yet!' fontSize={30}/>
-    <GradientQRCode text={DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()}))}/>
-    <GradientButton title='Save Match' style={{padding: 5}} onPress={() => {
-        ctx.storeMatch({...ctx.matchData, date: new Date().toDateString()});
-        ctx.setMatchData(undefined);
-        ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
-        ctx.showNotification('Match Saved!');
-      }}
-    />
+    <GradientQRCode text={qrData}/>
+    
+    { props.dataToShow ? null :
+      <GradientButton title='Save Match' style={{padding: 5}} onPress={() => {
+          ctx.storeMatch({...ctx.matchData, date: new Date().toDateString()});
+          ctx.setMatchData(undefined);
+          ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
+          ctx.showNotification('Match Saved!');
+        }}
+      />
+    }
     
   </ScreenShell>
   )

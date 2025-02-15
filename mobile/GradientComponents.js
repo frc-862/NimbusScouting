@@ -77,15 +77,15 @@ const GradientTextInput = ({key_value, style = {}, default_value="", onValueChan
 
     useEffect(() => {
         setUnsetKey(ctx, full_key, '');
+
+        if (ctx.matchData[full_key] === undefined || ctx.matchData[full_key] === null || ctx.matchData[full_key] === '' && onlyNumbers) {
+            setMatchDataKey(ctx, full_key, 0);
+        }   
+    
+        if (ctx.matchData[full_key].constructor === String && onlyNumbers) {
+            setMatchDataKey(ctx, full_key, parseInt(ctx.matchData[full_key]));
+        }
     }, []);
-
-    if (ctx.matchData[full_key] === undefined || ctx.matchData[full_key] === null || ctx.matchData[full_key] === '' && onlyNumbers) {
-        setMatchDataKey(ctx, full_key, 0);
-    }   
-
-    if (ctx.matchData[full_key].constructor === String && onlyNumbers) {
-        setMatchDataKey(ctx, full_key, parseInt(ctx.matchData[full_key]));
-    }
 
     function onChange(newValue) {
         onValueChanged(newValue);
@@ -101,17 +101,17 @@ const GradientTextInput = ({key_value, style = {}, default_value="", onValueChan
                         outerStyle={{margin: 0, backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderRadius: 0, justifyContent: 'center', alignItems: 'center'}}
                         style={{width: '100%', height: '100%', borderRadius: 0}}
                         innerStyle={{borderRadius: 0, borderRightColor: 'hsl(39, 70%, 40%)', borderRightWidth: 2}}
-                        title='+' 
+                        title='-' 
                         textStyle={{fontSize: 40, marginBottom: 4}}
-                        onPress={() => {setKey(!key); onChange(getMatchDataValue(ctx, full_key, 0) + 1);}}
+                        onPress={() => {setKey(!key); onChange(Math.max(0, Number(getMatchDataValue(ctx, full_key, 0)) - 1));}}
                     />
                     <GradientButton 
                         outerStyle={{margin: 0, backgroundColor: Globals.ButtonColor, width: '20%', height: '100%', borderRadius: 0, justifyContent: 'center', alignItems: 'center'}}
                         style={{width: '100%', height: '100%', borderRadius: 0}}
                         innerStyle={{borderRadius: 0, borderLeftColor: 'hsl(39, 70%, 40%)', borderLeftWidth: 2}}
-                        title='-' 
+                        title='+' 
                         textStyle={{fontSize: 40, marginBottom: 4}}
-                        onPress={() => {setKey(!key); onChange(Math.max(0, getMatchDataValue(ctx, full_key, 0) - 1));}}
+                        onPress={() => {setKey(!key); onChange(Number(getMatchDataValue(ctx, full_key, 0)) + 1);}}
                     /> 
 
                     {/* <Pressable 

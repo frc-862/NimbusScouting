@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 7.3.0"
+    "version": ">= 7.3.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -10,14 +11,13 @@
     "preview": {
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
-        "env": {
-          "EXPO_ANDROID_BUILD_MIN_SDK_VERSION": "22",
-          "EXPO_ANDROID_BUILD_TARGET_SDK_VERSION": "22"
-        }
+        "gradleCommand": ":app:assembleRelease"
       }
     },
     "production": {
+      "ios": {
+        "autoIncrement": true
+      },
       "android": {
         "buildType": "app-bundle"
       }

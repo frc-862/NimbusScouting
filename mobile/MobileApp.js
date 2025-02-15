@@ -10,8 +10,11 @@ import {
   StyleSheet, 
   Platform,
   Text,
-  Keyboard
+  Keyboard,
+  Linking,
+  Pressable
 } from "react-native";
+import * as NavigationBar from 'expo-navigation-bar';
 
 // Third Party Components
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -24,17 +27,23 @@ import { HomeScreen, PrematchScreen, SaveMatchScreen } from "./Screens/Screens";
 import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";
 import { getBlueAllianceDataFromURL, getBlueAllianceMatches, getBlueAllianceTeams } from "../backend/APIRequests";
+import { StatusBar } from "expo-status-bar";
 
-const DisplayScreen = ({Component, gradientDir}) => {
-  return <Component gradientDir={gradientDir}/>;
+const DisplayScreen = ({Component, props, gradientDir}) => {
+  return <Component gradientDir={gradientDir} props={props}/>;
 };
 
 const MobileApp = () => {
   // Load Resources
   const lightningImage = require('../assets/862gigawatt.png');
 
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+
   async function appStart() {
     setLoadPercent(0, 0);
+
+    getLinkMatch({url: await Linking.getInitialURL()});
 
     // Use for testing having some empty keys in the storage.
     // await AsyncStorage.multiRemove(await AsyncStorage.getAllKeys())
@@ -44,6 +53,8 @@ const MobileApp = () => {
 
     // Load the year from storage
     await AsyncStorage.getItem('scouting settings').then((data) => {
+      console.log("Data:", data);
+
       if (data) {
         let parsed = JSON.parse(data);
         setScoutingSettings(JSON.parse(data));
@@ -71,15 +82,24 @@ const MobileApp = () => {
 
     // Load the matches for our event
     await AsyncStorage.getItem('event matches').then((data) => {
-      if (data) {
+      let parsedData = JSON.parse(data);
+      if (data && parsedData[0].event_key === event) {
         setEventMatches(JSON.parse(data));
         return;
       }
-
       getBlueAllianceMatches(event, 3000).then((data) => {
         setEventMatches(data);
         AsyncStorage.setItem('event matches', JSON.stringify(data));
       });
+    });
+
+    await AsyncStorage.getItem('team data').then(async (data) => {
+      if (data) {
+        setTeamData(JSON.parse(data));
+        return;
+      }
+
+      getTeamData(event);
     });
 
     // Ensure that you have a base value stored for your server info.
@@ -108,11 +128,49 @@ const MobileApp = () => {
     });
 
     setLoadPercent(100, 300);
+    setInitialLoadDone(true);
+  }
+
+  async function getTeamData(event) {
+    let teamStatuses = [];
+    let teams = [];
+    let teamNames = [];
+
+    if (!event) {
+      return
+    }
+    
+    await getBlueAllianceDataFromURL("event/" + event + "/teams/statuses", 10000).then((data) => {
+      teamStatuses = data;
+      teams = Object.keys(data);
+    });
+
+    await getBlueAllianceTeams(event, 3000).then((data) => {
+      teamNames = data;
+    });
+
+    if (teams.length === 0 || teamNames.length === 0 || teamStatuses.length === 0) {
+      showNotification("Failed to load team data", Globals.NotificationErrorColor);
+      return;
+    }
+
+    if (teams === "ERROR" || teamNames === "ERROR" || teamStatuses === "ERROR") {
+      showNotification("Failed to load team data", Globals.NotificationErrorColor);
+      return;
+    }
+
+    setTeamData(teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[i]})));
+    AsyncStorage.setItem('team data', JSON.stringify(teamData));
   }
 
   // App Start
   useEffect(() => {
+    NavigationBar.setBackgroundColorAsync("black");
+
     appStart();
+
+    Linking.addEventListener('url', getLinkMatch);
+    return () => Linking.removeAllListeners('url');
   }, []);
 
   // Form states
@@ -120,10 +178,16 @@ const MobileApp = () => {
   const [currentForm, setCurrentForm] = useState(undefined);
   const [formInfo, setFormInfo] = useState(undefined);
 
-  const [scoutingSettings, setScoutingSettings] = useState({event: '2024tnkn', year: 2024});
-  const [events, setEvents] = useState('2024tnkn');
+  const [scoutingSettings, setScoutingSettings] = useState({event: '', year: 2024});
+  const [events, setEvents] = useState([]);
+  const [teamData, setTeamData] = useState([]);
 
   useEffect(() => {
+    if (!initialLoadDone) {
+      return;
+    }
+
+
     AsyncStorage.setItem('scouting settings', JSON.stringify(scoutingSettings));
     
     getBlueAllianceDataFromURL("events/" + scoutingSettings.year + "/simple").then((data) => {
@@ -132,10 +196,35 @@ const MobileApp = () => {
       AsyncStorage.setItem('events', JSON.stringify(eventStuff));
     });
 
-    getBlueAllianceMatches(scoutingSettings.event, 3000).then((data) => {
-      setEventMatches(data);
-      AsyncStorage.setItem('event matches', JSON.stringify(data));
-    });
+    if (scoutingSettings.event) {
+      getBlueAllianceMatches(scoutingSettings.event, 3000).then((data) => {
+        setEventMatches(data);
+        AsyncStorage.setItem('event matches', JSON.stringify(data));
+      });
+    }
+
+    AsyncStorage.getItem('scouting settings').then((data) => { console.log("Scout Data:", data, scoutingSettings); });
+
+    getTeamData(scoutingSettings.event);
+
+    if (currentForm === undefined) {
+      return;
+    }
+
+    setFormInfo([
+      {
+        screen: PrematchScreen, 
+        name: 'Prematch', 
+        infoText: scoutingSettings.eventName,
+        onBack: () => setScreens([{screen: HomeScreen, name: 'Home'}])
+      },
+      ...FormBuilder(JSON.stringify(currentForm.form)).map((form) => ({screen: form.screen, name: form.name, infoText: scoutingSettings.eventName})),
+      {
+        screen: SaveMatchScreen,
+        name: 'Save Match',
+        infoText: scoutingSettings.eventName,
+      }
+    ]);
   }, [scoutingSettings]);
 
   useEffect(() => {
@@ -174,6 +263,30 @@ const MobileApp = () => {
     const newStoredMatchData = [...storedMatchData, compressedMatch];
 
     AsyncStorage.setItem('stored matches', JSON.stringify(newStoredMatchData));
+  }
+
+  async function getLinkMatch(event) {
+    console.log(event);
+
+    var regex = /[?&]([^=#]+)=([^&#]*)/g,
+      params = {},
+      match;
+    while (match = regex.exec(event.url)) {
+      params[match[1]] = match[2];
+    }
+
+
+    if (params["match"]) {
+      let match = decodeURIComponent(params["match"]);
+
+      const storedMatchData = await AsyncStorage.getItem('stored matches').then((data) => data ? JSON.parse(data) : [])
+      
+      if (!storedMatchData.includes(match)) {
+        await AsyncStorage.setItem('stored matches', JSON.stringify([...storedMatchData, match]));
+
+        showNotification("Successfully stored!", Globals.NotificationSuccessColor);
+      }
+    }
   }
 
   // Changing / Displaying Screens
@@ -246,6 +359,8 @@ const MobileApp = () => {
     outputRange: [-notificaitonBoxSize, 65]
   });
 
+
+
   useEffect(() => {
     //console.log(notificationQueue)
     if (notificationQueue.length > 0 && !notificationShowing) {
@@ -306,6 +421,8 @@ const MobileApp = () => {
     setEvents,
     scoutingSettings,
     setScoutingSettings,
+    teamData,
+    setTeamData,
 
     slideScreen,
     setLoadPercent,
@@ -321,9 +438,10 @@ const MobileApp = () => {
 
   return (
     <AppContext.Provider value={states}>
+      <StatusBar style='dark'/>
       <TouchableNativeFeedback onPress={() => Keyboard.dismiss()}>
         <SafeAreaView style={{flex: 1, justifyContent: 'stretch', alignItems: 'stretch', backgroundColor: Globals.PageContainerColor, flexDirection: 'row', overflow: 'visible'}}>
-          { screens.length > 0 ? <DisplayScreen Component={screens[screenIndex].screen} gradientDir={(screenIndex) % 2}/> : null }
+          { screens.length > 0 ? <DisplayScreen Component={screens[screenIndex].screen} props={screens[screenIndex].props} gradientDir={(screenIndex) % 2}/> : null }
           
           {/* Notification pop-up (down) */}
           <Animated.View onLayout={(event) => {setNotificationBoxSize(event.nativeEvent.layout.height)}} style={{width: '100%', zIndex: 10000, position: 'absolute', top: notificationHeight, justifyContent: 'center', alignItems: 'center'}}>
@@ -350,8 +468,8 @@ const MobileApp = () => {
                   style={{ width: 224, height: '100%', justifyContent: 'center'}}
                   maskElement={
                     <View style={{width: '100%', height: '100%'}}>
-                      <Animated.View style={{height: '70%', width: loadingPercent, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center'}}/>
-                      <Animated.View style={{height: '30%', width: loadError ? '100%' : loadingPercent, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center'}}/>
+                      <Animated.View style={{height: '70%', width: '100%', backgroundColor: 'white', justifyContent: 'center', alignItems: 'center'}}/>
+                      <Animated.View style={{height: '30%', width: loadError ? '100%' : '100%', backgroundColor: 'white', justifyContent: 'center', alignItems: 'center'}}/>
                     </View>
                   }
                 >
@@ -370,6 +488,9 @@ const MobileApp = () => {
                   </View>
                 </MaskedView>
               </View>
+              <Pressable style={{position: 'absolute', justifyContent: 'center', alignItems: 'center', top: 40, right: 10, width: 40, height: 40}} onPress={() => { console.log("AA"); setLoading(false) } }>
+                <Text style={{color: 'white', fontSize: 25, fontWeight: 'bold'}}>X</Text>
+              </Pressable>
             </View>
           </Modal>
         </SafeAreaView>

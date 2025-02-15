@@ -248,7 +248,6 @@ const DataDisplay : React.FC<DataDisplayProps> = ({
       x: key, y: (totalCumulativeData[key] / totalAmountsData[key]).toFixed(2)
     })).sort((a, b) => Number(b.y) - Number(a.y));
 
-
     return (
       <ScrollView style={{flex: 1, width: '100%'}} contentContainerStyle={{alignItems: 'center'}}>
         <HeaderTitle title='Rankings (Averaged):' fontSize={30}/>

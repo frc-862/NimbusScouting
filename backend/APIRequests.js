@@ -122,7 +122,7 @@ async function getBlueAllianceDataFromURL(url, timeoutTime) {
         return response.data;
       })
       .catch(error => {
-        console.log(error);
+        console.log(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
         return "ERROR"
       });
   }

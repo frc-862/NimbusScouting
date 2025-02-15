@@ -36,11 +36,11 @@
       },
       "supportsTablet": true,
       "bundleIdentifier": "com.lightningrobotics.nimbus",
-      "buildNumber": "16"
+      "buildNumber": "17"
     },
     "android": {
-      "minSdkVersion": 22,
-      "targetSdkVersion": 22,
+      "usesCleartextTraffic": true,
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -56,6 +56,17 @@
         "projectId": "dafc0d24-b2e5-43c4-9da8-6ee1ca58f7bb"
       }
     },
-    "owner": "jeeves51243"
+    "owner": "jeeves51243",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {}
+        }
+      ]
+    ]
   }
 }
