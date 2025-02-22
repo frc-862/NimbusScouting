@@ -53,8 +53,6 @@ const MobileApp = () => {
 
     // Load the year from storage
     await AsyncStorage.getItem('scouting settings').then((data) => {
-      console.log("Data:", data);
-
       if (data) {
         let parsed = JSON.parse(data);
         setScoutingSettings(JSON.parse(data));
@@ -94,7 +92,7 @@ const MobileApp = () => {
     });
 
     await AsyncStorage.getItem('team data').then(async (data) => {
-      if (data) {
+      if (data && JSON.parse(data).length > 0) {
         setTeamData(JSON.parse(data));
         return;
       }
@@ -132,7 +130,7 @@ const MobileApp = () => {
   }
 
   async function getTeamData(event) {
-    let teamStatuses = [];
+    let teamStatuses = {};
     let teams = [];
     let teamNames = [];
 
@@ -159,7 +157,7 @@ const MobileApp = () => {
       return;
     }
 
-    setTeamData(teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[i]})));
+    setTeamData(teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[team]})));
     AsyncStorage.setItem('team data', JSON.stringify(teamData));
   }
 
@@ -202,8 +200,6 @@ const MobileApp = () => {
         AsyncStorage.setItem('event matches', JSON.stringify(data));
       });
     }
-
-    AsyncStorage.getItem('scouting settings').then((data) => { console.log("Scout Data:", data, scoutingSettings); });
 
     getTeamData(scoutingSettings.event);
 
@@ -260,7 +256,6 @@ const MobileApp = () => {
     const decompressedData = storedMatchData.map((match) => JSON.parse(InflateString(match)));
 
     for (const decompMatch of decompressedData) {
-      // console.log(decompMatch["0{match_num}"], match["0{match_num}"], decompMatch["0{team}"], match["0{team}"], decompMatch["event"], match["event"], decompMatch["0{alliance}"], match["0{alliance}"]);
       if (decompMatch["0{match_num}"] == match["0{match_num}"] && Number(decompMatch["0{team}"]) == Number(match["0{team}"]) && decompMatch["event"] == match["event"] && String(decompMatch["0{alliance}"]) == String(match["0{alliance}"])) {
         return false;
       }
@@ -276,8 +271,6 @@ const MobileApp = () => {
   }
 
   async function getLinkMatch(event) {
-    console.log(event);
-
     var regex = /[?&]([^=#]+)=([^&#]*)/g,
       params = {},
       match;
@@ -372,7 +365,6 @@ const MobileApp = () => {
 
 
   useEffect(() => {
-    //console.log(notificationQueue)
     if (notificationQueue.length > 0 && !notificationShowing) {
       setNotificationInfo(notificationQueue[0]);
       setNotificationShowing(true);
@@ -498,7 +490,7 @@ const MobileApp = () => {
                   </View>
                 </MaskedView>
               </View>
-              <Pressable style={{position: 'absolute', justifyContent: 'center', alignItems: 'center', top: 40, right: 10, width: 40, height: 40}} onPress={() => { console.log("AA"); setLoading(false) } }>
+              <Pressable style={{position: 'absolute', justifyContent: 'center', alignItems: 'center', top: 40, right: 10, width: 40, height: 40}} onPress={() => { setLoading(false) } }>
                 <Text style={{color: 'white', fontSize: 25, fontWeight: 'bold'}}>X</Text>
               </Pressable>
             </View>

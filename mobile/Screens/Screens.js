@@ -765,7 +765,7 @@ const SettingsScreen = memo(({gradientDir}) => {
       />
 
       <DropdownComponent
-        data={ [{label: "None", value: "none"}, ...ctx.events.map((item) => ({label: item.name, value: item.key}))] }
+        data={ [{label: "None", value: "none"}, ...ctx.events.map((item) => ({label: `${item.name} (${item.key.substring(4)})`, value: item.key}))] }
         outerStyle={{width: '80%', marginBottom: 10}}
         placeholder="Event"
         default_value={ctx.scoutingSettings.event}
@@ -804,6 +804,10 @@ const SettingsScreen = memo(({gradientDir}) => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
       }}/>
 
+      <GradientButton title={"Clear Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
+        AsyncStorage.removeItem('picklist');
+      }}/>
+
       <GradientButton title={"Delete all stored data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.multiRemove(await AsyncStorage.getAllKeys());
       }}/>
@@ -822,8 +826,16 @@ const PicklistScreen = memo(({gradientDir}) => {
   const [teamStatuses, setTeamStatuses] = useState({});
   const [dragListData, setDragListData] = useState([]);
 
-  function getAndSetDragListData() {
-    if (teamStatuses === "ERROR" || teamStatuses === undefined) { return; }
+  // AsyncStorage.removeItem('picklist');
+
+  async function getAndSetDragListData() {
+    const storedPicklist = await AsyncStorage.getItem('picklist');
+    if (storedPicklist) {
+      setDragListData(JSON.parse(InflateString(storedPicklist)));
+      return;
+    }
+
+    if (teamStatuses === "ERROR" || teamStatuses === undefined || teamStatuses.length == 0 || teams === "Error" || teams === undefined || teams.length == 0) { return; }
 
     const baseDragData = {
       key: '', 
@@ -840,6 +852,7 @@ const PicklistScreen = memo(({gradientDir}) => {
       playoff_wins: null,
       playoff_losses: null,
       playoff_ties: null,
+      picked: false
     }
 
     const tiersDragData = [
@@ -867,10 +880,10 @@ const PicklistScreen = memo(({gradientDir}) => {
         playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
         playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
         playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+        picked: false
       });
     });
 
-    
     setDragListData(
       [...tiersDragData, ...teamsDragData]
     );
@@ -887,16 +900,38 @@ const PicklistScreen = memo(({gradientDir}) => {
     getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
       setTeamNames(data);
     });
+    console.log("b");
   }
 
   useEffect(() => {
+    // let allTeams = []
+    // let allTeamNames = {}
+    // let allTeamStatuses = {}
+    // AsyncStorage.getItem('team data').then((data) => {
+    //   const teamData = JSON.parse(data);
+    //   console.log("DATA:", teamData)
+
+    //   teamData.forEach((team) => {
+    //     allTeams.push(team.team);
+    //     allTeamNames[team.team] = team.name.nickname;
+    //     allTeamStatuses[team.team] = team.status;
+    //   });
+    // });
+
+    // setTeams(allTeams);
+    // setTeamNames(allTeamNames);
+    // setTeamStatuses(allTeamStatuses);
+  }, []);
+
+  useEffect(() => {
+  // console.log(teams, teamStatuses)
     getAndSetDragListData();
   }, [teams]);
 
   return (
     <ScreenShell gradientDir={gradientDir} scrollable={false} style={{paddingTop: 0, paddingBottom: 0}}>
       <GestureHandlerRootView style={{width: '100%', flex: 1}}>
-        <DragDropList data={dragListData}/>
+        <DragDropList data={dragListData} onDataChanged={(data) => { AsyncStorage.setItem('picklist', DeflateString(JSON.stringify(data)))}}/>
       </GestureHandlerRootView>
     </ScreenShell>
   );
@@ -1030,10 +1065,20 @@ const PrematchScreen = memo(({ gradientDir }) => {
 
 const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
   const ctx = useContext(AppContext);
-  let qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
-  if (props.dataToShow) {
-    qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify(props.dataToShow)));
+
+  const [qrData, setQRData] = useState('Hi!');
+
+  async function getQRData() {
+    let qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
+    if (props.dataToShow) {
+      qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify(props.dataToShow)));
+    }
+    return qrData;
   }
+
+  useEffect(() => {
+    getQRData().then((data) => { setQRData(data) });
+  }, []);
   
 
   // expo link: exp://10.168.81.243:8081/?match=

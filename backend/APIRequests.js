@@ -1,4 +1,7 @@
+import GetDatabaseAPIKey from './KeyStore';
+
 const axios = require('axios');
+const dbApiKey = GetDatabaseAPIKey();
 
 // iPhone Network IPv4: 172.20.10.5
 // 862 server hostname: frc862.com
@@ -6,23 +9,24 @@ const axios = require('axios');
 
 
 async function getOneFromDatabase(getQuery, IP, port, timeoutTime) {
-  return await getDatabaseDataFromURL("/match", { password: "Abracadabra"}, getQuery, IP, port, timeoutTime);
+  console.log("GETTING ONE FROM DATABASE");
+  return await getDatabaseDataFromURL("/match", { }, getQuery, IP, port, timeoutTime);
 }
 
 async function getManyFromDatabase(getQuery, IP, port, timeoutTime) {
-  return await getDatabaseDataFromURL("/matches", { password: "Abracadabra"}, getQuery, IP, port, timeoutTime);
+  return await getDatabaseDataFromURL("/matches", { }, getQuery, IP, port, timeoutTime);
 }
  
 async function getAllFromDatabase(IP, port, timeoutTime) {
-  return await getDatabaseDataFromURL("/matches", { password: "Abracadabra"}, {}, IP, port, timeoutTime);
+  return await getDatabaseDataFromURL("/matches", { }, {}, IP, port, timeoutTime);
 }
 
 async function putOneToDatabase(dataToPut, IP, port, timeoutTime) {
-  return await putDatabaseDataFromURL("/match", { password: "Abracadabra"}, dataToPut, IP, port, timeoutTime);
+  return await putDatabaseDataFromURL("/match", { }, dataToPut, IP, port, timeoutTime);
 }
 
 async function deleteOneFromDatabase(deleteQuery, IP, port, timeoutTime) {
-  return await deleteDatabaseDataFromURL("/match", { password: "Abracadabra"}, deleteQuery, IP, port, timeoutTime); 
+  return await deleteDatabaseDataFromURL("/match", { }, deleteQuery, IP, port, timeoutTime); 
 
 }
 
@@ -41,7 +45,7 @@ async function APIGet(fullURI, timeoutTime) {
 }
 
 async function testGet(IP, port, timeoutTime, max_tries = 1) {
-  return await axios.default.get(`http://${IP}:${port}`, { timeout: timeoutTime, headers: {password: "Abracadabra"} })
+  return await axios.default.get(`http://${IP}:${port}`, { timeout: timeoutTime, headers: {"x-api-key": dbApiKey} })
     .then(response => {
       return response.data;
     })
@@ -55,8 +59,8 @@ async function testGet(IP, port, timeoutTime, max_tries = 1) {
 }
 
 // Database Server Stuff
-async function getDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, query = {}, IP, port, timeoutTime) {
-  return await axios.default.get(`http://${IP}:${port}${url_after}`, { headers: headers, params: query, timeout: timeoutTime })
+async function getDatabaseDataFromURL(url_after, headers = {}, query = {}, IP, port, timeoutTime) {
+  return await axios.default.get(`http://${IP}:${port}${url_after}`, { headers: { "x-api-key": dbApiKey, ...headers }, params: query, timeout: timeoutTime })
     .then(response => {
       return response.data;
     })
@@ -66,8 +70,8 @@ async function getDatabaseDataFromURL(url_after, headers = { password: "Abracada
     });
 }
 
-async function putDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, data = {}, IP, port, timeoutTime) {
-  return await axios.default.put(`http://${IP}:${port}${url_after}`, data, { headers: headers, timeout: timeoutTime })
+async function putDatabaseDataFromURL(url_after, headers = {}, data = {}, IP, port, timeoutTime) {
+  return await axios.default.put(`http://${IP}:${port}${url_after}`, data, { headers: { "x-api-key": dbApiKey, ...headers }, timeout: timeoutTime })
     .then(response => {
       return response.data;
     })
@@ -77,8 +81,8 @@ async function putDatabaseDataFromURL(url_after, headers = { password: "Abracada
     });
 }
 
-async function postDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, data = {}, IP, port, timeoutTime) {
-  return await axios.default.post(`http://${IP}:${port}${url_after}`, data, { headers: headers, timeout: timeoutTime })
+async function postDatabaseDataFromURL(url_after, headers = { }, data = {}, IP, port, timeoutTime) {
+  return await axios.default.post(`http://${IP}:${port}${url_after}`, data, { headers: { "x-api-key": dbApiKey, ...headers }, timeout: timeoutTime })
     .then(response => {
       return response.data;
     })
@@ -88,8 +92,8 @@ async function postDatabaseDataFromURL(url_after, headers = { password: "Abracad
     });
 }
 
-async function deleteDatabaseDataFromURL(url_after, headers = { password: "Abracadabra"}, query = {}, IP, port, timeoutTime) {
-  return await axios.default.delete(`http://${IP}:${port}${url_after}`, { headers: headers, timeout: timeoutTime, data: { query: query }})
+async function deleteDatabaseDataFromURL(url_after, headers = { }, query = {}, IP, port, timeoutTime) {
+  return await axios.default.delete(`http://${IP}:${port}${url_after}`, { headers: { "x-api-key": dbApiKey, ...headers }, timeout: timeoutTime, data: { query: query }})
     .then(response => {
       return response.data;
     })

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useContext, useMemo, useCallback } from "re
 import { View, TouchableOpacity, Text, Animated, Pressable } from "react-native";
 import DragList, { DragListRenderItemInfo } from "react-native-draglist";
 
-const NUM_ITEMS = 10;
-
 type Item = {
   key: string;
   is_tier_card: boolean;
@@ -15,24 +13,32 @@ type Item = {
   qual_ties: number;
   alliance: number | null;
   alliance_pick: number | null;
-  elim_wins: number | null;
-  elim_losses: number | null;
-  elim_ties: number | null;
+  playoff_wins: number | null;
+  playoff_losses: number | null;
+  playoff_ties: number | null;
+  picked: boolean;
 };
 
 type DragDropProps = {
   data: Item[];
+  onDataChanged: (data: Item[]) => void;
 }
 
-function DragDropList({ data } : DragDropProps) {
+function DragDropList({ data, onDataChanged } : DragDropProps) {
   const [listData, setData] = useState(data);
   const [tierCards, setTierCards] = useState(0);
-  const [pickedTeams, setPickedTeams] = useState<number[]>([]);
 
   useEffect(() => {
     setData(data)
     setTierCards(data.filter((item) => item.is_tier_card).length)
   }, [data])
+
+  useEffect(() => {
+    if (listData.length === 0) {
+      return;    
+    }
+    onDataChanged(listData);
+  }, [listData])
 
   const rankingMap = useMemo(() => {
     const map = new Map();
@@ -48,9 +54,9 @@ function DragDropList({ data } : DragDropProps) {
     return map;
   }, [listData]);
 
-  const TeamCard = React.memo(({ item, index, dragStartFunc, dragEndFunc, ranking, isPicked }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void, ranking: number, isPicked: boolean }) => {
+  const TeamCard = React.memo(({ item, index, dragStartFunc, dragEndFunc, ranking }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void, ranking: number }) => {
     return (
-      <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: isPicked ? "rgba(255, 0, 0, 0.5)" : "blue", margin: 5, padding: 10, }}>
+      <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: item.picked ? "rgba(255, 0, 0, 0.5)" : "blue", margin: 5, padding: 10, }}>
         
         {/* View for the picklist rank of the team */}
         <Pressable style={{height: '100%', justifyContent: 'center', alignItems: 'center', flex: 5}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
@@ -104,9 +110,8 @@ function DragDropList({ data } : DragDropProps) {
   });
 
   const renderItem = useCallback(({ item, onDragStart, onDragEnd, isActive }: DragListRenderItemInfo<Item>) => {
-    const index = data.indexOf(item);
+    const index = listData.indexOf(item);
     const ranking = rankingMap.get(item.key) || 0;
-    const isPicked = pickedTeams.includes(item.team_number);
     return (
       <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
         { item.is_tier_card ? <TierCard item={item} index={index} dragStartFunc={onDragStart} dragEndFunc={onDragEnd}/> :
@@ -116,21 +121,19 @@ function DragDropList({ data } : DragDropProps) {
             justifyContent: "center",
           }}
           onPress={() => {
-            setPickedTeams((prev) => {
-              if (prev.includes(item.team_number)) {
-                return prev.filter((team) => team !== item.team_number);
-              } else {
-                return [...prev, item.team_number];
-              }
-            }
-          )}}
+            setData((prevData) => {
+              const copy = [...prevData];
+              copy[index].picked = !copy[index].picked;
+              return copy;
+            });
+          }}
         >
-          <TeamCard item={item} index={index} ranking={ranking} isPicked={isPicked} dragStartFunc={onDragStart} dragEndFunc={onDragEnd}/>
+          <TeamCard item={item} index={index} ranking={ranking} dragStartFunc={onDragStart} dragEndFunc={onDragEnd}/>
         </TouchableOpacity> )
         }
       </View>
     );
-  }, [listData, rankingMap, pickedTeams]);
+  }, [listData, rankingMap]);
 
   async function onReordered(fromIndex: number, toIndex: number) {
     setData((prevData) => {
