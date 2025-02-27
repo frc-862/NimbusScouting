@@ -7,6 +7,7 @@ type Item = {
   is_tier_card: boolean;
   tier_info: string;
   team_number: number;
+  team_name: string;
   ranking: number;
   qual_wins: number;
   qual_losses: number;
@@ -24,6 +25,14 @@ type DragDropProps = {
   onDataChanged: (data: Item[]) => void;
 }
 
+/**
+ * A list of teams that can be reordered by dragging and dropping, and can be picked by tapping.
+ * 
+ * @param {Item[]} data The list of teams to display.
+ * @param {(data: Item[]) => void} onDataChanged The function to call when the data changes. 
+ * 
+ * @returns {JSX.Element} The drag and drop list.
+ */
 function DragDropList({ data, onDataChanged } : DragDropProps) {
   const [listData, setData] = useState(data);
   const [tierCards, setTierCards] = useState(0);
@@ -72,8 +81,8 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
           <Text style={{ textAlign: 'center', color: "white", fontSize: 28, fontWeight: "bold",}}>
             {item.team_number}
           </Text>
-          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 20, }}>
-            Team Name
+          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 15, maxWidth: '100%'}} numberOfLines={1} ellipsizeMode='tail'>
+            {item.team_name}
           </Text>
         </View>
 

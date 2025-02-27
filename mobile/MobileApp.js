@@ -28,18 +28,47 @@ import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";
 import { getBlueAllianceDataFromURL, getBlueAllianceMatches, getBlueAllianceTeams } from "../backend/APIRequests";
 import { StatusBar } from "expo-status-bar";
+import { useKeepAwake } from "expo-keep-awake";
+import { json } from "d3";
 
+/**
+ * This component allows for the ability to have dynamic forms, just displaying the component it is supplied with, with the props necessary.
+ * 
+ * @param {JSX.Element} Component - The component to display.
+ * @param {Object} props - The props for the component.
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const DisplayScreen = ({Component, props, gradientDir}) => {
   return <Component gradientDir={gradientDir} props={props}/>;
 };
 
+/**
+ * This is the container for our app!
+ * 
+ * @description This component handles the loading of the app, the navigation between screens, and anything else that needs to be done out of sight, and not on any specific page.
+ * 
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const MobileApp = () => {
   // Load Resources
   const lightningImage = require('../assets/862gigawatt.png');
-
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
 
+  /**
+   * Allows for the app to load all of the necessary data for the app to run. This includes the following:
+   * 
+   * @description The following data is loaded:
+   * - The year and event that the app is currently set to.
+   * - The events for the current year.
+   * - The matches for the current event.
+   * - The team data for the current event.
+   * - The server info for the app.
+   * - The current form that the app is using.
+   * - The matches that have been loaded into the app.
+   * - The forms that have been loaded into the app.
+   */
   async function appStart() {
     setLoadPercent(0, 0);
 
@@ -49,7 +78,8 @@ const MobileApp = () => {
     // await AsyncStorage.multiRemove(await AsyncStorage.getAllKeys())
 
     let year = String(new Date().getFullYear());
-    let event = "";
+    let event = "none";
+
 
     // Load the year from storage
     await AsyncStorage.getItem('scouting settings').then((data) => {
@@ -63,6 +93,7 @@ const MobileApp = () => {
       setScoutingSettings({event: 'none', year: year});
       AsyncStorage.setItem('scouting settings', JSON.stringify({event: 'none', year: year}));
     });
+    
 
     // Load the events for the year
     await AsyncStorage.getItem('events').then((data) => {
@@ -81,7 +112,7 @@ const MobileApp = () => {
     // Load the matches for our event
     await AsyncStorage.getItem('event matches').then((data) => {
       let parsedData = JSON.parse(data);
-      if (data && parsedData[0].event_key === event) {
+      if (data && parsedData && parsedData.length > 0 && parsedData[0].event_key === event) {
         setEventMatches(JSON.parse(data));
         return;
       }
@@ -103,8 +134,16 @@ const MobileApp = () => {
     // Ensure that you have a base value stored for your server info.
     await AsyncStorage.getItem('serverInfo').then((data) => {
       if (!data) {
-        AsyncStorage.setItem('serverInfo', JSON.stringify({ip: '10.168.88.99', port: 4000, timeout: 1000}));
+        AsyncStorage.setItem('serverInfo', JSON.stringify({urlBase: 'https://api.robocoder.me', timeout: 1000}));
+        return
       }
+
+      const jsonData = JSON.parse(data);
+
+      if (jsonData.urlBase === undefined || jsonData.timeout === undefined) {
+        AsyncStorage.setItem('serverInfo', JSON.stringify({urlBase: 'https://api.robocoder.me', timeout: 1000}));
+      }
+
     });
 
     await AsyncStorage.getItem('currentForm').then((data) => {
@@ -129,12 +168,24 @@ const MobileApp = () => {
     setInitialLoadDone(true);
   }
 
+  /**
+   * Loads the team data needed for certain functions of the app.
+   * 
+   * @description The following data is loaded:
+   * - The team statuses for the current event.
+   * - The team numbers for the current event.
+   * 
+   * @param {String} event - The event key for the event that the data is being loaded from.
+   */
   async function getTeamData(event) {
     let teamStatuses = {};
     let teams = [];
     let teamNames = [];
 
-    if (!event) {
+    if (!event || event === "none") {
+      showNotification("Failed to load team data", Globals.NotificationErrorColor);
+      AsyncStorage.setItem('team data', JSON.stringify([]));
+      setTeamData([]);
       return
     }
     
@@ -149,16 +200,21 @@ const MobileApp = () => {
 
     if (teams.length === 0 || teamNames.length === 0 || teamStatuses.length === 0) {
       showNotification("Failed to load team data", Globals.NotificationErrorColor);
+      AsyncStorage.setItem('team data', JSON.stringify([]));
+      setTeamData([]);
       return;
     }
 
     if (teams === "ERROR" || teamNames === "ERROR" || teamStatuses === "ERROR") {
       showNotification("Failed to load team data", Globals.NotificationErrorColor);
+      AsyncStorage.setItem('team data', JSON.stringify([]));
+      setTeamData([]);
       return;
     }
 
-    setTeamData(teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[team]})));
-    AsyncStorage.setItem('team data', JSON.stringify(teamData));
+    const newTeamData = teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[team]}));
+    AsyncStorage.setItem('team data', JSON.stringify(newTeamData));
+    setTeamData(newTeamData);
   }
 
   // App Start
@@ -200,7 +256,6 @@ const MobileApp = () => {
         AsyncStorage.setItem('event matches', JSON.stringify(data));
       });
     }
-
     getTeamData(scoutingSettings.event);
 
     if (currentForm === undefined) {
@@ -251,6 +306,14 @@ const MobileApp = () => {
   const [loadedMatches, setLoadedMatches] = useState([]);
   const [matchData, setMatchData] = useState(undefined);
 
+  /**
+   * Stores a match in the app's local storage.
+   * 
+   * @description Checks to make sure the match doesn't already exist in the storage, and then stores it if it isn't.
+   * 
+   * @param {any} match - What match is being stored.
+   * @returns {boolean} stored - Was the match successfully stored?
+   */
   async function storeMatch(match) {
     const storedMatchData = await AsyncStorage.getItem('stored matches').then((data) => data ? JSON.parse(data) : []);
     const decompressedData = storedMatchData.map((match) => JSON.parse(InflateString(match)));
@@ -270,6 +333,13 @@ const MobileApp = () => {
     return true;
   }
 
+  /**
+   * If a deflated match string exists within the URL, then store it in the app's local storage.
+   * 
+   * @description Function is called when the app is opened from a link. (Even if it is already open)
+   * 
+   * @param {*} event - The event provided by the Linking event listener. (only the url key is used)
+   */
   async function getLinkMatch(event) {
     var regex = /[?&]([^=#]+)=([^&#]*)/g,
       params = {},
@@ -319,6 +389,9 @@ const MobileApp = () => {
     outputRange: ['0%', '100%']
   });
 
+  /**
+   * Sets the percentage of the loading bar to a certain value. (Initiating a loading screen if necessary)
+   */
   async function setLoadPercent(toPcnt = 100, time = 300) {
     await new Promise((resolve) => {
       setLoading(true);
@@ -335,6 +408,9 @@ const MobileApp = () => {
     });
   }
 
+  /**
+   * Sets the percentage of the loading bar to a certain value and shows that some sort of error occurred.
+   */
   async function showLoadError(atPcnt = 50) {
     return new Promise(async (resolve) => {
       await setLoadPercent(atPcnt, 300);

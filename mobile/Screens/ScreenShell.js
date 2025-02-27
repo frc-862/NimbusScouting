@@ -4,6 +4,18 @@ import { PageHeader, PageContent, PageFooter } from '../PageComponents';
 import Globals from '../../Globals';
 import AppContext from '../../components/AppContext';
 
+/**
+ * The parent component used on all screens.
+ * 
+ * @param {JSX.Element} children The children to render.
+ * @param {boolean} scrollable If true, the content will be scrollable.
+ * @param {object} style The style object to apply to the content.
+ * @param {number} gradientDir The direction of the gradient.
+ * @param {function} overrideNext The function to call when the next button is pressed.
+ * @param {function} overrideBack The function to call when the back button is pressed.
+ * 
+ * @returns {JSX.Element} The screen shell.
+ */
 const ScreenShell = ({children, scrollable = true, style, gradientDir = 1, overrideNext = undefined, overrideBack = undefined}) => {
   const ctx = useContext(AppContext);
 

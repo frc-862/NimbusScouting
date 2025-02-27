@@ -8,7 +8,7 @@ import { AppCheckbox, AppInput } from "../../GlobalComponents";
 import { GetFormJSONAsMatch } from "../FormBuilder";
 import { DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
-import { getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
+import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DropdownComponent from "./Dropdown";
@@ -18,8 +18,17 @@ import DraggableLyrics from "../DragDropSimple";
 import DataDisplay from "../DataDisplay";
 import { PageHeader, PageContent, PageFooter } from "../PageComponents";
 import { LinearGradient } from "expo-linear-gradient";
-import { json } from "d3";
+import { json, timeout } from "d3";
+import { useKeepAwake } from "expo-keep-awake";
 
+/** 
+ * This is the **main screen** of the app. It is the first screen that the user sees when they open the app.
+ * 
+ * @description This screen has buttons to *scout matches*, *view data*, *select a form*, and *view the settings*. It also has buttons to view the *scouted matches* and the *picklist*.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+*/
 const HomeScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
 
@@ -32,7 +41,7 @@ const HomeScreen = memo(({gradientDir}) => {
 
         if (ctx.matchData === undefined) {
           // console.log(GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form)));
-          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
+          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, event: ctx.scoutingSettings.event, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
         }
       }}/>
       <GradientButton title={"Need help scouting?"} onPress={() => {
@@ -60,7 +69,7 @@ const HomeScreen = memo(({gradientDir}) => {
 
         const serverInfo = JSON.parse(await AsyncStorage.getItem("serverInfo"));
 
-        let data = await getDatabaseDataFromURL('/forms', {}, {}, serverInfo.ip, serverInfo.port, serverInfo.timeout);
+        let data = await getDatabaseDataFromURL(serverInfo.urlBase, '/forms', serverInfo.timeout);
         if (data === "ERROR") { 
           if (ctx.loadedForms.length === 0) {
             ctx.showLoadError(50).then(() => {ctx.showNotification("Failed to load forms! Try again later.", Globals.NotificationErrorColor);});
@@ -78,6 +87,8 @@ const HomeScreen = memo(({gradientDir}) => {
        
         await ctx.setLoadPercent(100, 300);
       }}/>
+
+      
       {/* <GradientButton title={"View Data"} onPress={async () => {
         await ctx.setLoadPercent(0, 0);
 
@@ -88,7 +99,7 @@ const HomeScreen = memo(({gradientDir}) => {
 
         const serverInfo = JSON.parse(await AsyncStorage.getItem("serverInfo"));
 
-        let data = await getDatabaseDataFromURL('/matches', {}, {}, serverInfo.ip, serverInfo.port, serverInfo.timeout);
+        let data = await getDatabaseDataFromURL(serverInfo.urlBase, '/matches', serverInfo.timeout);
         if (data === "ERROR") {
           if (ctx.loadedMatches.length === 0) {
             ctx.showLoadError(66).then(() => {ctx.showNotification("Failed to load matches! Try again later.", Globals.NotificationErrorColor);});
@@ -111,6 +122,14 @@ const HomeScreen = memo(({gradientDir}) => {
   );
 });
 
+/**
+ * This screen is for the user to see useful visuals and information about the game and the scoring elements.
+ * 
+ * @description This screen has animations and information about the game elements and how they work.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const ScoutHelpScreen = memo(({gradientDir}) => {
   return (
     <ScreenShell gradientDir={gradientDir} scrollable={true}>
@@ -133,6 +152,14 @@ const ScoutHelpScreen = memo(({gradientDir}) => {
   )
 });
 
+/**
+ * This screen is used to see the matches that have been scouted by the user, and to send them to the server.
+ * 
+ * @description This screen has match buttons that can be selected and deleted, and a button to send the selected matches to the server.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const ScoutedMatchesScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
   // Load trash image.
@@ -321,15 +348,14 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
             for (const matchIndex of selectedMatches) {
               if (!(matches[matchIndex] && matches[matchIndex]["0{match_num}"] && matches[matchIndex]["0{team}"] && matches[matchIndex]["0{team}"][0])) { failedMatches++; continue; }
               await putOneToDatabase(
+                serverInfo.urlBase,
                 {
                   data: matches[matchIndex],
                   number: matches[matchIndex]["0{match_num}"],
                   team: matches[matchIndex]["0{team}"][0],
                   scout: "NONE YET",
                   event: matches[matchIndex]["event"],
-                }, 
-                serverInfo.ip, 
-                serverInfo.port, 
+                },
                 serverInfo.timeout
               ).then((data) => {
                 if (data === "ERROR") { failedMatches++; }
@@ -435,6 +461,14 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
   )
 });
 
+/**
+ * This is the screen you select the form you will be using to enter in your match data.
+ * 
+ * @description This screen shows a list of forms that you can select, pulled from the server that you entered on the settings screen.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const FormSelectScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext)
 
@@ -494,6 +528,14 @@ const FormSelectScreen = memo(({gradientDir}) => {
   )
 });
 
+/**
+ * This screen is used to see the match data that has been scouted by all of the users, along with the rankings of some teams.
+ * 
+ * @description This screen has multiple fields that can be changed, to see different data, and to see the rankings of the teams by different factors.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const DataViewScreen = memo(({gradientDir}) => {
   const ctx = useContext(AppContext);
   const [matches, setMatches] = useState([]);
@@ -724,26 +766,35 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * This screen is used to see the user's settings.
+ * 
+ * @description This screen has buttons to change the event you are scouting, the year you are scouting, and the server you are sending data to.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const SettingsScreen = memo(({gradientDir}) => {
-  const ctx = useContext(AppContext);
+  const ctx = useContext(AppContext); 
 
   // Server settings variables
-  const [ip, setIP] = useState(undefined);
-  const [port, setPort] = useState(undefined);
-  const [timeout, setTimeout] = useState(undefined);  
+  const [urlBase, setUrlBase] = useState(undefined);
+  const [timeout, setTimeout] = useState(undefined);
 
   useEffect(() => {
-    AsyncStorage.setItem("serverInfo", JSON.stringify({ip: ip, port: port, timeout: timeout}), () => {});
-  }, [ip, port, timeout]);
+    if (urlBase === undefined && timeout === undefined) {
+      return
+    }
+    AsyncStorage.setItem("serverInfo", JSON.stringify({urlBase: urlBase, timeout: timeout}), () => {});
+  }, [urlBase, timeout]);
 
   const [errorText, setErrorText] = useState('');
 
-  if (ip === undefined || port === undefined || timeout === undefined) {
+  if (urlBase === undefined) {
     AsyncStorage.getItem("serverInfo", (err, result) => {
       if (result) {
         const info = JSON.parse(result);
-        setIP(info.ip);
-        setPort(info.port);
+        setUrlBase(info.urlBase);
         setTimeout(info.timeout);
       }
     });
@@ -774,16 +825,14 @@ const SettingsScreen = memo(({gradientDir}) => {
 
       <HeaderTitle title='Server Details' fontSize={30}/>
 
-      <AppInput key={(ip !== undefined) + "1"} default_value={ip} title='IP' outerStyle={{marginBottom: 10, width: '80%'}} onValueChanged={setIP}/>
-      <View style={{flexDirection: 'row', justifyContent: 'center', width: '80%'}}>
-        <AppInput regex={/[^0-9]/g} inputMode='numeric' key={(port !== undefined) + "2"} default_value={port} title='Port' outerStyle={{marginBottom: 10, marginHorizontal: '2.5%', width: '47.5%'}} onValueChanged={setPort}/>
-        <AppInput regex={/[^0-9]/g} inputMode='numeric' key={(timeout !== undefined) + "3"} default_value={timeout} title='Timeout' outerStyle={{marginBottom: 10, marginHorizontal: '2.5%', width: '47.5%'}} onValueChanged={setTimeout}/>
-      </View>
+      <AppInput key={(urlBase !== undefined) + "1"} default_value={urlBase} title='Server Base URL' outerStyle={{marginBottom: 10, width: '80%'}} onValueChanged={setUrlBase}/>
 
-      <View style={{width: '70%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{width: '80%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
         <GradientButton title='Test Connection' outerStyle={{flex: 1}} textStyle={{textAlign: 'center', fontSize: 18}} onPress={() => {
-          AsyncStorage.setItem("serverInfo", JSON.stringify({ip: ip, port: port, timeout: timeout}), () => {
-            testGet(ip, port, timeout).then((data) => {
+          AsyncStorage.setItem("serverInfo", JSON.stringify({urlBase: urlBase, timeout: timeout}), () => {
+            
+            // APIGet(urlBase, 1000).then((data) => { console.log(data); });
+            testGet(urlBase, timeout).then((data) => {
               if (data !== "API is running! Your connection worked!") {
                 let jsonData = JSON.parse(data); 
                 setErrorText(data);
@@ -794,15 +843,16 @@ const SettingsScreen = memo(({gradientDir}) => {
               }
             });
           })}}/>
+        <AppInput regex={/[^0-9]/g} inputMode='numeric' key={(timeout !== undefined) + "3"} default_value={timeout} title='Timeout' outerStyle={{ marginHorizontal: '2.5%', height: 75, flex: 1}} onValueChanged={setTimeout}/>
       </View>
 
       <HeaderTitle title='Color Scheme' fontSize={30}/>
 
       <HeaderTitle title='Testing Buttons' fontSize={30}/>
 
-      <GradientButton title={"Test fill match data"} textStyle={{textAlign: 'center'}} onPress={async () => {
+      {/* <GradientButton title={"Test fill match data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
-      }}/>
+      }}/> */}
 
       <GradientButton title={"Clear Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.removeItem('picklist');
@@ -812,11 +862,19 @@ const SettingsScreen = memo(({gradientDir}) => {
         AsyncStorage.multiRemove(await AsyncStorage.getAllKeys());
       }}/>
 
-      <HeaderTitle title={`Error Text: ${errorText}`} fontSize={15}/>
+      <HeaderTitle title={`Error Text: ${errorText}`} style={{textAlign: 'left'}} fontSize={15}/>
     </ScreenShell>
   )
 });
 
+/**
+ * This screen is used to see the user's own picklist for an event. (Right now, it can be reset on the settings page)
+ * 
+ * @description This screen has a drag drop list full of the teams at the event, and the user can drag and drop them into different tiers. (The tier tags can be dragged too)
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const PicklistScreen = memo(({gradientDir}) => {
   // TODO: Make a different picklist section for both quals and for alliances in elims.
   const ctx = useContext(AppContext);
@@ -826,8 +884,6 @@ const PicklistScreen = memo(({gradientDir}) => {
   const [teamStatuses, setTeamStatuses] = useState({});
   const [dragListData, setDragListData] = useState([]);
 
-  // AsyncStorage.removeItem('picklist');
-
   async function getAndSetDragListData() {
     const storedPicklist = await AsyncStorage.getItem('picklist');
     if (storedPicklist) {
@@ -835,7 +891,9 @@ const PicklistScreen = memo(({gradientDir}) => {
       return;
     }
 
+
     if (teamStatuses === "ERROR" || teamStatuses === undefined || teamStatuses.length == 0 || teams === "Error" || teams === undefined || teams.length == 0) { return; }
+
 
     const baseDragData = {
       key: '', 
@@ -862,24 +920,37 @@ const PicklistScreen = memo(({gradientDir}) => {
       {...baseDragData, key: 'nopick', is_tier_card: true, tier_info: 'No Pick'},
     ]
 
+    function tryGetSubkey(object, subkey, defualt_value) {
+      if (!object) { return defualt_value; }
+
+      try {
+        for (const key of subkey.split('.')) {
+          object = object[key];
+        }
+      } catch {
+        return defualt_value;
+      }
+    }
+
     const teamsDragData = teams.map((team) => {
       const teamStatus = teamStatuses[team];
+      const teamName = teamNames[team];
 
       return ({
         key: team, 
         is_tier_card: false,
         tier_info: null,
         team_number: team.replace('frc', ''),
-        team_name: 'None',//teamStatus.team.nickname,
-        ranking: teamStatus.qual.ranking.rank,
-        alliance: teamStatus.alliance ? teamStatus.alliance.number : null,
-        alliance_pick: teamStatus.alliance ? teamStatus.alliance.pick : null,
-        qual_wins: teamStatus.qual.ranking.record.wins,
-        qual_losses: teamStatus.qual.ranking.record.losses,
-        qual_ties: teamStatus.qual.ranking.record.ties,
-        playoff_wins: teamStatus.playoff ? teamStatus.playoff.record.wins : null,
-        playoff_losses: teamStatus.playoff ? teamStatus.playoff.record.losses : null,
-        playoff_ties: teamStatus.playoff ? teamStatus.playoff.record.ties : null,
+        team_name: teamName ? teamName : 'None',
+        ranking: tryGetSubkey(teamStatus, "qual.ranking.rank", "N/A"),
+        alliance: tryGetSubkey(teamStatus, "alliance.number", "N/A"),
+        alliance_pick: tryGetSubkey(teamStatus, "alliance.pick", "N/A"),
+        qual_wins: tryGetSubkey(teamStatus, "qual.ranking.record.wins", 0),
+        qual_losses: tryGetSubkey(teamStatus, "qual.ranking.record.losses", 0),
+        qual_ties: tryGetSubkey(teamStatus, "qual.ranking.record.ties", 0),
+        playoff_wins: tryGetSubkey(teamStatus, "playoff.record.wins", 0) ,
+        playoff_losses: tryGetSubkey(teamStatus, "playoff.record.losses", 0),
+        playoff_ties: tryGetSubkey(teamStatus, "playoff.record.ties", 0),
         picked: false
       });
     });
@@ -888,45 +959,21 @@ const PicklistScreen = memo(({gradientDir}) => {
       [...tiersDragData, ...teamsDragData]
     );
   }
-  
-  if (teams.length === 0) {
-    getBlueAllianceDataFromURL("event/" + ctx.scoutingSettings.event + "/teams/statuses", 10000).then((data) => {
-      setTeamStatuses(data);
-      setTeams(Object.keys(data));
-    });
-  }
-
-  if (teamNames.length === 0) {
-    getBlueAllianceTeams(ctx.scoutingSettings.event, 3000).then((data) => {
-      setTeamNames(data);
-    });
-    console.log("b");
-  }
 
   useEffect(() => {
-    // let allTeams = []
-    // let allTeamNames = {}
-    // let allTeamStatuses = {}
-    // AsyncStorage.getItem('team data').then((data) => {
-    //   const teamData = JSON.parse(data);
-    //   console.log("DATA:", teamData)
+    const statuses = {};
+    const names = {};
+    setTeams(ctx.teamData.map((team) => { statuses[team.team] = team.status; names[team.team] = team.name.nickname; return team.team }));
+    setTeamStatuses(statuses);
+    setTeamNames(names);
 
-    //   teamData.forEach((team) => {
-    //     allTeams.push(team.team);
-    //     allTeamNames[team.team] = team.name.nickname;
-    //     allTeamStatuses[team.team] = team.status;
-    //   });
-    // });
-
-    // setTeams(allTeams);
-    // setTeamNames(allTeamNames);
-    // setTeamStatuses(allTeamStatuses);
+    // console.log(statuses, names);
   }, []);
 
   useEffect(() => {
-  // console.log(teams, teamStatuses)
+    // console.log(teams)
     getAndSetDragListData();
-  }, [teams]);
+  }, [teams, teamNames, teamStatuses]);
 
   return (
     <ScreenShell gradientDir={gradientDir} scrollable={false} style={{paddingTop: 0, paddingBottom: 0}}>
@@ -944,6 +991,14 @@ const PicklistScreen = memo(({gradientDir}) => {
     - Unfortunately, with the functions these screens need to have, it is is hard to make them dynamic.
 */
 
+/**
+ * This screen is always used for the first page of the form
+ * 
+ * @description This screen lets you enter in the match number, alliance color, and team number, based on who you are scouting.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const PrematchScreen = memo(({ gradientDir }) => {
   const ctx = useContext(AppContext);
   const [matchNum, setMatchNum] = useState(ctx.matchData["0{match_num}"]);
@@ -952,6 +1007,9 @@ const PrematchScreen = memo(({ gradientDir }) => {
   const [matches, setMatches] = useState(ctx.eventMatches);
   const [teamInputType, setTeamInputType] = useState("choice");
   const [teamDriverStation, setTeamDriverStation] = useState(ctx.matchData['0{team_driver_station}']);
+
+  // Make sure the screen stays on while using the app.
+  useKeepAwake();
 
   useEffect(() => {
     if (teamInputType !== "choice") {
@@ -1000,7 +1058,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
 
     let TD = match.alliances[alliance].team_keys.map((team) => {
       let teamNumber = team.replace('frc', '');
-      return { label: teamNumber, value: teamNumber, select_color: 'rgba(0, 0, 255, 0.3)' };
+      return { label: teamNumber, value: teamNumber, select_color: String(alliance) == "red" ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 0, 255, 0.5)' };
     });
     setTeamsData(TD);
 
@@ -1063,8 +1121,19 @@ const PrematchScreen = memo(({ gradientDir }) => {
   );
 });
 
+/**
+ * This screen is always used as the last page in each form, allowing you to save your data locally.
+ * 
+ * @description This screen has a QR code that can be scanned to transfer the match data w/o internet, and a button to save the match data to the device.
+ * 
+ * @param {Object} gradientDir - The direction of the gradient for the screen.
+ * @returns {JSX.Element} - The JSX code for the screen.
+ */
 const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
   const ctx = useContext(AppContext);
+
+  // Make sure the screen stays on while using the app.
+  useKeepAwake();
 
   const [qrData, setQRData] = useState('Hi!');
 

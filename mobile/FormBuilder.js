@@ -15,6 +15,7 @@ import Globals from "../Globals";
 import React, { useContext } from "react";
 import AppContext from "../components/AppContext";
 import ScreenShell from "./Screens/ScreenShell";
+import { useKeepAwake } from "expo-keep-awake";
 
 // Example JSON string for the form builder:
 const exampleJson = JSON.stringify(require('../web/examples/form_component_testing_example.json'));
@@ -39,7 +40,12 @@ const FormBuilderPageShell = (props) => {
 
 const GetFormJSONAsMatch = (jsonString) => {
   const json = JSON.parse(jsonString);
-  const finalData = {};
+  const finalData = {
+    "0{alliance}": "",
+    "0{match_num}": 0,
+    "0{team}": "",
+    "0{team_driver_station}": "",
+  };
 
   for (const pageIndex in json) {
     const page = json[pageIndex];
@@ -78,7 +84,14 @@ const Elements = {
   'label': <HeaderTitle/>
 }
 
-// This takes the elements of the page and returns a list of them translated into React components.
+// 
+/**
+ * This takes the elements of the page and returns a list of them translated into React components.
+ * 
+ * @param {object} elementsJson The json object containing the elements of the page
+ * 
+ * @returns The elements of the page translated into React components
+ */
 function MakePageElements(elementsJson) {
   const elements = [];
   for (let elementIndex in elementsJson) {
@@ -88,16 +101,28 @@ function MakePageElements(elementsJson) {
   return elements;
 }
 
-// This takes that form JSON string and translates each of its pages and elements into React components.
+/**
+ * This takes that form JSON string and translates each of its pages and elements into React components.
+ * 
+ * @param {object} jsonString The json object containing the form data
+ * 
+ * @returns The elements of the form translated into React components
+ */
 function FormBuilder(jsonString) {
   const json = JSON.parse(jsonString || exampleJson);
   const finalPages = [];
 
   for (const page of json) {
     finalPages.push({
-      screen: ({style, gradientDir}) => <FormBuilderPageShell key={page.uuid} title={page.name} style={style} gradientDir={gradientDir}>
-        { MakePageElements(page.elements) }
-      </FormBuilderPageShell>,
+      screen: ({style, gradientDir}) => {
+        useKeepAwake();
+
+        return (
+          <FormBuilderPageShell key={page.uuid} title={page.name} style={style} gradientDir={gradientDir}>
+            { MakePageElements(page.elements) }
+          </FormBuilderPageShell>
+        )
+      },
       name: page.name,
       uuid: page.uuid
     });

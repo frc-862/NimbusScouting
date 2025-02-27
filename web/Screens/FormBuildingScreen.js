@@ -8,6 +8,7 @@ import Globals from '../../Globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppButton, AppCheckbox, AppInput } from '../../GlobalComponents';
 import { isLeftHandSideExpression } from 'typescript';
+import { APIGet } from '../../backend/APIRequests';
 
 // Objects are Pass By Reference, so I needed this
 // https://stackoverflow.com/questions/7574054/javascript-how-to-pass-object-by-value - Paul Varghese
@@ -149,12 +150,14 @@ const FormBuildingScreen = () => {
   }
 
   async function fetchFormData() {
-    return fetch('http://localhost:4000/forms', {
+    // APIGet('https://api.robocoder.me/', 5000).then((data) => {console.log("a")})
+    return fetch('https://api.robocoder.me/forms', {
       mode: 'cors',
       method: 'GET',
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        "x-api-key": undefined,
       },
     })
       .then((resp) => resp.json())
@@ -164,12 +167,13 @@ const FormBuildingScreen = () => {
   }
   
   async function postFormData(data, formName, formYear) {
-    return fetch('http://localhost:4000/form', {
+    return fetch('https://api.robocoder.me/form', {
         mode: 'cors',
         method: 'POST',
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          "x-api-key": process.env.API_KEY,
         },
         body: JSON.stringify({
           year: formYear,
@@ -509,7 +513,6 @@ const FormBuildingScreen = () => {
           setShownPagesToLoad([]);
           return;
         }
-        console.log("a")
         setShownPagesToLoad(formAPIData ? formAPIData.filter((form) => form.name.toLowerCase().includes(formLoadSearch.toLowerCase()) && form.year.toLowerCase().includes(formLoadYear.toLowerCase())) : []);
       }
     }, [formLoadSearch, formLoadYear]);

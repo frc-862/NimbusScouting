@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "nimbus",
     "slug": "nimbus",
@@ -52,6 +52,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "API_KEY": process.env.API_KEY,
       "eas": {
         "projectId": "dafc0d24-b2e5-43c4-9da8-6ee1ca58f7bb"
       }
