@@ -1,0 +1,27 @@
+name: Build React Native App
+
+on:
+  push:
+    branches:
+      - NoExpo
+  pull_request:
+    branches:
+      - NoExpo
+
+jobs:
+  ios-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prebuild Project
+        run: npx expo prebuild --platform ios
+
+      - name: Install CocoaPods
+        run: cd ios && pod install
+      
+      - name: Build iOS
+        run: cd ios && xcodebuild -workspace nimbus.xcworkspace -scheme nimbus -sdk iphoneos -configuration Release archive
