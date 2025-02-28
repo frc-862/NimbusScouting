@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
@@ -23,7 +23,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Cache Gradle Deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
@@ -31,7 +31,7 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}
@@ -55,7 +55,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build Android
-        run: cd android && ./gradlew assembleRelease --parallel --daemon
+        run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

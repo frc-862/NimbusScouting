@@ -6,6 +6,7 @@ import { HeaderTitle } from "../../../mobile/PageComponents";
 import { AppInput } from "../../../GlobalComponents";
 import DropdownComponent from "../../../mobile/Screens/Dropdown";
 import { lab } from "d3";
+import { PageFooter, PageHeader } from "../../FormBuilder/PageComponents";
 
 const WebPhonePageView = ({children}: {children: any}) => {
   const ctx = useContext(FormBuildScreenContext);
@@ -25,6 +26,14 @@ const WebPhonePageView = ({children}: {children: any}) => {
 }
 
 
+const PageContent = ({gradientDir, scrollable, children}: {gradientDir: number, scrollable: boolean, children: React.ReactNode}) => {
+  return (
+    <View style={{flex: 1, backgroundColor: 'white'}}>
+      {scrollable ? <ScrollView>{children}</ScrollView> : children}
+    </View>
+  );
+}
+
 export default function FormBuildExampleView() {
   const ctx = React.useContext(FormBuildScreenContext);
 
@@ -34,7 +43,13 @@ export default function FormBuildExampleView() {
       {/* <DropdownComponent
         data={[{ label: "IPhone XR", value: { x: 414, y: 896 } }, { label: "IPhone 12", value: { x: 414, y: 895 } }]} outerStyle={undefined} style={undefined} default_value={undefined}      /> */}
       <WebPhonePageView>
-        <AppInput children={undefined} key={"Hi!"} default_value={"Hi!"} onLeave={() => {}} onValueChanged={() => {}} regex={false ? /[^0-9]/g : undefined} outerStyle={{width: '80%', marginBottom: 10}} style={{}} title={"Chickens"} showTitle={true}/>
+        <PageHeader key={""} title={"Hello!"} gradientDir={1} infoText={undefined}/>
+
+        <PageContent gradientDir={1} scrollable={true}>
+          <AppInput children={undefined} key={"Hi!"} default_value={"Hi!"} onLeave={() => {}} onValueChanged={() => {}} regex={false ? /[^0-9]/g : undefined} outerStyle={{width: '80%', marginBottom: 10}} style={{}} title={"Chickens"} showTitle={true}/>
+        </PageContent>
+
+        <PageFooter gradientDir={1} overrideNext={undefined} overrideBack={undefined} />  
       </WebPhonePageView>
     </View>
   )

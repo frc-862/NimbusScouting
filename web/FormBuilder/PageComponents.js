@@ -48,14 +48,14 @@ const PageHeader = ({title = "null", style = {}, infoText, gradientDir = 1}) => 
 
   return (
     <View style={[styles.pageHeader, style]}>
-      <TextInput maxLength={20} selectTextOnFocus={true} onBlur={() => { trySetCurrentPageName(text); }} defaultValue={title} value={text} onChangeText={setText} style={[styles.title, {outline: 'none', fontSize: 40 * ctx.scale}]}/>
-      {/* <Text style={[styles.title, {fontSize: 40 * ctx.scale}]}>{title}</Text> */}
+      <TextInput maxLength={20} selectTextOnFocus={true} onBlur={() => { trySetCurrentPageName(text); }} defaultValue={title} value={text} onChangeText={setText} style={[styles.title, {outline: 'none', fontSize: 40}]}/>
+      {/* <Text style={[styles.title, {fontSize: 40}]}>{title}</Text> */}
       { infoText ? <Text style={{color: Globals.PageHeaderFooterTextColor, marginTop: 4, textAlign: 'center'}}>{infoText}</Text> : null }
       <LinearGradient
       colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
       start={{x: gradientDir ? 0 : 1, y: 0}}
       end={{x: gradientDir ? 1 : 0, y: 0}}
-      style={{position: 'absolute', width: '100%', height: 5 * ctx.scale, top: '100%'}}
+      style={{position: 'absolute', width: '100%', height: 5, top: '100%'}}
       >
       </LinearGradient>
     </View>
@@ -93,7 +93,7 @@ const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) =
           onPressIn={() => setOpacity(0.5, 10)}
           onPressOut={() => setOpacity(1, 100)}
         >
-          <Text selectable={false} style={{color: Globals.PageHeaderFooterTextColor, fontWeight: 'bold', fontSize: 30 * ctx.scale, padding: 13 * ctx.scale }}>{title}</Text>
+          <Text selectable={false} style={{color: Globals.PageHeaderFooterTextColor, fontWeight: 'bold', fontSize: 30, padding: 13 }}>{title}</Text>
         </Pressable>
       </Animated.View>
     )
@@ -105,7 +105,7 @@ const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) =
     <View
       style={[styles.pageFooter, style]}
     >
-      <View style = {{width: '100%', height: 80 * ctx.scale, flexDirection: 'row', bottom: '0%', borderRadius: 25 * ctx.scale, overflow: 'hidden'}}>
+      <View style = {{width: '100%', height: 80, flexDirection: 'row', bottom: '0%', borderRadius: 25, overflow: 'hidden'}}>
       <LinearGradient
         colors={[Globals.PageHeaderFooterGradientColor1, Globals.PageHeaderFooterGradientColor2]}
         start={{x: gradientDir ? 0 : 1, y: 0}}
@@ -115,13 +115,13 @@ const PageFooter = ({style = {}, gradientDir = 1, overrideNext, overrideBack}) =
       </LinearGradient>
       {
         backButton ? 
-        <SelectionButton style={{borderTopLeftRadius: 25 * ctx.scale, borderTopRightRadius: nextButton ? 0 : 25 * ctx.scale}} title='Back' 
+        <SelectionButton style={{borderTopLeftRadius: 25, borderTopRightRadius: nextButton ? 0 : 25}} title='Back' 
           onPress={() => { if (0 < ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex - 1) } }}/>
         : null
       }
       {
         nextButton ? 
-        <SelectionButton style={{borderTopRightRadius: 25 * ctx.scale}} title='Next' 
+        <SelectionButton style={{borderTopRightRadius: 25}} title='Next' 
           onPress={() => { if (ctx.formPages.length - 1 > ctx.currentPageIndex) { ctx.setSelectedPage(ctx.currentPageIndex + 1) } }}/>
         : null 
       }
@@ -207,12 +207,12 @@ const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {
           onMomentumScrollEnd={({nativeEvent}) => handleScroll(nativeEvent)} 
           scrollEventThrottle={100} 
           bounces={false} persistentScrollbar={true} alwaysBounceVertical={false} overScrollMode='never' showsVerticalScrollIndicator={false}>
-          <View style={[styles.pageContent, {paddingTop: 10 * ctx.scale, paddingBottom: 10 * ctx.scale}, style]}>
+          <View style={[styles.pageContent, {paddingTop: 10, paddingBottom: 10}, style]}>
             {childElems}
           </View>
         </ScrollView> 
         <View style={{position: 'absolute', bottom: 0, width: '100%', height: 0, justifyContent: 'center', alignItems: 'center'}}>
-        <Arrow width={40 * ctx.scale} height={40 * ctx.scale} color1='orange' color2='orange'/>
+        <Arrow width={40} height={40} color1='orange' color2='orange'/>
         </View>
       </View>);
   }

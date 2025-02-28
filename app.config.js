@@ -1,10 +1,6 @@
 export default {
   "expo": {
     "name": "nimbus",
-    "platforms": [
-      "ios",
-      "android",
-    ],
     "slug": "nimbus",
     "version": "1.0.0",
     "orientation": "portrait",
