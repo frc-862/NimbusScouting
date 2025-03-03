@@ -43,41 +43,46 @@ jobs:
       - name: Prebuild Project
         run: npx expo prebuild --platform android
 
-      - name: Add Signing config to gradle.properties
+      - name: Verify Keystore File Permissions
         run: |
-          echo "NIMBUS_RELEASE_STORE_FILE=../../credentials/android/keystore.jks" >> android/gradle.properties
-          echo "NIMBUS_RELEASE_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
-          echo "NIMBUS_RELEASE_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
-          echo "NIMBUS_RELEASE_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+          cd android/app/
+          ls -l ../../credentials/android/keystore.jks
 
-      - name: Add Signing Config to build.gradle
-        run: |
-          sed -i '/signingConfigs {/a\
-            release {\n\
-              storeFile file(System.getenv("NIMBUS_RELEASE_STORE_FILE"))\n\
-              storePassword System.getenv("NIMBUS_RELEASE_STORE_PASSWORD")\n\
-              keyAlias System.getenv("NIMBUS_RELEASE_KEY_ALIAS")\n\
-              keyPassword System.getenv("NIMBUS_RELEASE_KEY_PASSWORD")\n\
-            }\
-          ' android/app/build.gradle
+      # - name: Add Signing config to gradle.properties
+      #   run: |
+      #     echo "NIMBUS_RELEASE_STORE_FILE=../../credentials/android/keystore.jks" >> android/gradle.properties
+      #     echo "NIMBUS_RELEASE_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+      #     echo "NIMBUS_RELEASE_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+      #     echo "NIMBUS_RELEASE_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
 
-          sed -i '/buildTypes {/a\
-            release {\n\
-              signingConfig signingConfigs.release\n\
-            }\n\
-          ' android/app/build.gradle
+      # - name: Add Signing Config to build.gradle
+      #   run: |
+      #     sed -i '/signingConfigs {/a\
+      #       release {\n\
+      #         storeFile file(System.getenv("NIMBUS_RELEASE_STORE_FILE"))\n\
+      #         storePassword System.getenv("NIMBUS_RELEASE_STORE_PASSWORD")\n\
+      #         keyAlias System.getenv("NIMBUS_RELEASE_KEY_ALIAS")\n\
+      #         keyPassword System.getenv("NIMBUS_RELEASE_KEY_PASSWORD")\n\
+      #       }\
+      #     ' android/app/build.gradle
 
-      - name: Grant Exec Permissions
-        run: chmod +x android/gradlew
+      #     sed -i '/buildTypes {/a\
+      #       release {\n\
+      #         signingConfig signingConfigs.release\n\
+      #       }\n\
+      #     ' android/app/build.gradle
 
-      - name: Build Android
-        run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
+      # - name: Grant Exec Permissions
+      #   run: chmod +x android/gradlew
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+      # - name: Build Android
+      #   run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
+
+      # - name: Upload APK Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-apk
+      #     path: android/app/build/outputs/apk/release/app-release.apk
   # ios-build:
   #   runs-on: macos-latest
   #   steps:
