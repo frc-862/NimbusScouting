@@ -37,11 +37,13 @@ const HomeScreen = memo(({gradientDir}) => {
       <GradientButton outerStyle={{height: 100, width: '90%'}} style={{padding: 5}} textStyle={{fontSize: 25}} title={"Time to Scout!"} onPress={() => {
         if (ctx.currentForm === undefined) { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); return; }
         if (ctx.scoutingSettings.event === "none") { ctx.showNotification("You don't have an event selected!", Globals.NotificationWarningColor); return; }
+        if (ctx.scouterName === "") { ctx.showNotification("You don't have a name set!", Globals.NotificationWarningColor); return; }
+
         ctx.setScreens(ctx.formInfo);
 
         if (ctx.matchData === undefined) {
           // console.log(GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form)));
-          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, event: ctx.scoutingSettings.event, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
+          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, scout: ctx.scouterName, event: ctx.scoutingSettings.event, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
         }
       }}/>
       <GradientButton title={"Need help scouting?"} onPress={() => {
@@ -353,7 +355,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
                   data: matches[matchIndex],
                   number: matches[matchIndex]["0{match_num}"],
                   team: matches[matchIndex]["0{team}"][0],
-                  scout: "NONE YET",
+                  scout: matches[matchIndex]["scout"],
                   event: matches[matchIndex]["event"],
                 },
                 serverInfo.timeout
@@ -807,6 +809,8 @@ const SettingsScreen = memo(({gradientDir}) => {
     <ScreenShell gradientDir={gradientDir} scrollable={true}>
       <HeaderTitle title='Scouting Details' fontSize={30}/>
 
+      <AppInput key={(ctx.scouterName !== undefined) + "5"} default_value={ctx.scouterName} title='Scouter Name' outerStyle={{marginBottom: 10, width: '80%'}} onValueChanged={async (value) => { ctx.setScouterName(value); await AsyncStorage.setItem('scouter name', value)}}/>
+
       <DropdownComponent
         data={ years }
         outerStyle={{width: '80%', marginBottom: 10}}
@@ -1062,7 +1066,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
     });
     setTeamsData(TD);
 
-    if (teamDriverStation !== "" && teamDriverStation !== undefined) {
+    if (teamDriverStation !== "" && teamDriverStation !== undefined && teamDriverStation !== 0) {
       setMatchDataKey(ctx, '0{team}', TD[teamDriverStation - 1].value);
     }
   }
@@ -1099,6 +1103,11 @@ const PrematchScreen = memo(({ gradientDir }) => {
 
   function tryGoNext() {
     if (alliance && matchNum && ctx.matchData["0{team}"] && ctx.matchData["0{team}"].length != 0) {
+      const driverStation = teamsData.findIndex((team) => String(team.value) === String(ctx.matchData["0{team}"])) + 1;
+      console.log(driverStation);
+
+      setMatchDataKey(ctx, "0{team_driver_station}", teamDriverStation);
+      
       console.log(alliance, matchNum, ctx.matchData["0{team}"]);
       ctx.slideScreen(1)
     } else {

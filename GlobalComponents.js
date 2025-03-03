@@ -77,7 +77,7 @@ const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, gradi
   );
 }
 
-const AppInput = ({children, default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
+const AppInput = ({children, default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = (text) => {}, onLayout = () => {}, onLeave = () => {}}) => {
   const [text, setText] = useState(default_value);
 
   function textChanged(newText) {

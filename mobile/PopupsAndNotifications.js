@@ -1,8 +1,46 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Modal, StyleSheet, Text, View, TouchableNativeFeedback, Keyboard } from 'react-native';
-import { GradientButton, GradientShell, GradientTextInput } from './GradientComponents';
+import { GradientButton, GradientTextInput } from './GradientComponents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppContext from '../components/AppContext';
+import { AppInput } from '../GlobalComponents';
+
+export const NameInputModal = ({}) => {
+  const ctx = useContext(AppContext);
+
+  console.log(ctx.scouterName)
+
+  const [nameInputText, setNameInputText] = useState('');
+  const [continueButtonDisabled, setContinueButtonDisabled] = useState(true);
+
+  useEffect(() => {
+    if (nameInputText != '') {
+      setContinueButtonDisabled(false);
+    } else {
+      setContinueButtonDisabled(true);
+    }
+  }, [nameInputText]);
+
+  return (
+    <Modal
+      style={{zIndex: -1000}}
+      animationType={"fade"}
+      transparent={false}
+      visible={ctx.scouterName == ''}
+    >
+      <TouchableNativeFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={[styles.centeredView, {backgroundColor: 'rgba(0, 0, 0, 0.5)'}]}>
+          <View style={{backgroundColor: 'rgb(0, 0, 50)', borderRadius: 15, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center'}}>
+            <Text style={{textAlign: 'center', color: 'white', fontSize: 40, marginTop: 20, fontWeight: 'bold'}}>Enter your name</Text>
+            <AppInput title="Enter your name" save_data={false} setParallelState={setNameInputText} disabled={false}/>
+            <GradientButton gradientDir={1} disabled={false} title={"Save name?"} textStyle={{fontSize: 20, top: 0}} onPress={() => { console.log(ctx.scouterName); ctx.setScouterName(nameInputText); AsyncStorage.setItem('scouter name', nameInputText); }}/>
+          </View>
+        </View>
+      </TouchableNativeFeedback>
+    </Modal>
+  );
+}
+
 
 const ModalPopup = ({headerText, infoText, buttonText, visible, setVisible, type, gradientDir = 0}) => {
   const ctx = useContext(AppContext);

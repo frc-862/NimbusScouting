@@ -51,17 +51,17 @@ jobs:
       - name: Prebuild Project
         run: npx expo prebuild --platform android
 
-      - name: Grant Exec Permissions
-        run: chmod +x android/gradlew
+      # - name: Grant Exec Permissions
+      #   run: chmod +x android/gradlew
 
-      - name: Build Android
-        run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
+      # - name: Build Android
+      #   run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+      # - name: Upload APK Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-apk
+      #     path: android/app/build/outputs/apk/release/app-release.apk
   # ios-build:
   #   runs-on: macos-latest
   #   steps:
