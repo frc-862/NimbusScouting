@@ -45,7 +45,7 @@ jobs:
 
       - name: Add Signing config to gradle.properties
         run: |
-          echo "NIMBUS_RELEASE_STORE_FILE=${{ secrets.ANDROID_KEYSTORE_PATH }}" >> android/gradle.properties
+          echo "NIMBUS_RELEASE_STORE_FILE=../../credentials/android/keystore.jks" >> android/gradle.properties
           echo "NIMBUS_RELEASE_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
           echo "NIMBUS_RELEASE_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
           echo "NIMBUS_RELEASE_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
