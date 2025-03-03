@@ -46,7 +46,8 @@ jobs:
       - name: Verify Keystore File Permissions
         run: |
           cd android/app/
-          ls -l ../../credentials/android/keystore.jks
+          ls -l ../
+          ls -l ../../
 
       # - name: Add Signing config to gradle.properties
       #   run: |
