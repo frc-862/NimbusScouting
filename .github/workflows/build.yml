@@ -47,12 +47,12 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
-          - name: Create `gradle.properties` with Signing Config
-          run: |
-            echo "NIMBUS_UPLOAD_STORE_FILE=keystore.jks" >> android/gradle.properties
-            echo "NIMBUS_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
-            echo "NIMBUS_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
-            echo "NIMBUS_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+      - name: Create `gradle.properties` with Signing Config
+        run: |
+          echo "NIMBUS_UPLOAD_STORE_FILE=keystore.jks" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
   
       - name: Inject Signing Config into build.gradle
         run: |
