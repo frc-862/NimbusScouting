@@ -12,7 +12,7 @@ jobs:
   android-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache node modules
         uses: actions/cache@v4
@@ -26,17 +26,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-wrapper-${{ runner.os }}-
+            ${{ runner.os }}-gradle-
 
       - name: Setup JDK
         uses: actions/setup-java@v3
@@ -50,6 +42,30 @@ jobs:
 
       - name: Prebuild Project
         run: npx expo prebuild --platform android
+
+      - name: Add Signing config to gradle.properties
+        run: |
+          echo "NIMBUS_RELEASE_STORE_FILE=${{ secrets.ANDROID_KEYSTORE_PATH }}" >> android/gradle.properties
+          echo "NIMBUS_RELEASE_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+          echo "NIMBUS_RELEASE_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "NIMBUS_RELEASE_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+
+      - name: Add Signing Config to build.gradle
+        run: |
+          sed -i '/signingConfigs {/a\
+            release {\n\
+              storeFile file(System.getenv("NIMBUS_RELEASE_STORE_FILE"))\n\
+              storePassword System.getenv("NIMBUS_RELEASE_STORE_PASSWORD")\n\
+              keyAlias System.getenv("NIMBUS_RELEASE_KEY_ALIAS")\n\
+              keyPassword System.getenv("NIMBUS_RELEASE_KEY_PASSWORD")\n\
+            }\
+          ' android/app/build.gradle
+
+          sed -i '/buildTypes {/a\
+            release {\n\
+              signingConfig signingConfigs.release\n\
+            }\n\
+          ' android/app/build.gradle
 
       # - name: Grant Exec Permissions
       #   run: chmod +x android/gradlew
