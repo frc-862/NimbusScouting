@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // My Custom Components & Functions
 import Globals from "../Globals";
-import AppContext from "../components/AppContext";
+import AppContext from "../contexts/AppContext";
 import { HomeScreen, PrematchScreen, SaveMatchScreen } from "./Screens/Screens";
 import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";

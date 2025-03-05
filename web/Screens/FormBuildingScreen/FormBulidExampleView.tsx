@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import Globals
  from '../../../Globals';
-import FormBuildScreenContext from '../../../components/FormBuildScreenContext';
+import FormBuildScreenContext from '../../../contexts/FormBuildScreenContext';
 import { ScrollEvent } from 'react-native-reanimated';
 
 const WebPhonePageView = ({children}: {children: any}) => {

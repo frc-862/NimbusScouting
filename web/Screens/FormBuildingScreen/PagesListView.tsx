@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, Text } from "react-native";
-import FormBuildScreenContext from "../../../components/FormBuildScreenContext";
+import FormBuildScreenContext from "../../../contexts/FormBuildScreenContext";
 import Globals from "../../../Globals";
 
 

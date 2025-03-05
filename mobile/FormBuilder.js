@@ -13,7 +13,7 @@ import {
 } from './PageComponents';
 import Globals from "../Globals";
 import React, { useContext } from "react";
-import AppContext from "../components/AppContext";
+import AppContext from "../contexts/AppContext";
 import ScreenShell from "./Screens/ScreenShell";
 import { useKeepAwake } from "expo-keep-awake";
 

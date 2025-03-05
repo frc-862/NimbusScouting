@@ -14,7 +14,7 @@ import {
   Pressable
 } from 'react-native';
 import Globals from '../Globals';
-import AppContext from '../components/AppContext';
+import AppContext from '../contexts/AppContext';
 
 // Make some text that can be used as a header for different page components.
 const HeaderTitle = ({title = "null", style = {}, fontSize = 30}) => {

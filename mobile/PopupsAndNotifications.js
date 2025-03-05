@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Modal, StyleSheet, Text, View, TouchableNativeFeedback, Keyboard } from 'react-native';
 import { GradientButton, GradientTextInput } from './GradientComponents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AppContext from '../components/AppContext';
+import AppContext from '../contexts/AppContext';
 import { AppInput } from '../GlobalComponents';
 
 export const NameInputModal = ({}) => {

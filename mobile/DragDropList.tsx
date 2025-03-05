@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import { View, TouchableOpacity, Text, Animated, Pressable } from "react-native";
 import DragList, { DragListRenderItemInfo } from "react-native-draglist";
+import Globals from "../Globals";
 
 type Item = {
   key: string;
@@ -65,12 +66,12 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
 
   const TeamCard = React.memo(({ item, index, dragStartFunc, dragEndFunc, ranking }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void, ranking: number }) => {
     return (
-      <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: item.picked ? "rgba(255, 0, 0, 0.5)" : "blue", margin: 5, padding: 10, }}>
+      <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: item.picked ? "rgba(255, 0, 0, 0.5)" : Globals.GradientColor1, margin: 5, padding: 10, }}>
         
         {/* View for the picklist rank of the team */}
         <Pressable style={{height: '100%', justifyContent: 'center', alignItems: 'center', flex: 5}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
           <View style={{backgroundColor: 'orange', height: 2, width: '50%'}}></View>
-          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 32, }}>
+          <Text style={{ textAlign: 'center', fontWeight: "bold", color: Globals.GradientColor2, fontSize: 32, }}>
             {ranking}
           </Text>
           <View style={{backgroundColor: 'orange', height: 2, width: '50%'}}></View>
@@ -108,11 +109,11 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
 
   const TierCard = React.memo(({ item, index, dragStartFunc, dragEndFunc }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void }) => {
     return (
-      <View style={{ width: '80%', overflow: 'hidden', height: 50, borderRadius: 10, justifyContent: 'center', backgroundColor: "orange", margin: 5 }}>
-        <Text style={{ textAlign: 'center', color: "white", fontSize: 20, fontWeight: "bold",}}>{item.tier_info}</Text>
+      <View style={{ width: '80%', overflow: 'hidden', height: 50, borderRadius: 10, justifyContent: 'center', backgroundColor: Globals.GradientColor2, margin: 5 }}>
+        <Text style={{ textAlign: 'center', color: Globals.GradientColor1, fontSize: 20, fontWeight: "bold",}}>{item.tier_info}</Text>
         <Pressable style={{position: 'absolute', height: '100%', width: '10%', left: 5, justifyContent: 'center', alignItems: 'center'}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
-          <View style={{backgroundColor: 'blue', height: 2, width: '70%', marginBottom: 5}}></View>
-          <View style={{backgroundColor: 'blue', height: 2, width: '70%'}}></View>
+          <View style={{backgroundColor: 'orange', height: 2, width: '70%', marginBottom: 5}}></View>
+          <View style={{backgroundColor: 'orange', height: 2, width: '70%'}}></View>
         </Pressable>
       </View>
     )

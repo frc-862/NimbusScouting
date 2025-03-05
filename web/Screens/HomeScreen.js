@@ -1,6 +1,6 @@
 import React, { useContext, useRef } from 'react';
 import { View, Text } from "react-native"
-import AppContext from "../../components/AppContext";
+import AppContext from "../../contexts/AppContext";
 import Globals from '../../Globals';
 import FormBuildingScreen from './FormBuildingScreen';
 import ComponenetTestingScreen from './ComponentTestingScreen';

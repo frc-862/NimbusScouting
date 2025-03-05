@@ -1,5 +1,5 @@
 import React, { useState }from 'react';
-import AppContext from "../components/AppContext";
+import AppContext from "../contexts/AppContext";
 import HomeScreen from './Screens/HomeScreen';
 
 const WebApp = () => {

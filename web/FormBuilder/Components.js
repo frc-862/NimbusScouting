@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import Globals from '../../Globals';
 import { StyleSheet, View, Animated, Button, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import FormBuilderContext from '../../components/FormBuilderContext';
+import FormBuilderContext from '../../contexts/FormBuilderContext';
 import { AppButton, AppCheckbox, AppChoice, AppInput } from '../../GlobalComponents';
 
 const WebButton = ({title, outerStyle, style, innerStyle, textStyle, hoverAnimation = "opacity", onClick = () => {}, emulated, onEmulateClick = () => {},}) => {

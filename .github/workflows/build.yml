@@ -43,6 +43,10 @@ jobs:
       - name: Prebuild Project
         run: npx expo prebuild --platform android
 
+      - name: Create env file
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" > .env
+
       - name: Decode Keystore from Secrets
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks

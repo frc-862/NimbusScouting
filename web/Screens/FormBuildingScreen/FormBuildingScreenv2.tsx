@@ -2,7 +2,7 @@
 import React from "react";
 import { ScrollView, View } from "react-native";
 import Globals from "../../../Globals";
-import FormBuildScreenContext, { FormBuildScreenContextType } from "../../../components/FormBuildScreenContext";
+import FormBuildScreenContext, { FormBuildScreenContextType } from "../../../contexts/FormBuildScreenContext";
 import FormJsonView from "./FormJsonView";
 import PagesListView from "./PagesListView";
 import FormBuildExampleView from "./FormBulidExampleView";

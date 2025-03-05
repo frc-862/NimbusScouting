@@ -1,7 +1,7 @@
 import ScreenShell from "./ScreenShell";
 import { GradientButton, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
 import { Animated, View, Text, ScrollView, Image, Pressable, Easing, StyleSheet, Platform, StatusBar } from "react-native";
-import AppContext from "../../components/AppContext";
+import AppContext from "../../contexts/AppContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
 import { HeaderTitle } from "../PageComponents";
 import { AppCheckbox, AppInput } from "../../GlobalComponents";
@@ -210,6 +210,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
     setSentMatches(newSentMatches);
 
     AsyncStorage.setItem('stored matches', JSON.stringify(newMatches.map((match) => DeflateString(JSON.stringify(match)))));
+
+    ctx.showNotification("Deleted selected matches!", Globals.NotificationRegularColor);
   }
 
   async function decompressMatches() {
@@ -276,11 +278,11 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               setOnConfirmation(true);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
+          style={{width: '100%', height: '100%', borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
           { 
             onConfirmation ? 
-            <Image source={checkIcon} style={{position: 'absolute', width: 30, height: 22}} tintColor={'green'}/> 
+            <Image source={checkIcon} style={{position: 'absolute', width: 30, height: 22}} tintColor={'orange'}/> 
             : 
             <Image source={trashIcon} style={{position: 'absolute', width: 25, height: 30}} tintColor={'red'}/> 
           }
@@ -389,7 +391,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               ctx.showNotification("Successfully uploaded all selected matches!", Globals.NotificationRegularColor);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
+          style={{width: '100%', height: '100%', borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
           <Image source={exportIcon} style={{position: 'absolute', width: 24, height: 30}} tintColor={'white'}/>
         </Pressable>
