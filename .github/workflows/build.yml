@@ -145,18 +145,18 @@ jobs:
         run: |
           cd ios
           xcodebuild \
-            -workspace Nimbus.xcworkspace \
-            -scheme Nimbus \
+            -workspace nimbus.xcworkspace \
+            -scheme nimbus \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath $PWD/build/Nimbus.xcarchive \
+            -archivePath $PWD/build/nimbus.xcarchive \
             archive
 
       - name: Export IPA
         run: |
           cd ios
           xcodebuild -exportArchive \
-            -archivePath $PWD/build/Nimbus.xcarchive \
+            -archivePath $PWD/build/nimbus.xcarchive \
             -exportOptionsPlist exportOptions.plist \
             -exportPath $PWD/build
 
