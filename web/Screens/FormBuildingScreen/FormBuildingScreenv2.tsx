@@ -1,6 +1,6 @@
 // Objects are Pass By Reference, so I needed this
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import Globals from "../../../Globals";
 import FormBuildScreenContext, { FormBuildScreenContextType } from "../../../contexts/FormBuildScreenContext";
 import FormJsonView from "./FormJsonView";
@@ -39,18 +39,21 @@ function uuidv4() {
 
 export default function FormBuildingScreenv2() {
   const [formJson, setFormJson] = React.useState([]);
+  const [pages, setPages] = React.useState([{name: "aaaaa", uuid: uuidv4(), elements: []}, {name: "bbbbb", uuid: uuidv4(), elements: []}]);
 
   const ctx: FormBuildScreenContextType = {
     formJson,
-    setFormJson
+    pages,
   }
 
   return (
     <FormBuildScreenContext.Provider value={ctx}>
       <View style={{flex: 1, flexDirection: 'row', backgroundColor: Globals.PageColor}}>
-        <PagesListView />
+        <PagesListView onPress={(index: number) => {console.log("Pressed Page: " + index)}}/>
 
-        <FormBuildExampleView/>
+        <FormBuildExampleView>
+          <Text style={{color: 'white'}}>SHOW EXAMPLE</Text>
+        </FormBuildExampleView>
         
         <FormJsonView />
       </View>

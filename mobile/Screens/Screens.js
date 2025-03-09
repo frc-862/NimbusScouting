@@ -6,7 +6,7 @@ import { useContext, useEffect, useState, useRef, memo } from "react";
 import { HeaderTitle } from "../PageComponents";
 import { AppCheckbox, AppInput } from "../../GlobalComponents";
 import { GetFormJSONAsMatch } from "../FormBuilder";
-import { DeflateString, InflateString } from "../../backend/DataCompression";
+import { CompressPicklistJSON, DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
 import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
@@ -301,11 +301,11 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
           onPressIn={() => {opactiyAnim.setValue(0.5)}} 
           onPressOut={() => {Animated.timing(opactiyAnim, {toValue: 1, duration: 200, useNativeDriver: false}).start()}}
           onPress={() => {
-            ctx.setMatchData(matches[index]);
+            // ctx.setMatchData(matches[index]);
             ctx.setScreens(
               [{
                 screen: SaveMatchScreen, 
-                props: {dataToShow: matches[index]},
+                props: {dataToShow: DeflateString(JSON.stringify(matches[index])), title: `Match ${matches[index]["0{match_num}"]}, Team: ${matches[index]["0{team}"]}`},
                 name: 'Match QR',
                 onBack: () => {
                   ctx.setScreens(
@@ -860,6 +860,29 @@ const SettingsScreen = memo(({gradientDir}) => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
       }}/> */}
 
+      <GradientButton title={"Transfer Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
+        const storedPicklist = await AsyncStorage.getItem('picklist');
+
+        ctx.setScreens(
+          [{
+            screen: SaveMatchScreen, 
+            props: {dataToShow: storedPicklist, param: 'picklist', title: " "},
+            name: 'Picklist QR',
+            onBack: () => {
+              ctx.setScreens(
+                [{
+                  screen: SettingsScreen, 
+                  name: 'Setting', 
+                  onBack: () => {
+                    ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
+                  }
+                }]
+              )
+            }
+          }]
+        );
+      }}/>
+
       <GradientButton title={"Clear Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.removeItem('picklist');
       }}/>
@@ -907,16 +930,17 @@ const PicklistScreen = memo(({gradientDir}) => {
       tier_info: null,
       team_number: 0,
       team_name: '',
-      ranking: 0,
-      alliance: null,
-      alliance_pick: null,
-      qual_wins: 0,
-      qual_losses: 0,
-      qual_ties: 0,
-      playoff_wins: null,
-      playoff_losses: null,
-      playoff_ties: null,
-      picked: false
+      // ranking: 0,
+      // alliance: null,
+      // alliance_pick: null,
+      // qual_wins: 0,
+      // qual_losses: 0,
+      // qual_ties: 0,
+      // playoff_wins: null,
+      // playoff_losses: null,
+      // playoff_ties: null,
+      picked: false,
+      identifiers: [false, false, false, false]
     }
 
     const tiersDragData = [
@@ -948,16 +972,17 @@ const PicklistScreen = memo(({gradientDir}) => {
         tier_info: null,
         team_number: team.replace('frc', ''),
         team_name: teamName ? teamName : 'None',
-        ranking: tryGetSubkey(teamStatus, "qual.ranking.rank", "N/A"),
-        alliance: tryGetSubkey(teamStatus, "alliance.number", "N/A"),
-        alliance_pick: tryGetSubkey(teamStatus, "alliance.pick", "N/A"),
-        qual_wins: tryGetSubkey(teamStatus, "qual.ranking.record.wins", 0),
-        qual_losses: tryGetSubkey(teamStatus, "qual.ranking.record.losses", 0),
-        qual_ties: tryGetSubkey(teamStatus, "qual.ranking.record.ties", 0),
-        playoff_wins: tryGetSubkey(teamStatus, "playoff.record.wins", 0) ,
-        playoff_losses: tryGetSubkey(teamStatus, "playoff.record.losses", 0),
-        playoff_ties: tryGetSubkey(teamStatus, "playoff.record.ties", 0),
-        picked: false
+        // ranking: tryGetSubkey(teamStatus, "qual.ranking.rank", "N/A"),
+        // alliance: tryGetSubkey(teamStatus, "alliance.number", "N/A"),
+        // alliance_pick: tryGetSubkey(teamStatus, "alliance.pick", "N/A"),
+        // qual_wins: tryGetSubkey(teamStatus, "qual.ranking.record.wins", 0),
+        // qual_losses: tryGetSubkey(teamStatus, "qual.ranking.record.losses", 0),
+        // qual_ties: tryGetSubkey(teamStatus, "qual.ranking.record.ties", 0),
+        // playoff_wins: tryGetSubkey(teamStatus, "playoff.record.wins", 0) ,
+        // playoff_losses: tryGetSubkey(teamStatus, "playoff.record.losses", 0),
+        // playoff_ties: tryGetSubkey(teamStatus, "playoff.record.ties", 0),
+        picked: false,
+        identifiers: [false, false, false, false]
       });
     });
 
@@ -1149,9 +1174,11 @@ const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
   const [qrData, setQRData] = useState('Hi!');
 
   async function getQRData() {
-    let qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
+    const param = props.param ? props.param : "match";
+
+    let qrData = `exp+nimbus://expo-development-client/?${param}=` + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
     if (props.dataToShow) {
-      qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify(props.dataToShow)));
+      qrData = `exp+nimbus://expo-development-client/?${param}=` + encodeURIComponent(props.dataToShow);
     }
     return qrData;
   }
@@ -1166,7 +1193,7 @@ const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
 
   return (
   <ScreenShell gradientDir={gradientDir} scrollable={false} style={{justifyContent: 'center'}}>
-    { props.dataToShow ? <HeaderTitle title={`Match ${props.dataToShow["0{match_num}"]}, Team: ${props.dataToShow["0{team}"]}`} fontSize={30}/> : <HeaderTitle title='Save Match' fontSize={30}/> }
+    { props.title ? <HeaderTitle title={props.title} fontSize={30}/> : <HeaderTitle title='Save Match' fontSize={30}/> }
 
     <GradientQRCode text={qrData}/>
     

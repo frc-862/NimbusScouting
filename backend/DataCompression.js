@@ -29,4 +29,13 @@ const InflateString = (byteString) => {
   } catch (e) { console.log(e); return "ERROR"; }
 }
 
-export { DeflateString, InflateString };
+
+const CompressPicklistJSON = (picklistJson) => {
+  return picklistJson.map((picklistItem) => {
+    return Object.keys(picklistItem).map((key) => {
+      return picklistItem[key];
+    });
+  });
+}
+
+export { DeflateString, InflateString, CompressPicklistJSON };

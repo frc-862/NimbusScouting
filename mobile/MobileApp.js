@@ -370,8 +370,14 @@ const MobileApp = () => {
       if (!storedMatchData.includes(match)) {
         await AsyncStorage.setItem('stored matches', JSON.stringify([...storedMatchData, match]));
 
-        showNotification("Successfully stored!", Globals.NotificationSuccessColor);
+        showNotification("Match Successfully stored!", Globals.NotificationSuccessColor);
       }
+    }
+
+    if (params["picklist"]) {
+      let picklist = decodeURIComponent(params["picklist"]);
+      await AsyncStorage.setItem('picklist', picklist);
+      showNotification("Picklist Successfully stored!", Globals.NotificationSuccessColor);
     }
   }
 
