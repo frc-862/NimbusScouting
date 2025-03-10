@@ -86,10 +86,104 @@ jobs:
   #       with:
   #         name: android-apk
   #         path: android/app/build/outputs/apk/release/app-release.apk
+  # ios-build:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Cache node modules
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-node-
+
+  #     - name: Cache CocoaPods
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ios/Pods
+  #         key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
+
+  #     - name: Install dependencies
+  #       run: npm install
+
+  #     - name: Prebuild Project
+  #       run: npx expo prebuild --platform ios
+
+  #     - name: Create env file
+  #       run: |
+  #         echo "API_KEY=${{ secrets.API_KEY }}" > .env
+
+  #     - name: Install Fastlane
+  #       run: gem install fastlane -NV
+
+  #     - name: Decode and Install iOS Signing Certificate
+  #       run: |
+  #         echo "${{ secrets.IOS_DEVELOPER_CERTIFICATE_BASE64 }}" | base64 --decode > ios_certificate.p12
+  #         security create-keychain -p "" build.keychain
+  #         security default-keychain -s build.keychain
+  #         security unlock-keychain -p "" build.keychain
+  #         security import ios_certificate.p12 -k build.keychain -P ${{ secrets.IOS_CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
+  #         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+  #     - name: Decode and Create Provisioning Profile
+  #       run: |
+  #         echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ios_build.mobileprovision
+  #         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+  #         mv ios_build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+  #     - name: Install CocoaPods
+  #       run: cd ios && pod install
+      
+  #     - name: Build iOS (Signed)
+  #       env:
+  #         APPLE_ID: ${{ secrets.APPLE_ID }}
+  #         APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  #         APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+  #         TEAM_ID: ${{ secrets.TEAM_ID }}
+  #       run: |
+  #         cd ios
+  #         xcodebuild \
+  #           -workspace nimbus.xcworkspace \
+  #           -scheme nimbus \
+  #           -configuration Release \
+  #           -sdk iphoneos \
+  #           -archivePath $PWD/build/nimbus.xcarchive \
+  #           archive
+
+  #     - name: Export IPA
+  #       run: |
+  #         cd ios
+  #         xcodebuild -exportArchive \
+  #           -archivePath $PWD/build/nimbus.xcarchive \
+  #           -exportOptionsPlist exportOptions.plist \
+  #           -exportPath $PWD/build
+
+  #     - name: Upload IPA Artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ios-app
+  #         path: ios/build/*.ipa
+
+  #     - name: Decode App Store Connect API Key
+  #       run: echo "${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}" | base64 --decode > AuthKey.p8
+
+  #     - name: Upload to TestFlight
+  #       env:
+  #         APPLE_ID: ${{ secrets.APPLE_ID }}
+  #         APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  #       run: |
+  #         fastlane pilot upload \
+  #           --ipa ios/build/*.ipa \
+  #           --app_identifier "${{ secrets.APP_IDENTIFIER }}" \
+  #           --api_key_path AuthKey.p8 \
+  #           --api_key_id ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+  #           --api_key_issuer_id ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
   ios-build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache node modules
         uses: actions/cache@v4
@@ -104,79 +198,88 @@ jobs:
         with:
           path: ios/Pods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
-
+      
+      - name: Set Up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.12.0'
+      
       - name: Install dependencies
         run: npm install
 
-      - name: Prebuild Project
-        run: npx expo prebuild --platform ios
-
-      - name: Create env file
-        run: |
-          echo "API_KEY=${{ secrets.API_KEY }}" > .env
+      - name: Setup Ruby for Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
 
       - name: Install Fastlane
         run: gem install fastlane -NV
 
-      - name: Decode and Install iOS Signing Certificate
-        run: |
-          echo "${{ secrets.IOS_DEVELOPER_CERTIFICATE_BASE64 }}" | base64 --decode > ios_certificate.p12
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security import ios_certificate.p12 -k build.keychain -P ${{ secrets.IOS_CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
-
-      - name: Decode and Create Provisioning Profile
-        run: |
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ios_build.mobileprovision
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          mv ios_build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-
-      - name: Install CocoaPods
-        run: cd ios && pod install
-      
-      - name: Build iOS (Signed)
+      - name: Prepare Keychain & Install Provisioning Profile
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
-          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          security create-keychain -p "$APPLE_KEYCHAIN_PASSWORD" build.keychain
+          security list-keychains -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$APPLE_KEYCHAIN_PASSWORD" build.keychain
+          echo "$PROVISIONING_PROFILE" | base64 --decode > provisioning.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mv provisioning.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        
+      - name: Validate Provisioning Profile
+        run: security find-identity -v -p codesigning
+
+      - name: Prebuild
+        run: npx expo prebuild --clean --platform ios
+
+      - name: Install Pods
         run: |
           cd ios
-          xcodebuild \
-            -workspace nimbus.xcworkspace \
-            -scheme nimbus \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath $PWD/build/nimbus.xcarchive \
-            archive
+          pod install
+          cd ..
 
-      - name: Export IPA
+      - name: Configure Xcode Project
         run: |
           cd ios
-          xcodebuild -exportArchive \
-            -archivePath $PWD/build/nimbus.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath $PWD/build
 
-      - name: Upload IPA Artifact
+          plutil -replace DevelopmentTeam -string ${{ secrets.TEAM_ID }} nimbus.xcodeproj/project.pbxproj
+          plutil -replace PRODUCT_BUNDLE_IDENTIFIER -string ${{ secrets.APP_IDENTIFIER }} nimbus.xcodeproj/project.pbxproj
+          
+          agvtool new-marketing-version 1.0.0
+          agvtool new-version -all ${{ github.run_number }}
+
+      - name: Bundle JavaScript
+        run: npx react-native bundle --platform ios --entry-file index.js --bundle-output ios/main.jsbundle --dev false
+
+      - name: Mopdify FastFike
+        run: |
+          sed -i '' "1i\
+          api_key = app_store_connect_api_key(\
+            key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],\
+            issuer_id: ENV['APP_STORE_CONNECT_ISSUER_ID'],\
+            key_content: ENV['APP_STORE_CONNECT_API_KEY_CONTENT'],\
+          )" ios/fastlane/Fastfile
+
+          sed -i '' "s/upload_to_testflight(/upload_to_testflight(api_key: api_key, /" ios/fastlane/Fastfile
+
+      - name: Run FastLane Build
+        env:
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          cd ios
+          fastlane build
+
+      - name: Clean Up Credentials
+        run: |
+          security delete-keychain build.keychain
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/*
+
+      - name: Upload App Archive
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: ios/build/*.ipa
-
-      - name: Decode App Store Connect API Key
-        run: echo "${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}" | base64 --decode > AuthKey.p8
-
-      - name: Upload to TestFlight
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-        run: |
-          fastlane pilot upload \
-            --ipa ios/build/*.ipa \
-            --app_identifier "${{ secrets.APP_IDENTIFIER }}" \
-            --api_key_path AuthKey.p8 \
-            --api_key_id ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
-            --api_key_issuer_id ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
+          path: ios/build/*.xarchive
