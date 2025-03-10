@@ -217,15 +217,12 @@ jobs:
 
       - name: Upload to TestFlight
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+          API_KEY_PATH: $PWD/AuthKey.p8
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
-          fastlane pilot upload \
-            --ipa ios/build/*.ipa \
-            --app_identifier "${{ secrets.APP_IDENTIFIER }}" \
-            --api_key_path AuthKey.p8 \
-            --api_key_id ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
-            --api_key_issuer_id ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          cd ios && fastlane pilot upload --ipa build/*.ipa
   # ios-build:
   #   runs-on: macos-latest
   #   steps:
