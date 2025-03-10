@@ -6,12 +6,12 @@ import { AppButton } from "../../../GlobalComponents";
 
 
 function PageButton({page, index, onPress}: {page: FormPage, index: number, onPress: (index: number) => void}) {
-  // return (
+  return (
 
-  //   // <AppButton />
-  //   //   // <Text style={{color: 'black'}}>{page.name}</Text>
-  //   // </AppButton>
-  // )
+    <AppButton onPress={() => onPress(index)} style={undefined} outerStyle={undefined} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+      <Text style={{color: 'black'}}>{page.name}</Text>
+    </AppButton>
+  )
 }
 
 export default function PagesListView({onPress}: {onPress: (index: number) => void}) {
@@ -22,8 +22,7 @@ export default function PagesListView({onPress}: {onPress: (index: number) => vo
       {
         ctx.pages.map((page, index: number) => {
           return (
-            <Text key={index} style={{color: 'white'}}>{page.name}</Text>
-            // <PageButton key={index} page={page} index={index} onPress={(index: number) => { onPress(index); }} />
+            <PageButton key={index} page={page} index={index} onPress={(index: number) => { onPress(index); }} />
           )  
         })
       }
