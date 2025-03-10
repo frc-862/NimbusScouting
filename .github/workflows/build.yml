@@ -131,8 +131,19 @@ jobs:
       - name: Decode and Create Provisioning Profile
         run: |
           echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ios_build.mobileprovision
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          mv ios_build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles/
+          
+          # Extract the UUID from the provisioning profile
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(security cms -D -i ios_build.mobileprovision))
+          echo "Provisioning profile UUID: $PROFILE_UUID"
+          
+          # Extract the profile name for later use
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" /dev/stdin <<< $(security cms -D -i ios_build.mobileprovision))
+          echo "Provisioning profile name: $PROFILE_NAME"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          
+          # Move with the correct UUID filename
+          mv ios_build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
       - name: Install CocoaPods
         run: cd ios && pod install
