@@ -9,7 +9,7 @@ function PageButton({page, index, onPress}: {page: FormPage, index: number, onPr
   return (
 
     <AppButton onPress={() => onPress(index)} style={undefined} outerStyle={undefined} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-      <Text style={{color: 'black'}}>{page.name}</Text>
+      <Text style={{color: 'white'}}>{page.name}</Text>
     </AppButton>
   )
 }

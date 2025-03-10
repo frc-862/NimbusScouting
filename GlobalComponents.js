@@ -18,7 +18,7 @@ const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle,
   }
 
   return (
-    <AnimPressable ref={ref} onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => { setOpacity(0.5, 250); }} onPressOut={() => { setOpacity(1, 250); }} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
+    <AnimPressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => { setOpacity(0.5, 250); }} onPressOut={() => { setOpacity(1, 250); }} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
       <LinearGradient
         style={[{justifyContent: 'center', alignItems: 'center', position: 'absolute', width: '100%', height: '100%'}]}
         colors={hasGradient ? [Globals.GradientColor1, Globals.GradientColor2] : ['transparent', 'transparent']}

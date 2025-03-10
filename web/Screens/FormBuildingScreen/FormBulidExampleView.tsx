@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import Globals
  from '../../../Globals';
-import FormBuildScreenContext from '../../../contexts/FormBuildScreenContext';
+import FormBuildScreenContext, { FormPage } from '../../../contexts/FormBuildScreenContext';
 import { ScrollEvent } from 'react-native-reanimated';
 import { AppCheckbox, AppChoice, AppInput } from '../../../GlobalComponents';
 
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function FormBuildExampleView({children, onSetName, onBackPressed, onNextPressed}: {children?: React.ReactNode, onSetName?: Function, onBackPressed?: Function, onNextPressed?: Function}) {
+export default function FormBuildExampleView({displayPage, onSetName, onBackPressed, onNextPressed}: {displayPage?: FormPage, onSetName?: Function, onBackPressed?: Function, onNextPressed?: Function}) {
 
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Globals.PageColor, overflow: 'hidden'}}>
@@ -321,7 +321,6 @@ export default function FormBuildExampleView({children, onSetName, onBackPressed
         <PageHeader key={""} title={"Hello!"} gradientDir={1} infoText={""} style={undefined}/>
 
         <PageContent gradientDir={1} scrollable={true}>
-          {children}
           {/* <AppCheckbox children={undefined} checked={false} checkedColor={undefined} gradientColors={undefined} style={undefined} outerStyle={undefined} innerStyle={undefined} /> */}
         </PageContent>
 
