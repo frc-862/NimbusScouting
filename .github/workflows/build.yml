@@ -105,6 +105,45 @@ jobs:
           path: ios/Pods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
 
+      # Try downloading the build-number artifact
+      - name: Download Previous Build Number (if exists)
+        id: download-build-number
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: build-number
+          path: .
+
+      # Check if build_number.txt exists, otherwise default to 1
+      - name: Set Initial Build Number
+        run: |
+          if [ -f build_number.txt ]; then
+            BUILD_NUMBER=$(cat build_number.txt)
+          else
+            BUILD_NUMBER=26
+          fi
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+
+      # Increment build number
+      - name: Increment Build Number
+        run: |
+          NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
+          echo $NEW_BUILD_NUMBER > build_number.txt
+
+      # Upload updated build number for the next workflow run
+      - name: Upload Build Number Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-number
+          path: build_number.txt
+
+      # Print to check if the build number was set correctly
+      - name: Print Build Number
+        run: |
+          echo "New Build Number: $NEW_BUILD_NUMBER"
+
+
       - name: Install dependencies
         run: npm install
 
