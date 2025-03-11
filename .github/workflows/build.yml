@@ -105,38 +105,38 @@ jobs:
           path: ios/Pods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
 
-      - name: Download Previous Build Number (if exists)
-        id: download-build-number
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: build-number
-          path: .
+      # - name: Download Previous Build Number (if exists)
+      #   id: download-build-number
+      #   continue-on-error: true
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: build-number
+      #     path: .
 
-      - name: Set Initial Build Number
-        run: |
-          if [ -f build_number.txt ]; then
-            BUILD_NUMBER=$(cat build_number.txt)
-          else
-            BUILD_NUMBER=26
-          fi
-          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+      # - name: Set Initial Build Number
+      #   run: |
+      #     if [ -f build_number.txt ]; then
+      #       BUILD_NUMBER=$(cat build_number.txt)
+      #     else
+      #       BUILD_NUMBER=26
+      #     fi
+      #     echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
 
-      - name: Increment Build Number
-        run: |
-          NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
-          echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
-          echo $NEW_BUILD_NUMBER > build_number.txt
+      # - name: Increment Build Number
+      #   run: |
+      #     NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+      #     echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
+      #     echo $NEW_BUILD_NUMBER > build_number.txt
 
-      - name: Upload Build Number Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-number
-          path: build_number.txt
+      # - name: Upload Build Number Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: build-number
+      #     path: build_number.txt
 
-      - name: Print Build Number
-        run: |
-          echo "New Build Number: $NEW_BUILD_NUMBER"
+      # - name: Print Build Number
+      #   run: |
+      #     echo "New Build Number: $NEW_BUILD_NUMBER"
 
       - name: Install dependencies
         run: npm install
@@ -154,7 +154,8 @@ jobs:
       - name: Update Xcode build number
         run: |
           cd ios
-          agvtool new-version -all $NEW_BUILD_NUMBER
+          echo ${{ github.run_number }}
+          agvtool new-version -all ${{ github.run_number }}
 
       - name: Decode and Install iOS Signing Certificate
         run: |
