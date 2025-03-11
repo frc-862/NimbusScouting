@@ -105,7 +105,6 @@ jobs:
           path: ios/Pods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
 
-      # Try downloading the build-number artifact
       - name: Download Previous Build Number (if exists)
         id: download-build-number
         continue-on-error: true
@@ -114,7 +113,6 @@ jobs:
           name: build-number
           path: .
 
-      # Check if build_number.txt exists, otherwise default to 1
       - name: Set Initial Build Number
         run: |
           if [ -f build_number.txt ]; then
@@ -124,25 +122,21 @@ jobs:
           fi
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
 
-      # Increment build number
       - name: Increment Build Number
         run: |
           NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
           echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
           echo $NEW_BUILD_NUMBER > build_number.txt
 
-      # Upload updated build number for the next workflow run
       - name: Upload Build Number Artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-number
           path: build_number.txt
 
-      # Print to check if the build number was set correctly
       - name: Print Build Number
         run: |
           echo "New Build Number: $NEW_BUILD_NUMBER"
-
 
       - name: Install dependencies
         run: npm install
@@ -156,21 +150,6 @@ jobs:
 
       - name: Install Fastlane
         run: gem install fastlane -NV
-
-      - name: Get latest build number from App Store
-        id: get_build_number
-        run: |
-          LATEST_BUILD_NUMBER=$(fastlane run app_store_build_number app_identifier:"${{ secrets.APP_IDENTIFIER }}" username:"${{ secrets.APPLE_ID }}" | grep "Result" | awk '{print $2}')
-          echo "LATEST_BUILD_NUMBER=$LATEST_BUILD_NUMBER" >> $GITHUB_ENV
-        env:
-          FASTLANE_APPLE_ID: ${{ secrets.APPLE_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-
-      - name: Increment build number
-        run: |
-          NEW_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
-          echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
-          echo "Incremented build number to $NEW_BUILD_NUMBER"
 
       - name: Update Xcode build number
         run: |
