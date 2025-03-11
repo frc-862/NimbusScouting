@@ -8,8 +8,8 @@ import { AppButton } from "../../../GlobalComponents";
 function PageButton({page, index, onPress}: {page: FormPage, index: number, onPress: (index: number) => void}) {
   return (
 
-    <AppButton onPress={() => onPress(index)} style={undefined} outerStyle={undefined} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-      <Text style={{color: 'white'}}>{page.name}</Text>
+    <AppButton onPress={() => onPress(index)} style={{borderRadius: 0, padding: 7, alignItems: 'flex-start'}} outerStyle={{borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+      <Text style={{color: 'white', fontSize: 18}}>{page.name}</Text>
     </AppButton>
   )
 }
@@ -24,8 +24,11 @@ export default function PagesListView({onPress}: {onPress: (index: number) => vo
           return (
             <PageButton key={index} page={page} index={index} onPress={(index: number) => { onPress(index); }} />
           )  
-        })
+        }) 
       }
+      <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, width: '20%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+        <Text style={{color: 'white', fontWeight: 'bold', fontSize: 24, marginBottom: 5}}>+</Text>
+      </AppButton>
     </ScrollView>
   )
 }

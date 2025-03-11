@@ -223,8 +223,11 @@ jobs:
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
         run: |
           cd ios
+          cd build
+          ls -al
+          cd ..
           fastlane pilot upload --verbose --ipa build/*.ipa \
-          --api_key "{\"key_id\": \"${{ secrets.APP_STORE_CONNECT_KEY_ID }}\", \"issuer_id\": \"${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}\", \"key_filepath\": \"./AuthKey.p8\"}"
+          --api_key "{\"key_id\": \"${{ secrets.APP_STORE_CONNECT_KEY_ID }}\", \"issuer_id\": \"${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}\", \"filepath\": \"./AuthKey.p8\"}"
       
       
 
