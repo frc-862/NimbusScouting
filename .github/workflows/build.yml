@@ -219,13 +219,15 @@ jobs:
 
       - name: Create API Key JSON file
         run: |
-          cat > ios/api_key.json << EOF
-          {
+          KEY_CONTENT=$(cat ios/AuthKey.p8 | sed 's/$/\\n/' | tr -d '\n')
+          echo '{
             "key_id": "${{ secrets.APP_STORE_CONNECT_KEY_ID }}",
             "issuer_id": "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}",
-            "key": "$(cat ios/AuthKey.p8)"
-          }
-          EOF
+            "key": "'"$KEY_CONTENT"'"
+          }' > ios/api_key.json
+          
+          # Validate JSON syntax
+          cat ios/api_key.json | jq '.' > /dev/null || echo "Warning: Invalid JSON format"
       
       - name: Upload to TestFlight
         env:
