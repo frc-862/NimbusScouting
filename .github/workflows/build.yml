@@ -213,21 +213,18 @@ jobs:
           path: ios/build/*.ipa
 
       - name: Decode App Store Connect API Key
-        run: echo "${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}" | base64 --decode > ios/AuthKey.p8
-      
-      - name: Check API Key File
-        run: ls -l ios/AuthKey.p8 && cat ios/AuthKey.p8
+        run: |
+          echo "${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}" | base64 --decode > ios/AuthKey.p8
+          chmod 600 ios/AuthKey.p8
       
       - name: Upload to TestFlight
         env:
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
         run: |
           cd ios
-          cd build
-          ls -al
-          cd ..
+          FULL_KEY_PATH="$(pwd)/AuthKey.p8"
           fastlane pilot upload --verbose --ipa build/*.ipa \
-          --api_key "{\"key_id\": \"${{ secrets.APP_STORE_CONNECT_KEY_ID }}\", \"issuer_id\": \"${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}\", \"filepath\": \"./AuthKey.p8\"}"
+          --api_key "{\"key_id\": \"${{ secrets.APP_STORE_CONNECT_KEY_ID }}\", \"issuer_id\": \"${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}\", \"filepath\": \"$FULL_KEY_PATH\"}"
       
       
 
