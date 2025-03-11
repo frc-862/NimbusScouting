@@ -8,8 +8,8 @@ import { AppButton } from "../../../GlobalComponents";
 function PageButton({page, index, onPress}: {page: FormPage, index: number, onPress: (index: number) => void}) {
   return (
 
-    <AppButton onPress={() => onPress(index)} style={{borderRadius: 0, padding: 7, alignItems: 'flex-start'}} outerStyle={{borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-      <Text style={{color: 'white', fontSize: 18}}>{page.name}</Text>
+    <AppButton onHover={() => {}} onPress={() => onPress(index)} style={{borderRadius: 0, paddingVertical: 7, alignItems: 'flex-start'}} outerStyle={{width: '100%', borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+      <Text style={{color: 'white', fontSize: 18, marginLeft: 7}}>{page.name}</Text>
     </AppButton>
   )
 }
@@ -18,7 +18,7 @@ export default function PagesListView({onPress}: {onPress: (index: number) => vo
   const ctx = React.useContext(FormBuildScreenContext);
 
   return (
-    <ScrollView style={{flex: 1, backgroundColor: Globals.PageContainerColor, overflow: 'hidden'}}>
+    <ScrollView style={{flex: 1, backgroundColor: Globals.PageContainerColor, overflow: 'hidden'}} contentContainerStyle={{alignItems: 'center'}}>
       {
         ctx.pages.map((page, index: number) => {
           return (
