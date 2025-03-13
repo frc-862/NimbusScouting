@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, Text } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import FormBuildScreenContext, { FormPage } from "../../../contexts/FormBuildScreenContext";
 import Globals from "../../../Globals";
 import { AppButton } from "../../../GlobalComponents";
@@ -8,8 +8,20 @@ import { AppButton } from "../../../GlobalComponents";
 function PageButton({page, index, onPress}: {page: FormPage, index: number, onPress: (index: number) => void}) {
   return (
 
-    <AppButton onHover={() => {}} onPress={() => onPress(index)} style={{borderRadius: 0, paddingVertical: 7, alignItems: 'flex-start'}} outerStyle={{width: '100%', borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-      <Text style={{color: 'white', fontSize: 18, marginLeft: 7}}>{page.name}</Text>
+    <AppButton onHover={() => {}} onPress={() => onPress(index)} style={{borderRadius: 0}} outerStyle={{width: '100%', borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+      <View style={{width: '100%', height: '100%', flexDirection: 'row', alignItems: 'center', padding: 5}}>
+        <Text style={{color: 'white', fontSize: 18, flex: 1, marginLeft: 2, marginVertical: 2}}>{page.name}</Text>
+
+        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Up</Text>
+        </AppButton>
+        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Down</Text>
+        </AppButton>
+        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Del</Text>
+        </AppButton>
+      </View>
     </AppButton>
   )
 }

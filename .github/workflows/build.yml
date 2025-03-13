@@ -9,83 +9,83 @@ on:
       - NoExpo
 
 jobs:
-  # android-build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Cache node modules
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-node-
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-  #     - name: Cache Gradle Deps
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.gradle/caches
-  #         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-gradle-
+      - name: Cache Gradle Deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-  #     - name: Setup JDK
-  #       uses: actions/setup-java@v3
-  #       with:
-  #         distribution: 'zulu'
-  #         java-version: '17'
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
         
 
-  #     - name: Install dependencies
-  #       run: npm install
+      - name: Install dependencies
+        run: npm install
 
-  #     - name: Prebuild Project
-  #       run: npx expo prebuild --platform android
+      - name: Prebuild Project
+        run: npx expo prebuild --platform android
 
-  #     - name: Create env file
-  #       run: |
-  #         echo "API_KEY=${{ secrets.API_KEY }}" > .env
+      - name: Create env file
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" > .env
 
-  #     - name: Decode Keystore from Secrets
-  #       run: |
-  #         echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+      - name: Decode Keystore from Secrets
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
-  #     - name: Create `gradle.properties` with Signing Config
-  #       run: |
-  #         echo "NIMBUS_UPLOAD_STORE_FILE=keystore.jks" >> android/gradle.properties
-  #         echo "NIMBUS_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
-  #         echo "NIMBUS_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
-  #         echo "NIMBUS_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+      - name: Create `gradle.properties` with Signing Config
+        run: |
+          echo "NIMBUS_UPLOAD_STORE_FILE=keystore.jks" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
   
-  #     - name: Inject Signing Config into build.gradle
-  #       run: |
-  #         sed -i '/signingConfigs {/a\
-  #             release {\n\
-  #                 storeFile file(System.getenv("NIMBUS_UPLOAD_STORE_FILE") ?: "keystore.jks")\n\
-  #                 storePassword System.getenv("NIMBUS_UPLOAD_STORE_PASSWORD")\n\
-  #                 keyAlias System.getenv("NIMBUS_UPLOAD_KEY_ALIAS")\n\
-  #                 keyPassword System.getenv("NIMBUS_UPLOAD_KEY_PASSWORD")\n\
-  #             }\n\
-  #         ' android/app/build.gradle
+      - name: Inject Signing Config into build.gradle
+        run: |
+          sed -i '/signingConfigs {/a\
+              release {\n\
+                  storeFile file(System.getenv("NIMBUS_UPLOAD_STORE_FILE") ?: "keystore.jks")\n\
+                  storePassword System.getenv("NIMBUS_UPLOAD_STORE_PASSWORD")\n\
+                  keyAlias System.getenv("NIMBUS_UPLOAD_KEY_ALIAS")\n\
+                  keyPassword System.getenv("NIMBUS_UPLOAD_KEY_PASSWORD")\n\
+              }\n\
+          ' android/app/build.gradle
 
-  #         sed -i '/buildTypes {/a\
-  #             release {\n\
-  #                 signingConfig signingConfigs.release\n\
-  #             }\n\
-  #         ' android/app/build.gradle
+          sed -i '/buildTypes {/a\
+              release {\n\
+                  signingConfig signingConfigs.release\n\
+              }\n\
+          ' android/app/build.gradle
 
-  #     - name: Grant Exec Permissions
-  #       run: chmod +x android/gradlew
+      - name: Grant Exec Permissions
+        run: chmod +x android/gradlew
 
-  #     - name: Build Android
-  #       run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
+      - name: Build Android
+        run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
 
-  #     - name: Upload APK Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: android-apk
-  #         path: android/app/build/outputs/apk/release/app-release.apk
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
   ios-build:
     runs-on: macos-latest
     steps:
@@ -104,39 +104,6 @@ jobs:
         with:
           path: ios/Pods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
-
-      # - name: Download Previous Build Number (if exists)
-      #   id: download-build-number
-      #   continue-on-error: true
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: build-number
-      #     path: .
-
-      # - name: Set Initial Build Number
-      #   run: |
-      #     if [ -f build_number.txt ]; then
-      #       BUILD_NUMBER=$(cat build_number.txt)
-      #     else
-      #       BUILD_NUMBER=26
-      #     fi
-      #     echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-
-      # - name: Increment Build Number
-      #   run: |
-      #     NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
-      #     echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $GITHUB_ENV
-      #     echo $NEW_BUILD_NUMBER > build_number.txt
-
-      # - name: Upload Build Number Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: build-number
-      #     path: build_number.txt
-
-      # - name: Print Build Number
-      #   run: |
-      #     echo "New Build Number: $NEW_BUILD_NUMBER"
 
       - name: Install dependencies
         run: npm install
