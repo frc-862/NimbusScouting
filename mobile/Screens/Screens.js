@@ -1,12 +1,12 @@
 import ScreenShell from "./ScreenShell";
 import { GradientButton, GradientChoice, GradientQRCode, GradientTextInput } from "../GradientComponents";
 import { Animated, View, Text, ScrollView, Image, Pressable, Easing, StyleSheet, Platform, StatusBar } from "react-native";
-import AppContext from "../../components/AppContext";
+import AppContext from "../../contexts/AppContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
 import { HeaderTitle } from "../PageComponents";
 import { AppCheckbox, AppInput } from "../../GlobalComponents";
 import { GetFormJSONAsMatch } from "../FormBuilder";
-import { DeflateString, InflateString } from "../../backend/DataCompression";
+import { CompressPicklistJSON, DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
 import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
@@ -37,11 +37,13 @@ const HomeScreen = memo(({gradientDir}) => {
       <GradientButton outerStyle={{height: 100, width: '90%'}} style={{padding: 5}} textStyle={{fontSize: 25}} title={"Time to Scout!"} onPress={() => {
         if (ctx.currentForm === undefined) { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); return; }
         if (ctx.scoutingSettings.event === "none") { ctx.showNotification("You don't have an event selected!", Globals.NotificationWarningColor); return; }
+        if (ctx.scouterName === "") { ctx.showNotification("You don't have a name set!", Globals.NotificationWarningColor); return; }
+
         ctx.setScreens(ctx.formInfo);
 
         if (ctx.matchData === undefined) {
           // console.log(GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form)));
-          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, event: ctx.scoutingSettings.event, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
+          ctx.setMatchData({form: {name: ctx.currentForm.name, year: ctx.currentForm.year}, scout: ctx.scouterName, event: ctx.scoutingSettings.event, ...GetFormJSONAsMatch(JSON.stringify(ctx.currentForm.form))});
         }
       }}/>
       <GradientButton title={"Need help scouting?"} onPress={() => {
@@ -208,6 +210,8 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
     setSentMatches(newSentMatches);
 
     AsyncStorage.setItem('stored matches', JSON.stringify(newMatches.map((match) => DeflateString(JSON.stringify(match)))));
+
+    ctx.showNotification("Deleted selected matches!", Globals.NotificationRegularColor);
   }
 
   async function decompressMatches() {
@@ -274,11 +278,11 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               setOnConfirmation(true);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
+          style={{width: '100%', height: '100%', borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
           { 
             onConfirmation ? 
-            <Image source={checkIcon} style={{position: 'absolute', width: 30, height: 22}} tintColor={'green'}/> 
+            <Image source={checkIcon} style={{position: 'absolute', width: 30, height: 22}} tintColor={'orange'}/> 
             : 
             <Image source={trashIcon} style={{position: 'absolute', width: 25, height: 30}} tintColor={'red'}/> 
           }
@@ -297,11 +301,11 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
           onPressIn={() => {opactiyAnim.setValue(0.5)}} 
           onPressOut={() => {Animated.timing(opactiyAnim, {toValue: 1, duration: 200, useNativeDriver: false}).start()}}
           onPress={() => {
-            ctx.setMatchData(matches[index]);
+            // ctx.setMatchData(matches[index]);
             ctx.setScreens(
               [{
                 screen: SaveMatchScreen, 
-                props: {dataToShow: matches[index]},
+                props: {dataToShow: DeflateString(JSON.stringify(matches[index])), title: `Match ${matches[index]["0{match_num}"]}, Team: ${matches[index]["0{team}"]}`},
                 name: 'Match QR',
                 onBack: () => {
                   ctx.setScreens(
@@ -353,7 +357,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
                   data: matches[matchIndex],
                   number: matches[matchIndex]["0{match_num}"],
                   team: matches[matchIndex]["0{team}"][0],
-                  scout: "NONE YET",
+                  scout: matches[matchIndex]["scout"],
                   event: matches[matchIndex]["event"],
                 },
                 serverInfo.timeout
@@ -387,7 +391,7 @@ const ScoutedMatchesScreen = memo(({gradientDir}) => {
               ctx.showNotification("Successfully uploaded all selected matches!", Globals.NotificationRegularColor);
             }
           }}
-          style={{padding: 5, paddingHorizontal: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
+          style={{width: '100%', height: '100%', borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}
         >
           <Image source={exportIcon} style={{position: 'absolute', width: 24, height: 30}} tintColor={'white'}/>
         </Pressable>
@@ -807,6 +811,8 @@ const SettingsScreen = memo(({gradientDir}) => {
     <ScreenShell gradientDir={gradientDir} scrollable={true}>
       <HeaderTitle title='Scouting Details' fontSize={30}/>
 
+      <AppInput key={(ctx.scouterName !== undefined) + "5"} default_value={ctx.scouterName} title='Scouter Name' outerStyle={{marginBottom: 10, width: '80%'}} onValueChanged={async (value) => { ctx.setScouterName(value); await AsyncStorage.setItem('scouter name', value)}}/>
+
       <DropdownComponent
         data={ years }
         outerStyle={{width: '80%', marginBottom: 10}}
@@ -853,6 +859,29 @@ const SettingsScreen = memo(({gradientDir}) => {
       {/* <GradientButton title={"Test fill match data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.setItem("stored matches", JSON.stringify(["eJxNj81qwzAQhF9FbK85yI5LwddADznnFkLY2ptYoJ8grSBF+N27a19608w3zKwaPFIOMDaIGAhGOKXwSpEimwsVdvFpPno4wC9hFsq7B+sBuhaqZ7fCeIVpSW6iuwZ5yURwU14k6WkLSON/dmyxhh/KRSB0n6AO05tVnmthU1Igo46goRXGrIxzJdWdvB/oiwjbAvK03KVv69ITbEPvHcZp384066aVBQybw50aM7J++Ds7c67R2C/T236A9Q/Wjlhq","eJxNj7sKAjEQRX8ljK3FPhRhW8HC2k5ExnV0A3lIMgEl7L87szZ2uedc7pAKj5g8DBUCeoIB9tG/YqDA5kSZbXiaVQdr+BAmsfxjMK+hrb44tjMMZxinaEe6apGnRAQX9VmajpaCLP67vobib5SySGi3oITpzRqPJbPJ0ZNRImpTM2NSx6mQ5lbeD3RZQlM98jhdZW/Z6kEZOmcxjL/bie56s5EL6BfCnYI7sn74kKw5lmCanemabgPzF9buWGw=","eJxNj8sKwjAQRX8ljFsXba0I3QouXLsTkbGONpCHJBNQQv/dmbpxl3vO5Q6p8IjJw1AhoCcYYB/9KwYKbE6U2YanWXWwhg9hEss/BvMa2uqLYzvDcIZxinakqxZ5SkRwUZ+l6WgpyOK/29RQ/I1SFgntFpQwvVnjsWQ2OXoySkT1NTMmdZwKaW7l/UCXJTTVI4/TVfaWrR6UoXMWw/i7neiuNxu5gH4hvFFwR9YPH5I1xxJMszNd0/UwfwHXTlhu","eJxNj82KAjEQhF8ltFcPmVlFmKvgwbM3WaQdWyeQH0k6sEuYd7d7BPHWVV9RRTe4pxxgaBAxEAywT+GZIkU2Jyrs4sOseljDP2EWym8P5jV0LVTPbobhDOOU3EgXDfKUieBXeZGkpyUgjd/sp8UarpSLQOi2oA7TH6s81sKmpEBGHUGbVhizMs6VVHdy39EXEbYF5HG6SN+nyzb03mEc39tXX5dRKxMYFos7NW7I+vEhO3Os0did6W2/gfkFNtlY2g==","eJxNj8sKwjAQRX8ljFsXbX1Bt4IL1+5EZKyjDeQhyQSU0H93pm7c5Z5zuUMqPGLy0FcI6Al62Ef/ioECmxNltuFpFh0s4UOYxPKPwbSEtvri2E7Qn2EYox3oqkUeExFc1GdpOpoLsvjvVjUUf6OURUK7ASVMb9Z4LJlNjp6MElHrmhmTOk6FNLfyfqDLEprqkYfxKnvz1haUoXMWw/C7fXNlPtrICfQz4k7BHVl/fEjWHEswzc50TbeG6Qs3Oljc","eJxNj0sLAjEMhP9KiVcP+xJhr4IHz95kkbhGt9CHtCkoZf+7Tb14y8w3TJIMDx8sjBkcWoIRDt6+vCPH6kyRtXuqTQdb+BCGQvnnwbqFNttkWK8wXmBevJ7pKkFeAhFMwmNJGqqB0vjP+uySvVGIBUK7A3GY3izylCKr6C0pcQoacmQMwjgkEt2W+YEmFtFkizwv19JXu/YgHhqj0c119yQGE9p6CPey/44svx6DVqfkVLNXXdMNsH4BHMpW8g=="]));
       }}/> */}
+
+      <GradientButton title={"Transfer Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
+        const storedPicklist = await AsyncStorage.getItem('picklist');
+
+        ctx.setScreens(
+          [{
+            screen: SaveMatchScreen, 
+            props: {dataToShow: storedPicklist, param: 'picklist', title: " "},
+            name: 'Picklist QR',
+            onBack: () => {
+              ctx.setScreens(
+                [{
+                  screen: SettingsScreen, 
+                  name: 'Setting', 
+                  onBack: () => {
+                    ctx.setScreens([{screen: HomeScreen, name: 'Home'}])
+                  }
+                }]
+              )
+            }
+          }]
+        );
+      }}/>
 
       <GradientButton title={"Clear Picklist Data"} textStyle={{textAlign: 'center'}} onPress={async () => {
         AsyncStorage.removeItem('picklist');
@@ -901,16 +930,17 @@ const PicklistScreen = memo(({gradientDir}) => {
       tier_info: null,
       team_number: 0,
       team_name: '',
-      ranking: 0,
-      alliance: null,
-      alliance_pick: null,
-      qual_wins: 0,
-      qual_losses: 0,
-      qual_ties: 0,
-      playoff_wins: null,
-      playoff_losses: null,
-      playoff_ties: null,
-      picked: false
+      // ranking: 0,
+      // alliance: null,
+      // alliance_pick: null,
+      // qual_wins: 0,
+      // qual_losses: 0,
+      // qual_ties: 0,
+      // playoff_wins: null,
+      // playoff_losses: null,
+      // playoff_ties: null,
+      picked: false,
+      identifiers: [false, false, false, false]
     }
 
     const tiersDragData = [
@@ -942,16 +972,17 @@ const PicklistScreen = memo(({gradientDir}) => {
         tier_info: null,
         team_number: team.replace('frc', ''),
         team_name: teamName ? teamName : 'None',
-        ranking: tryGetSubkey(teamStatus, "qual.ranking.rank", "N/A"),
-        alliance: tryGetSubkey(teamStatus, "alliance.number", "N/A"),
-        alliance_pick: tryGetSubkey(teamStatus, "alliance.pick", "N/A"),
-        qual_wins: tryGetSubkey(teamStatus, "qual.ranking.record.wins", 0),
-        qual_losses: tryGetSubkey(teamStatus, "qual.ranking.record.losses", 0),
-        qual_ties: tryGetSubkey(teamStatus, "qual.ranking.record.ties", 0),
-        playoff_wins: tryGetSubkey(teamStatus, "playoff.record.wins", 0) ,
-        playoff_losses: tryGetSubkey(teamStatus, "playoff.record.losses", 0),
-        playoff_ties: tryGetSubkey(teamStatus, "playoff.record.ties", 0),
-        picked: false
+        // ranking: tryGetSubkey(teamStatus, "qual.ranking.rank", "N/A"),
+        // alliance: tryGetSubkey(teamStatus, "alliance.number", "N/A"),
+        // alliance_pick: tryGetSubkey(teamStatus, "alliance.pick", "N/A"),
+        // qual_wins: tryGetSubkey(teamStatus, "qual.ranking.record.wins", 0),
+        // qual_losses: tryGetSubkey(teamStatus, "qual.ranking.record.losses", 0),
+        // qual_ties: tryGetSubkey(teamStatus, "qual.ranking.record.ties", 0),
+        // playoff_wins: tryGetSubkey(teamStatus, "playoff.record.wins", 0) ,
+        // playoff_losses: tryGetSubkey(teamStatus, "playoff.record.losses", 0),
+        // playoff_ties: tryGetSubkey(teamStatus, "playoff.record.ties", 0),
+        picked: false,
+        identifiers: [false, false, false, false]
       });
     });
 
@@ -1062,7 +1093,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
     });
     setTeamsData(TD);
 
-    if (teamDriverStation !== "" && teamDriverStation !== undefined) {
+    if (teamDriverStation !== "" && teamDriverStation !== undefined && teamDriverStation !== 0) {
       setMatchDataKey(ctx, '0{team}', TD[teamDriverStation - 1].value);
     }
   }
@@ -1099,6 +1130,11 @@ const PrematchScreen = memo(({ gradientDir }) => {
 
   function tryGoNext() {
     if (alliance && matchNum && ctx.matchData["0{team}"] && ctx.matchData["0{team}"].length != 0) {
+      const driverStation = teamsData.findIndex((team) => String(team.value) === String(ctx.matchData["0{team}"])) + 1;
+      console.log(driverStation);
+
+      setMatchDataKey(ctx, "0{team_driver_station}", teamDriverStation);
+      
       console.log(alliance, matchNum, ctx.matchData["0{team}"]);
       ctx.slideScreen(1)
     } else {
@@ -1138,9 +1174,11 @@ const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
   const [qrData, setQRData] = useState('Hi!');
 
   async function getQRData() {
-    let qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
+    const param = props.param ? props.param : "match";
+
+    let qrData = `exp+nimbus://expo-development-client/?${param}=` + encodeURIComponent(DeflateString(JSON.stringify({...ctx.matchData, date: new Date().toDateString()})));
     if (props.dataToShow) {
-      qrData = "exp+nimbus://expo-development-client/?match=" + encodeURIComponent(DeflateString(JSON.stringify(props.dataToShow)));
+      qrData = `exp+nimbus://expo-development-client/?${param}=` + encodeURIComponent(props.dataToShow);
     }
     return qrData;
   }
@@ -1155,7 +1193,7 @@ const SaveMatchScreen = memo(({ gradientDir, props={}}) => {
 
   return (
   <ScreenShell gradientDir={gradientDir} scrollable={false} style={{justifyContent: 'center'}}>
-    { props.dataToShow ? <HeaderTitle title={`Match ${props.dataToShow["0{match_num}"]}, Team: ${props.dataToShow["0{team}"]}`} fontSize={30}/> : <HeaderTitle title='Save Match' fontSize={30}/> }
+    { props.title ? <HeaderTitle title={props.title} fontSize={30}/> : <HeaderTitle title='Save Match' fontSize={30}/> }
 
     <GradientQRCode text={qrData}/>
     

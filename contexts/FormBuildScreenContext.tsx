@@ -9,9 +9,16 @@ Date: June 25, 2020
 Code version: Not Specified
 Availability: https://savaslabs.com/blog/using-react-global-state-hooks-and-context
 */
+
+export type FormPage = {
+  name: string,
+  uuid: string,
+  elements: any[]
+}
+
 export type FormBuildScreenContextType = {
   formJson: any,
-  setFormJson: (formJson: any) => void
+  pages: FormPage[]
 }
 
 

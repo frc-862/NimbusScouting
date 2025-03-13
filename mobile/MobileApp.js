@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // My Custom Components & Functions
 import Globals from "../Globals";
-import AppContext from "../components/AppContext";
+import AppContext from "../contexts/AppContext";
 import { HomeScreen, PrematchScreen, SaveMatchScreen } from "./Screens/Screens";
 import { FormBuilder, GetFormJSONAsMatch, exampleJson } from "./FormBuilder";
 import { DeflateString, InflateString } from "../backend/DataCompression";
@@ -30,6 +30,8 @@ import { getBlueAllianceDataFromURL, getBlueAllianceMatches, getBlueAllianceTeam
 import { StatusBar } from "expo-status-bar";
 import { useKeepAwake } from "expo-keep-awake";
 import { json } from "d3";
+import { NameInputModal } from "./PopupsAndNotifications";
+import { AppButton, AppInput } from "../GlobalComponents";
 
 /**
  * This component allows for the ability to have dynamic forms, just displaying the component it is supplied with, with the props necessary.
@@ -80,6 +82,15 @@ const MobileApp = () => {
     let year = String(new Date().getFullYear());
     let event = "none";
 
+
+    await AsyncStorage.getItem('scouter name').then((data) => {
+      if (data) {
+        setScouterName(data);
+        return;
+      }
+      setScouterName('');
+      AsyncStorage.setItem('scouter name', '');
+    });
 
     // Load the year from storage
     await AsyncStorage.getItem('scouting settings').then((data) => {
@@ -236,6 +247,8 @@ const MobileApp = () => {
   const [events, setEvents] = useState([]);
   const [teamData, setTeamData] = useState([]);
 
+  const [scouterName, setScouterName] = useState('');
+
   useEffect(() => {
     if (!initialLoadDone) {
       return;
@@ -357,8 +370,14 @@ const MobileApp = () => {
       if (!storedMatchData.includes(match)) {
         await AsyncStorage.setItem('stored matches', JSON.stringify([...storedMatchData, match]));
 
-        showNotification("Successfully stored!", Globals.NotificationSuccessColor);
+        showNotification("Match Successfully stored!", Globals.NotificationSuccessColor);
       }
+    }
+
+    if (params["picklist"]) {
+      let picklist = decodeURIComponent(params["picklist"]);
+      await AsyncStorage.setItem('picklist', picklist);
+      showNotification("Picklist Successfully stored!", Globals.NotificationSuccessColor);
     }
   }
 
@@ -501,6 +520,8 @@ const MobileApp = () => {
     setScoutingSettings,
     teamData,
     setTeamData,
+    scouterName,
+    setScouterName,
 
     slideScreen,
     setLoadPercent,
@@ -527,7 +548,6 @@ const MobileApp = () => {
               <Text style={{fontSize: 17, fontWeight: 'thin', color: 'white', textAlign: 'center'}}>{notificationInfo.message}</Text>
             </View>
           </Animated.View>
-
 
           {/* Loading Modal */}
           <Modal

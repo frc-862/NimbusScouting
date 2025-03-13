@@ -14,7 +14,7 @@ import {
   Pressable
 } from 'react-native';
 import Globals from '../Globals';
-import AppContext from '../components/AppContext';
+import AppContext from '../contexts/AppContext';
 
 // Make some text that can be used as a header for different page components.
 const HeaderTitle = ({title = "null", style = {}, fontSize = 30}) => {
@@ -265,7 +265,7 @@ const PageContent = memo(({scrollable, gradientDir, style={}, ...props}) => {
           onMomentumScrollEnd={({nativeEvent}) => handleScroll(nativeEvent)} 
           scrollEventThrottle={17} 
           bounces={false} persistentScrollbar={true} alwaysBounceVertical={false} overScrollMode='never'>
-          <TouchableNativeFeedback style={{backgroundColor: 'red'}}>
+          <TouchableNativeFeedback>
             <View style={[styles.pageContent, style]}>
               {childElems}
             </View>

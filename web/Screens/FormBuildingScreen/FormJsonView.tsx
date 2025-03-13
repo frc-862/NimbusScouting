@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import Globals from "../../../Globals";
-import FormBuildScreenContext from "../../../components/FormBuildScreenContext";
+import FormBuildScreenContext from "../../../contexts/FormBuildScreenContext";
 
 
 // https://stackoverflow.com/questions/4810841/pretty-print-json-using-javascript

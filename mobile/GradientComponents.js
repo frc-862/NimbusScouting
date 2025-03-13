@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import * as Svg from 'react-native-svg';
 import Globals from '../Globals';
-import AppContext from '../components/AppContext';
+import AppContext from '../contexts/AppContext';
 import { AppButton, AppCheckbox, AppChoice, AppInput } from '../GlobalComponents';
 
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import { View, TouchableOpacity, Text, Animated, Pressable } from "react-native";
 import DragList, { DragListRenderItemInfo } from "react-native-draglist";
+import Globals from "../Globals";
 
 type Item = {
   key: string;
@@ -8,16 +9,8 @@ type Item = {
   tier_info: string;
   team_number: number;
   team_name: string;
-  ranking: number;
-  qual_wins: number;
-  qual_losses: number;
-  qual_ties: number;
-  alliance: number | null;
-  alliance_pick: number | null;
-  playoff_wins: number | null;
-  playoff_losses: number | null;
-  playoff_ties: number | null;
   picked: boolean;
+  identifiers: boolean[];
 };
 
 type DragDropProps = {
@@ -64,13 +57,14 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
   }, [listData]);
 
   const TeamCard = React.memo(({ item, index, dragStartFunc, dragEndFunc, ranking }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void, ranking: number }) => {
+    
     return (
-      <View style={{ flexDirection: 'row', width: '80%', height: 100, borderRadius: 10, alignContent: 'center', backgroundColor: item.picked ? "rgba(255, 0, 0, 0.5)" : "blue", margin: 5, padding: 10, }}>
+      <View style={{ flexDirection: 'row', width: '80%', height: 50, borderRadius: 10, overflow: 'hidden', alignContent: 'center', backgroundColor: item.picked ? "rgba(255, 0, 0, 0.5)" : Globals.GradientColor1, margin: 2.5 }}>
         
         {/* View for the picklist rank of the team */}
-        <Pressable style={{height: '100%', justifyContent: 'center', alignItems: 'center', flex: 5}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
+        <Pressable style={{height: '100%', justifyContent: 'center', alignItems: 'center', flex: 2}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
           <View style={{backgroundColor: 'orange', height: 2, width: '50%'}}></View>
-          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 32, }}>
+          <Text style={{ textAlign: 'center', fontWeight: "bold", color: Globals.GradientColor2, fontSize: 28, }}>
             {ranking}
           </Text>
           <View style={{backgroundColor: 'orange', height: 2, width: '50%'}}></View>
@@ -78,16 +72,79 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
 
         {/* View for the team info (as in name and number) */}
         <View style={{height: '100%', justifyContent: 'center', flex: 10}}>
-          <Text style={{ textAlign: 'center', color: "white", fontSize: 28, fontWeight: "bold",}}>
+          <Text style={{ textAlign: 'center', color: "white", fontSize: 24, fontWeight: "bold",}}>
             {item.team_number}
           </Text>
-          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 15, maxWidth: '100%'}} numberOfLines={1} ellipsizeMode='tail'>
+          <Text style={{ textAlign: 'center', fontWeight: "bold", color: "white", fontSize: 12, maxWidth: '100%'}} numberOfLines={1} ellipsizeMode='tail'>
             {item.team_name}
           </Text>
         </View>
 
+        <View style={{height: '100%', justifyContent: 'center', flex: 2, flexWrap: 'wrap', flexDirection: 'row'}}>
+          <TouchableOpacity style={{height: '50%', width: '50%', justifyContent: 'center', alignItems: 'center', backgroundColor: item.identifiers[0] ? Globals.GradientColor2 : 'transparent'}}
+            onPress={() => {
+              setData((prevData) => {
+                const copy = [...prevData];
+                if (index !== undefined) {
+                  copy[index].identifiers[0] = !copy[index].identifiers[0];
+                }
+                return copy;
+              });
+            }}
+          >
+            <Text style={{ textAlign: 'center',color: "white", fontSize: 16, fontWeight: "bold",}}>
+              A
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{height: '50%', width: '50%', justifyContent: 'center', alignItems: 'center', backgroundColor: item.identifiers[1] ? Globals.GradientColor2 : 'transparent'}}
+            onPress={() => {
+              setData((prevData) => {
+                const copy = [...prevData];
+                if (index !== undefined) {
+                  copy[index].identifiers[1] = !copy[index].identifiers[1];
+                }
+                return copy;
+              });
+            }}
+          >
+            <Text style={{ textAlign: 'center',color: "white", fontSize: 16, fontWeight: "bold",}}>
+              C
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{height: '50%', width: '50%', justifyContent: 'center', alignItems: 'center', backgroundColor: item.identifiers[2] ? Globals.GradientColor2 : 'transparent'}}
+            onPress={() => {
+              setData((prevData) => {
+                const copy = [...prevData];
+                if (index !== undefined) {
+                  copy[index].identifiers[2] = !copy[index].identifiers[2];
+                }
+                return copy;
+              });
+            }}
+          >
+            <Text style={{ textAlign: 'center',color: "white", fontSize: 16, fontWeight: "bold",}}>
+              D
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{height: '50%', width: '50%', justifyContent: 'center', alignItems: 'center', backgroundColor: item.identifiers[3] ? Globals.GradientColor2 : 'transparent'}}
+            onPress={() => {
+              setData((prevData) => {
+                const copy = [...prevData];
+                if (index !== undefined) {
+                  copy[index].identifiers[3] = !copy[index].identifiers[3];
+                }
+                return copy;
+              });
+            }}
+          >
+            <Text style={{ textAlign: 'center',color: "white", fontSize: 16, fontWeight: "bold",}}>
+              X
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* View for the team ranking and WLT ratio */}
-        <View style={{height: '100%', justifyContent: 'center', flex: 8}}>
+        {/* <View style={{height: '100%', justifyContent: 'center', flex: 8}}>
           <Text style={{ textAlign: 'right', color: "white", fontSize: 16, fontWeight: "bold",}}>
             Ranking: {item.ranking}
           </Text>
@@ -100,7 +157,7 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
           <Text style={{ textAlign: 'right', fontWeight: "bold", color: "white", fontSize: 16, }}>
             Ties: {item.qual_ties}
           </Text>
-        </View>
+        </View> */}
 
       </View>
     );
@@ -108,11 +165,11 @@ function DragDropList({ data, onDataChanged } : DragDropProps) {
 
   const TierCard = React.memo(({ item, index, dragStartFunc, dragEndFunc }: { item: Item, index: number | undefined, dragStartFunc: () => void, dragEndFunc: () => void }) => {
     return (
-      <View style={{ width: '80%', overflow: 'hidden', height: 50, borderRadius: 10, justifyContent: 'center', backgroundColor: "orange", margin: 5 }}>
-        <Text style={{ textAlign: 'center', color: "white", fontSize: 20, fontWeight: "bold",}}>{item.tier_info}</Text>
+      <View style={{ width: '80%', overflow: 'hidden', height: 40, borderRadius: 10, justifyContent: 'center', backgroundColor: Globals.GradientColor2, margin: 2.5 }}>
+        <Text style={{ textAlign: 'center', color: Globals.GradientColor1, fontSize: 20, fontWeight: "bold",}}>{item.tier_info}</Text>
         <Pressable style={{position: 'absolute', height: '100%', width: '10%', left: 5, justifyContent: 'center', alignItems: 'center'}} onPressIn={() => {dragStartFunc();}} onPressOut={() => {dragEndFunc();}}>
-          <View style={{backgroundColor: 'blue', height: 2, width: '70%', marginBottom: 5}}></View>
-          <View style={{backgroundColor: 'blue', height: 2, width: '70%'}}></View>
+          <View style={{backgroundColor: 'orange', height: 2, width: '70%', marginBottom: 5}}></View>
+          <View style={{backgroundColor: 'orange', height: 2, width: '70%'}}></View>
         </Pressable>
       </View>
     )

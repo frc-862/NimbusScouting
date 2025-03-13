@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Globals from './Globals';
-import { View, Animated, Text, Pressable, TextInput } from 'react-native';
+import { View, Animated, Text, Pressable, TextInput, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const AppButton = React.forwardRef(({children, hasGradient = true, style, outerStyle, innerStyle, gradientDirection, disabled, onHover = () => {}, onHoverLeave = () => {}, onPress = () => {}, onLayout = () => {}}, ref) => {
+const AnimPressable = Animated.createAnimatedComponent(Pressable);
+
+const AppButton = ({children, hasGradient = true, style, outerStyle, innerStyle, gradientDirection, disabled, onHover = () => {}, onHoverLeave = () => {}, onPress = () => {}, onLayout = () => {}}) => {
 
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -16,7 +18,7 @@ const AppButton = React.forwardRef(({children, hasGradient = true, style, outerS
   }
 
   return (
-    <Pressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => setOpacity(0.5, 0)} onPressOut={() => setOpacity(1, 100)} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
+    <AnimPressable onPointerEnter={onHover} onPointerLeave={onHoverLeave} onLayout={onLayout} onPressIn={() => { opacity.setValue(0.8); setOpacity(0.5, 150); }} onPressOut={() => { setOpacity(1, 250); }} onPress={onPress} style={[{borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden'}, outerStyle]}>
       <LinearGradient
         style={[{justifyContent: 'center', alignItems: 'center', position: 'absolute', width: '100%', height: '100%'}]}
         colors={hasGradient ? [Globals.GradientColor1, Globals.GradientColor2] : ['transparent', 'transparent']}
@@ -28,9 +30,9 @@ const AppButton = React.forwardRef(({children, hasGradient = true, style, outerS
         <Animated.View style={[{position: 'absolute', backgroundColor: Globals.ButtonColor, opacity: opacity, width: '100%', height: '100%'}, innerStyle]}/>
         {children}
       </Animated.View>
-    </Pressable>
+    </AnimPressable>
   );
-});
+};
 
 const AppLabel = ({title, style, onLayout = () => {}}) => {
   return (
@@ -77,7 +79,7 @@ const AppCheckbox = ({children, checked, checkedColor, hasGradient = true, gradi
   );
 }
 
-const AppInput = ({children, default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = () => {}, onLayout = () => {}, onLeave = () => {}}) => {
+const AppInput = ({children, default_value = '', regex, inputMode = 'search', title, showTitle = true, outerStyle, style, onValueChanged = (text) => {}, onLayout = () => {}, onLeave = () => {}}) => {
   const [text, setText] = useState(default_value);
 
   function textChanged(newText) {

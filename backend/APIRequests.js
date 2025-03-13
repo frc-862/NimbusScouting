@@ -140,7 +140,7 @@ async function getDatabaseDataFromURL(url_base, url_after, timeoutTime, headers 
       return response.data;
     })
     .catch(error => {
-      //alert(`${Object.keys(error)}, ${error.message}, ${error.name}, ${error.code}, ${JSON.stringify(error.request)}`);
+      console.log(JSON.stringify(error, null, 2));
       return "ERROR"
     });
 }

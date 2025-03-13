@@ -1,11 +1,12 @@
 // Objects are Pass By Reference, so I needed this
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import Globals from "../../../Globals";
-import FormBuildScreenContext, { FormBuildScreenContextType } from "../../../components/FormBuildScreenContext";
+import FormBuildScreenContext, { FormBuildScreenContextType, FormPage } from "../../../contexts/FormBuildScreenContext";
 import FormJsonView from "./FormJsonView";
 import PagesListView from "./PagesListView";
 import FormBuildExampleView from "./FormBulidExampleView";
+import { indexes } from "d3";
 
 // https://stackoverflow.com/questions/7574054/javascript-how-to-pass-object-by-value - Paul Varghese
 function clone(obj: any){
@@ -39,18 +40,21 @@ function uuidv4() {
 
 export default function FormBuildingScreenv2() {
   const [formJson, setFormJson] = React.useState([]);
+  
+  const [pages, setPages] = React.useState<FormPage[]>([{name: "aaaaa", uuid: uuidv4(), elements: []}, {name: "bbbbb", uuid: uuidv4(), elements: []}]);
+  const [pageNum, setPageNum] = React.useState(0);
 
   const ctx: FormBuildScreenContextType = {
     formJson,
-    setFormJson
+    pages,
   }
 
   return (
     <FormBuildScreenContext.Provider value={ctx}>
       <View style={{flex: 1, flexDirection: 'row', backgroundColor: Globals.PageColor}}>
-        <PagesListView />
+        <PagesListView onPress={(index: number) => {setPageNum(index)}}/>
 
-        <FormBuildExampleView/>
+        <FormBuildExampleView displayPage={pages[pageNum]}/>
         
         <FormJsonView />
       </View>

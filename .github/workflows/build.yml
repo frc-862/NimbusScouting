@@ -1,0 +1,243 @@
+name: Build React Native App
+
+on:
+  push:
+    branches:
+      - NoExpo
+  pull_request:
+    branches:
+      - NoExpo
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Gradle Deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+        
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prebuild Project
+        run: npx expo prebuild --platform android
+
+      - name: Create env file
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" > .env
+
+      - name: Decode Keystore from Secrets
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+
+      - name: Create `gradle.properties` with Signing Config
+        run: |
+          echo "NIMBUS_UPLOAD_STORE_FILE=keystore.jks" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "NIMBUS_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+  
+      - name: Inject Signing Config into build.gradle
+        run: |
+          sed -i '/signingConfigs {/a\
+              release {\n\
+                  storeFile file(System.getenv("NIMBUS_UPLOAD_STORE_FILE") ?: "keystore.jks")\n\
+                  storePassword System.getenv("NIMBUS_UPLOAD_STORE_PASSWORD")\n\
+                  keyAlias System.getenv("NIMBUS_UPLOAD_KEY_ALIAS")\n\
+                  keyPassword System.getenv("NIMBUS_UPLOAD_KEY_PASSWORD")\n\
+              }\n\
+          ' android/app/build.gradle
+
+          sed -i '/buildTypes {/a\
+              release {\n\
+                  signingConfig signingConfigs.release\n\
+              }\n\
+          ' android/app/build.gradle
+
+      - name: Grant Exec Permissions
+        run: chmod +x android/gradlew
+
+      - name: Build Android
+        run: cd android && ./gradlew assembleRelease --parallel --daemon --build-cache --configure-on-demand
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+  ios-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prebuild Project
+        run: npx expo prebuild --platform ios
+
+      - name: Create env file
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" > .env
+
+      - name: Install Fastlane
+        run: gem install fastlane -NV
+
+      - name: Update Xcode build number
+        run: |
+          cd ios
+          echo ${{ github.run_number }}
+          agvtool new-version -all ${{ github.run_number }}
+
+      - name: Decode and Install iOS Signing Certificate
+        run: |
+          echo "${{ secrets.IOS_DEVELOPER_CERTIFICATE_BASE64 }}" | base64 --decode > ios_certificate.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import ios_certificate.p12 -k build.keychain -P ${{ secrets.IOS_CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+      - name: Decode and Create Provisioning Profile
+        run: |
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ios_build.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles/
+          
+          # Extract the UUID from the provisioning profile
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(security cms -D -i ios_build.mobileprovision))
+          echo "Provisioning profile UUID: $PROFILE_UUID"
+          
+          # Extract the profile name for later use
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" /dev/stdin <<< $(security cms -D -i ios_build.mobileprovision))
+          echo "Provisioning profile name: $PROFILE_NAME"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          
+          # Move with the correct UUID filename
+          mv ios_build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+
+      - name: Install CocoaPods
+        run: cd ios && pod install
+      
+      - name: Build iOS (Signed)
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          # Make keychain accessible without user interaction
+          security set-keychain-settings -lut 21600 build.keychain
+          
+          # Find the identity to use for signing
+          IDENTITY=$(security find-identity -v build.keychain | grep -o '"[^"]*"' | head -1 | tr -d '"')
+          echo "Using identity: $IDENTITY"
+          
+          cd ios
+          xcodebuild \
+            -workspace nimbus.xcworkspace \
+            -scheme nimbus \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $PWD/build/nimbus.xcarchive \
+            -allowProvisioningUpdates \
+            CODE_SIGN_IDENTITY="$IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="Nimbus_Provisioning" \
+            DEVELOPMENT_TEAM="${{ secrets.TEAM_ID }}" \
+            CODE_SIGN_STYLE=Manual \
+            archive
+
+      - name: Create exportOptions.plist
+        run: |
+          cat > ios/exportOptions.plist << EOL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${{ secrets.TEAM_ID }}</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${{ secrets.APP_IDENTIFIER }}</key>
+              <string>Nimbus_Provisioning</string>
+            </dict>
+          </dict>
+          </plist>
+          EOL
+
+      - name: Export IPA
+        run: |
+          cd ios
+          xcodebuild -exportArchive \
+            -archivePath $PWD/build/nimbus.xcarchive \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath $PWD/build
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: ios/build/*.ipa
+
+      - name: Decode App Store Connect API Key
+        run: |
+          echo "${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}" | base64 --decode > ios/AuthKey.p8
+          chmod 600 ios/AuthKey.p8
+
+      - name: Create API Key JSON file
+        run: |
+          KEY_CONTENT=$(cat ios/AuthKey.p8 | sed 's/$/\\n/' | tr -d '\n')
+          echo '{
+            "key_id": "${{ secrets.APP_STORE_CONNECT_KEY_ID }}",
+            "issuer_id": "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}",
+            "key": "'"$KEY_CONTENT"'"
+          }' > ios/api_key.json
+          
+          # Validate JSON syntax
+          cat ios/api_key.json | jq '.' > /dev/null || echo "Warning: Invalid JSON format"
+      
+      - name: Upload to TestFlight
+        env:
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+        run: |
+          cd ios
+          fastlane pilot upload --verbose --ipa build/*.ipa --api_key_path ./api_key.json

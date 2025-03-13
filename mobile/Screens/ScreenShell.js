@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { View, StyleSheet, Platform, StatusBar } from 'react-native';
 import { PageHeader, PageContent, PageFooter } from '../PageComponents';
 import Globals from '../../Globals';
-import AppContext from '../../components/AppContext';
+import AppContext from '../../contexts/AppContext';
 
 /**
  * The parent component used on all screens.

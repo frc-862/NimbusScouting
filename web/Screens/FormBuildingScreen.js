@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, memo }from 'react';
 import { View, Image, ScrollView, TextInput, Pressable, Text, Modal, Linking } from "react-native";
-import FormBuilderContext from '../../components/FormBuilderContext';
+import FormBuilderContext from '../../contexts/FormBuilderContext';
 import { CustomScrollView, WebButton, WebCheckbox, WebHeader, WebInput, WebPhonePageView } from '../FormBuilder/Components';
 import { PageContent, PageFooter, PageHeader } from '../FormBuilder/PageComponents';
 import { Elements, ElementJSON, ElementProperties } from '../FormBuilder/Defaults';
@@ -8,7 +8,7 @@ import Globals from '../../Globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppButton, AppCheckbox, AppInput } from '../../GlobalComponents';
 import { isLeftHandSideExpression } from 'typescript';
-import { APIGet } from '../../backend/APIRequests';
+import { APIGet, getDatabaseDataFromURL, postDatabaseDataFromURL, putDatabaseDataFromURL } from '../../backend/APIRequests';
 
 // Objects are Pass By Reference, so I needed this
 // https://stackoverflow.com/questions/7574054/javascript-how-to-pass-object-by-value - Paul Varghese
@@ -127,6 +127,7 @@ const FormBuildingScreen = () => {
   useEffect(() => {
     if (showModal === 'load') {
       fetchFormData().then((data) => {
+        console.log("aaa", data);
         setFormAPIData(data);
       });
     }
@@ -150,14 +151,16 @@ const FormBuildingScreen = () => {
   }
 
   async function fetchFormData() {
+
+    // return getDatabaseDataFromURL('http://10.168.84.197/forms?x-api-key=', "", 1000, {}, {})
     // APIGet('https://api.robocoder.me/', 5000).then((data) => {console.log("a")})
-    return fetch('https://api.robocoder.me/forms', {
-      mode: 'cors',
+    return fetch('http://10.168.84.197/forms?x-api-key=', {
+      mode: 'no-cors',
       method: 'GET',
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        "x-api-key": undefined,
+        "x-api-key": "",
       },
     })
       .then((resp) => resp.json())
@@ -167,8 +170,9 @@ const FormBuildingScreen = () => {
   }
   
   async function postFormData(data, formName, formYear) {
-    return fetch('https://api.robocoder.me/form', {
-        mode: 'cors',
+    // return postDatabaseDataFromURL('http://10.168.84.197/form?x-api-key=', "", 1000, {year: formYear, name: formName, form: data}, {})
+    return fetch('https://api.robocoder.me/form?x-api-key=' + '', {
+        mode: 'no-cors',
         method: 'POST',
         headers: {
           Accept: "application/json",

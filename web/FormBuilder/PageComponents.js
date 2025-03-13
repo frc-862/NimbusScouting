@@ -15,7 +15,7 @@ import {
   Pressable
 } from 'react-native';
 import Globals from '../../Globals';
-import FormBuilderContext from '../../components/FormBuilderContext';
+import FormBuilderContext from '../../contexts/FormBuilderContext';
 
 // All of these are basically just copies from PageComponents.js, but changed to support web and the purpose of making a form, not using it.
 const PageHeader = ({title = "null", style = {}, infoText, gradientDir = 1}) => {
