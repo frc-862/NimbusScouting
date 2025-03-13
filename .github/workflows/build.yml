@@ -3,10 +3,7 @@ name: Build React Native App
 on:
   push:
     branches:
-      - NoExpo
-  pull_request:
-    branches:
-      - NoExpo
+      - main
 
 jobs:
   android-build:
