@@ -10,16 +10,16 @@ function PageButton({page, index, onPress}: {page: FormPage, index: number, onPr
 
     <AppButton onHover={() => {}} onPress={() => onPress(index)} style={{borderRadius: 0}} outerStyle={{width: '100%', borderRadius: 0}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
       <View style={{width: '100%', height: '100%', flexDirection: 'row', alignItems: 'center', padding: 5}}>
-        <Text style={{color: 'white', fontSize: 18, flex: 1, marginLeft: 2, marginVertical: 2}}>{page.name}</Text>
+        <Text style={{color: 'white', fontSize: 18, flex: 1, marginLeft: 2, marginVertical: 2}} selectable={false}>{page.name}</Text>
 
-        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Up</Text>
+        <AppButton onPress={() => {}} style={{borderRadius: 0, backgroundColor: 'blue'}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}} selectable={false}>Up</Text>
         </AppButton>
-        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Down</Text>
+        <AppButton onPress={() => {}} style={{borderRadius: 0, backgroundColor: 'blue'}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}} selectable={false}>Down</Text>
         </AppButton>
-        <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-          <Text style={{color: 'white', fontSize: 12, margin: 3}}>Del</Text>
+        <AppButton onPress={() => {}} style={{borderRadius: 0, backgroundColor: 'red'}} outerStyle={{borderRadius: 0, height: '100%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+          <Text style={{color: 'white', fontSize: 12, margin: 3}} selectable={false}>Del</Text>
         </AppButton>
       </View>
     </AppButton>
@@ -38,8 +38,8 @@ export default function PagesListView({onPress}: {onPress: (index: number) => vo
           )  
         }) 
       }
-      <AppButton onPress={() => {}} style={{borderRadius: 0}} outerStyle={{borderRadius: 0, width: '20%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
-        <Text style={{color: 'white', fontWeight: 'bold', fontSize: 24, marginBottom: 5}}>+</Text>
+      <AppButton onPress={() => {}} style={{borderRadius: 0, backgroundColor: 'green'}} outerStyle={{borderRadius: 0, width: '20%'}} innerStyle={undefined} gradientDirection={undefined} disabled={undefined}>
+        <Text style={{color: 'white', fontWeight: 'bold', fontSize: 24, marginBottom: 5}} selectable={false}>+</Text>
       </AppButton>
     </ScrollView>
   )

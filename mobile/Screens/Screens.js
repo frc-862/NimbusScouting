@@ -8,7 +8,7 @@ import { AppCheckbox, AppInput } from "../../GlobalComponents";
 import { GetFormJSONAsMatch } from "../FormBuilder";
 import { CompressPicklistJSON, DeflateString, InflateString } from "../../backend/DataCompression";
 import Globals from "../../Globals";
-import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
+import { APIGet, getBlueAllianceDataFromURL, getBlueAllianceMatches, getBlueAllianceTeams, getDatabaseDataFromURL, putOneToDatabase, testGet } from "../../backend/APIRequests";
 import { LeaveAnimationField, MicrophoneAnimationStage, NoteAnimationField, ParkAnimationField, TrapAnimationStage } from "../InfoAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DropdownComponent from "./Dropdown";
@@ -38,6 +38,15 @@ const HomeScreen = memo(({gradientDir}) => {
         if (ctx.currentForm === undefined) { ctx.showNotification("You don't have a form selected!", Globals.NotificationWarningColor); return; }
         if (ctx.scoutingSettings.event === "none") { ctx.showNotification("You don't have an event selected!", Globals.NotificationWarningColor); return; }
         if (ctx.scouterName === "") { ctx.showNotification("You don't have a name set!", Globals.NotificationWarningColor); return; }
+
+        // Try to load the team and match data. Keep going if it fails tho.
+        getBlueAllianceMatches(ctx.scoutingSettings.event, 3000).then((data) => {
+          ctx.setEventMatches(data);
+          AsyncStorage.setItem('event matches', JSON.stringify(data));
+          
+          // If the request succeeds, then go on to finding the team data.
+          ctx.getTeamData(ctx.scoutingSettings.event);
+        });
 
         ctx.setScreens(ctx.formInfo);
 
@@ -1043,6 +1052,15 @@ const PrematchScreen = memo(({ gradientDir }) => {
   useKeepAwake();
 
   useEffect(() => {
+    refreshTeamData();
+  }, [ctx.teamData]);
+
+  useEffect(() => {
+    setMatches(ctx.eventMatches);
+    refreshTeamData();
+  }, [ctx.eventMatches]);
+
+  useEffect(() => {
     if (teamInputType !== "choice") {
       ctx.matchData['0{team_driver_station}'] = "";
     } else {
@@ -1074,7 +1092,7 @@ const PrematchScreen = memo(({ gradientDir }) => {
     }
     // Get the team data from the matches.
     let match = matches.find((match) => match.comp_level === 'qm' && match.match_number === Number(matchNum));
-  
+
     if (match === undefined) {
       if (ctx.teamData === undefined || ctx.teamData.length === 0) {
         setTeamInputType("numbers");

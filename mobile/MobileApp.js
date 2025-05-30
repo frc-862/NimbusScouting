@@ -223,6 +223,7 @@ const MobileApp = () => {
       return;
     }
 
+    
     const newTeamData = teams.map((team, i) => ({team: team, name: teamNames[i], status: teamStatuses[team]}));
     AsyncStorage.setItem('team data', JSON.stringify(newTeamData));
     setTeamData(newTeamData);
@@ -528,6 +529,7 @@ const MobileApp = () => {
     showLoadError,
     showNotification,
     storeMatch,
+    getTeamData
   }
 
   if (screenIndex >= screens.length) {
